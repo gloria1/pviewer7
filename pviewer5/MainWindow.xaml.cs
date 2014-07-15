@@ -23,6 +23,7 @@ namespace pviewer5
 {
 	public enum Protocols { Pcap, Ethernet, Wifi, IPv4, ARP, IPv6, TCP, UDP, ICMP, Other, NA }
 
+
 	public class MACToMachineNameConverter : IValueConverter
 	{
 		static Dictionary<ulong, string> macnamemap = new Dictionary<ulong, string>();
