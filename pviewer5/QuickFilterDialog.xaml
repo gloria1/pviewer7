@@ -1,0 +1,80 @@
+﻿<Window x:Class="pviewer5.QuickFilterDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:pviewer5"
+        Title="QuickFilterDialog" Height="468.667" Width="451">
+    <Window.Resources>
+        <Style x:Key="QFDGCellStyle">
+            <Setter Property="Control.FontSize" Value="9pt"/>
+            <Setter Property="Control.FontFamily" Value="Courier New"/>
+            <Setter Property="Control.HorizontalAlignment" Value="Right"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Margin" Value="5,5,5,5"/>
+            <Setter Property="FontSize" Value="9pt"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+        <local:MACToMachineNameConverter x:Key="dmconverter"/>
+    </Window.Resources>
+    <Grid Name="QFDgrid"
+          Margin="20,29,20,11.333"
+          ShowGridLines="True">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <GroupBox Header="MACs to Exclude"
+                  Name="inclipbox"
+                  Grid.Column="0"  
+                  Grid.Row="0"
+                  Margin="5,5,5,5">
+            <!-- added Enable*Virtualization lines based on http://www.elegant-software.net/2014/05/performance-of-the-wpf-datagrid.html -->
+            <!-- added VirtualizingPanel lines based on http://www.codewrecks.com/blog/index.php/2012/07/06/wpf-datagrid-poor-performance-on-sorting/ -->
+            <DataGrid
+                Name="ExclMACDG"
+                EnableColumnVirtualization="True"
+                EnableRowVirtualization="True"
+                VirtualizingPanel.IsVirtualizing="True"
+                VirtualizingPanel.VirtualizationMode="Recycling"
+                AutoGenerateColumns="False"
+                ItemsSource="{Binding Path=exclmac}"
+                ItemStringFormat="x"
+                CellStyle="{StaticResource QFDGCellStyle}"
+                MouseRightButtonDown="QFDRMBDown"
+                MouseRightButtonUp="QFDRMBUp">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Mask" Binding="{Binding Path=mask}"/>
+                    <DataGridTextColumn Header="MAC" Binding="{Binding Path=value}"/>
+                    <DataGridCheckBoxColumn Header="Active" Binding="{Binding Path=active}"/>
+                </DataGrid.Columns>
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Name="addrow" Header="Add Row" Command="{x:Static local:QuickFilterDialog.qfdaddrow}"/>
+                        <MenuItem Header="Delete Row"/>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+            </DataGrid>
+        </GroupBox>
+        <WrapPanel Name="buttonbar"
+                   Grid.ColumnSpan="2"
+                   Grid.Row="2"
+                   HorizontalAlignment="Right"
+                   Margin="5,5,5,5">
+            <Button Content="Accept"
+                    Click="QFDAccept"/>
+            <Button Content="Cancel"
+                    Click="QFDCancel"/>
+            <Button Content="Save To Disk"
+                    Click="QFDSaveToDisk"/>
+            <Button Content="Load from Disk"
+                    Click="QFDLoadFromDisk"/>
+            <Button Content="Append From Disk"
+                    Click="QFDAppendFromDisk"/>
+        </WrapPanel>
+    </Grid>
+</Window>

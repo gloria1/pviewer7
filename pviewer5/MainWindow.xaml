@@ -1,0 +1,131 @@
+﻿<Window x:Class="pviewer5.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:pviewer5"
+        Title="MainWindow" Height="551.333" Width="549.667">
+
+    <Window.Resources>
+        <Style x:Key="DGCellStyle">
+            <Setter Property="Control.FontSize" Value="9pt"/>
+            <Setter Property="Control.FontFamily" Value="Courier New"/>
+            <Setter Property="Control.HorizontalAlignment" Value="Right"/>
+        </Style>
+        <local:MACToMachineNameConverter x:Key="dmconverter"/>
+    </Window.Resources>
+
+    <Grid Name="grid"
+          Margin="20,20,20,20"
+          ShowGridLines="True">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <WrapPanel Name="filebar"
+                   Grid.Column="0"
+                   Grid.Row="0"
+                   Margin="5,5,5,5">
+            <Button Content="Choose File"
+                    Click="ChooseFile"/>
+            <Label Content="Current File= "/>
+            <Label Name="filename"
+                   MinWidth="100"/>
+        </WrapPanel>
+        <WrapPanel Name="buttonbar"
+                   Grid.Column="0"
+                   Grid.Row="1"
+                   Margin="5,5,5,5">
+            <Button Content="Quick Filter"
+                    Click="qf"/>
+        </WrapPanel>
+        <GroupBox Header="Packet Sets"
+                  Name="packsetbox"
+                  Grid.Column="0"
+                  Grid.Row="2"
+                  Margin="5,5,5,5">
+            <ListBox ItemsSource="{Binding}"
+                     IsSynchronizedWithCurrentItem="True"
+                     MinHeight="100">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Path=Info}"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </GroupBox>
+        <GroupBox Header="Criteria of Current Set"
+                  Name="currentcriteriabox"
+                  Grid.Column="0"  
+                  Grid.Row="3"
+                  Margin="5,5,5,5">
+            <ListBox ItemsSource="{Binding Path=/criteria}"
+                     IsSynchronizedWithCurrentItem="True"
+                     MinHeight="100">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Path=CritInfo}"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </GroupBox>
+        <WrapPanel Name="viewsettings"
+                   Grid.Column="0"
+                   Grid.Row="4"
+                   Margin="5,5,5,5">
+            <CheckBox Name="showetherfields"
+                      Content="Show Ethernet"
+                    Click="showethertoggle"
+                      Margin="20,5"/>
+            <CheckBox Name="showarpbasicfields"
+                      Content="Show ARP Basic Fields"
+                    Click="showarpbasictoggle"
+                      Margin="20,5"/>
+            <CheckBox Name="showarpdetailfields"
+                      Content="Show ARP Detail Fields"
+                    Click="showarpdetailtoggle"
+                      Margin="20,5"/>
+            <CheckBox Name="showipv4basicfields"
+                      Content="Show IPv4 Basic Fields"
+                    Click="showipv4basictoggle"
+                      Margin="20,5"/>
+            <CheckBox Name="showipv4detailfields"
+                      Content="Show IPv4 Detail Fields"
+                    Click="showipv4detailtoggle"
+                      Margin="20,5"/>
+        </WrapPanel>
+        <GroupBox Header="Packets in Current Set"
+                  Name="currentpacketlistbox"
+                  Grid.Column="0"  
+                  Grid.Row="5"
+                  Margin="5,5,5,5">
+            <!-- added Enable*Virtualization lines based on http://www.elegant-software.net/2014/05/performance-of-the-wpf-datagrid.html -->
+            <!-- added VirtualizingPanel lines based on http://www.codewrecks.com/blog/index.php/2012/07/06/wpf-datagrid-poor-performance-on-sorting/ -->
+            <DataGrid
+                Name="PacketDataGrid"
+                EnableColumnVirtualization="True"
+                EnableRowVirtualization="True"
+                VirtualizingPanel.IsVirtualizing="True"
+                VirtualizingPanel.VirtualizationMode="Recycling"
+                AutoGenerateColumns="False"
+                ItemsSource="{Binding Path=/pkts}"
+                CellStyle="{StaticResource DGCellStyle}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Datalink" Binding="{Binding Path=ph.datalink}"/>
+                    <DataGridTextColumn Header="Timesecs" Binding="{Binding Path=ph.timesecs}"/>
+                    <DataGridTextColumn Header="Timeusecs" Binding="{Binding Path=ph.timeusecs}"/>
+                    <DataGridTextColumn Header="Caplen" Binding="{Binding Path=ph.caplen}" />
+                    <DataGridTextColumn Header="Wirelen" Binding="{Binding Path=ph.len}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
+    </Grid>
+
+
+</Window>
