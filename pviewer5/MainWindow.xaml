@@ -37,6 +37,7 @@
             <Label Content="Current File= "/>
             <Label Name="filename"
                    MinWidth="100"/>
+
         </WrapPanel>
         <WrapPanel Name="buttonbar"
                    Grid.Column="0"
@@ -44,6 +45,8 @@
                    Margin="5,5,5,5">
             <Button Content="Quick Filter"
                     Click="qf"/>
+            <Button Content="Window1"
+                    Click="w1"/>
         </WrapPanel>
         <GroupBox Header="Packet Sets"
                   Name="packsetbox"

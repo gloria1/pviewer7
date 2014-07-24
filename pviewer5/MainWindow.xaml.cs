@@ -575,6 +575,11 @@ namespace pviewer5
 			Window qf = new QuickFilterDialog(QF);
 			qf.ShowDialog();
 		}
+		private void w1(object sender, RoutedEventArgs e)
+		{
+			Window w1 = new Window1();
+			w1.ShowDialog();
+		}
 		private void showethertoggle(object sender, RoutedEventArgs e)
 		{
 			Visibility newvis = (bool)showetherfields.IsChecked ? Visibility.Visible : Visibility.Hidden;

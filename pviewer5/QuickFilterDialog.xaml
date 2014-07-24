@@ -44,9 +44,7 @@
                 AutoGenerateColumns="False"
                 ItemsSource="{Binding Path=exclmac}"
                 ItemStringFormat="x"
-                CellStyle="{StaticResource QFDGCellStyle}"
-                MouseRightButtonDown="QFDRMBDown"
-                MouseRightButtonUp="QFDRMBUp">
+                CellStyle="{StaticResource QFDGCellStyle}" Margin="-1,0,1,-0.333">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Mask" Binding="{Binding Path=mask}"/>
                     <DataGridTextColumn Header="MAC" Binding="{Binding Path=value}"/>
@@ -54,8 +52,8 @@
                 </DataGrid.Columns>
                 <DataGrid.ContextMenu>
                     <ContextMenu>
-                        <MenuItem Name="addrow" Header="Add Row" Command="{x:Static local:QuickFilterDialog.qfdaddrow}"/>
-                        <MenuItem Header="Delete Row"/>
+                        <MenuItem Name="menuitemqfdaddrow" Header="Add Row" Command="{x:Static local:QuickFilterDialog.qfdaddrow}"/>
+                        <MenuItem Name="menuitemqfddelrow" Header="Delete Row"/>
                     </ContextMenu>
                 </DataGrid.ContextMenu>
             </DataGrid>

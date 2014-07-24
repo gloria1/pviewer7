@@ -20,24 +20,13 @@ using Microsoft.Win32;
 
 namespace pviewer5
 {
-	/// <summary>
-	/// Interaction logic for QuickFilterDialog.xaml
-	/// </summary>
-/*	public partial class QuickFilterDialog : Window
-	{
-		public QuickFilterDialog()
-		{
-			InitializeComponent();
-		}
-	}
- * */
-
 
 	public class QFIndiv
 	{
 		public bool active;
 		public ulong nummatched;
 	}		// properties associated with an individual quickfilter criterion
+
 	public class QFIndivSet		// a dictionary, where the key is an ip or mac address and the value is QFIndiv, i.e., properties associated with that address
 	{
 		public Dictionary<ulong, QFIndiv> set = new Dictionary<ulong, QFIndiv>();
@@ -54,6 +43,7 @@ namespace pviewer5
 			else return false;
 		}
 	}
+
 	public class QuickFilter	// a filter consisting of dictionaries for criteria to include or exclude based on mac or ip
 	// for each dictionary, the key is the mask to be applied to the subject value, and the value is the QFIndivSet of criteria that use that mask
 	{
@@ -108,9 +98,6 @@ namespace pviewer5
 				return false;	// if we got this far, then an exclusion criterion was met and no inclusion criteria met, so result is false
 			}
 		}
-
-
-
 	}
 
 	public partial class QuickFilterDialog : Window
@@ -118,27 +105,43 @@ namespace pviewer5
 
 		public struct qfditems
 		{
-			public ulong mask;
-			public ulong value;
-			public bool active;
+			public ulong mask { get; set; }
+			public ulong value { get; set; }
+			public bool active {get;set;}
 		}
-		public ObservableCollection<qfditems> exclmac = new ObservableCollection<qfditems>();
-		public ObservableCollection<qfditems> inclmac = new ObservableCollection<qfditems>();
-		public ObservableCollection<qfditems> exclip = new ObservableCollection<qfditems>();
-		public ObservableCollection<qfditems> inclip = new ObservableCollection<qfditems>();
+		public ObservableCollection<qfditems> exclmac { get; set; }
+		public ObservableCollection<qfditems> inclmac { get; set; }
+		public ObservableCollection<qfditems> exclip { get; set; }
+		public ObservableCollection<qfditems> inclip { get; set; }
 
 		public static RoutedCommand qfdaddrow = new RoutedCommand();
-		public CommandBinding qfdaddrowbinding = new CommandBinding(qfdaddrow, Executedqfdaddrow, CanExecuteqfdaddrow);
+		public CommandBinding qfdaddrowbinding;
 
 		public QuickFilterDialog(QuickFilter qf)
 		{
+			exclmac = new ObservableCollection<qfditems>();
+			inclmac = new ObservableCollection<qfditems>();
+			exclip = new ObservableCollection<qfditems>();
+			inclip = new ObservableCollection<qfditems>();
+
+
 			// make local copy of quick filter, in ObservableCollections to back data grids
+			qfditems qi = new qfditems();
+			qi.mask = 1; qi.value = 2; qi.active = true;
+
+			exclmac.Add(qi);
 
 			InitializeComponent();
 			QFDgrid.DataContext = this;
+			// does not work if instantiate the command inside the constructor
+			// qfdaddrow = new RoutedCommand();
+			qfdaddrowbinding = new CommandBinding(qfdaddrow, Executedqfdaddrow, CanExecuteqfdaddrow);
+			//qfdaddrowbinding.PreviewExecuted += PreviewExecutedqfdaddrow;
+			ExclMACDG.CommandBindings.Add(qfdaddrowbinding);
+			
 		}
 
-		/*		 *   qfwindow:  dialog to add, delete and switch active/invacive
+		/*		 *   qfwindow:  dialog to add, delete and switch active/inactive
 		 *		separate class from qf
 		 *		constructor takes reference to a qf as argument, copies data into local ObservableCollection for a datagrid
 		 *		event handlers for 
@@ -169,34 +172,17 @@ namespace pviewer5
 		private void QFDAppendFromDisk(object sender, RoutedEventArgs e)
 		{
 		}
-		private void QFDRMBDown(object sender, RoutedEventArgs e)
-		{
-			Console.WriteLine("RMBDown " + ((Control)sender).Name + ", " + e.OriginalSource);
-		}
-		private void QFDRMBUp(object sender, RoutedEventArgs e)
-		{
-			Console.WriteLine("RMBUp   " + ((Control)sender).Name + ", " + e.OriginalSource);
-		}
-		private void QFDAddRow(object sender, RoutedEventArgs e)
-		{
-			Console.WriteLine("AddRow  " + ((Control)sender).Name + ", " + e.OriginalSource);
-		}
-		private void QFDDeleteRow(object sender, RoutedEventArgs e)
-		{
-			Console.WriteLine(((Control)sender).Name + ", " + e.OriginalSource);
-		}
-
 		private static void Executedqfdaddrow(object sender, ExecutedRoutedEventArgs e)
 		{
-			DataGridCell cell = (DataGridCell)e.OriginalSource;
-			DataGrid dg = (DataGrid)sender;
 			MessageBox.Show("Executedqfdaddrow function - actually executes the command");
+		}
+		private static void PreviewExecutedqfdaddrow(object sender, ExecutedRoutedEventArgs e)
+		{
+			MessageBox.Show("PreviewExecutedqfdaddrow function - actually executes the command");
 		}
 		private static void CanExecuteqfdaddrow(object sender, CanExecuteRoutedEventArgs e)
 		{
-			Control target = e.Source as Control;
-			if (target != null) { e.CanExecute = true; }
-			else { e.CanExecute = false; }
+			e.CanExecute = true;
 		}
 
 	}
