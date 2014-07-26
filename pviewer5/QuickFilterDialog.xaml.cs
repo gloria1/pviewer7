@@ -100,36 +100,38 @@ namespace pviewer5
 		}
 	}
 
+	public class qfditem
+	{
+		public ulong mask { get; set; }
+		public ulong value { get; set; }
+		public bool active { get; set; }
+
+		public qfditem(ulong m, ulong v, bool a)
+		{
+			mask = m; value = v; active = a;
+		}
+	}
+
 	public partial class QuickFilterDialog : Window
 	{
-
-		public struct qfditems
-		{
-			public ulong mask { get; set; }
-			public ulong value { get; set; }
-			public bool active {get;set;}
-		}
-		public ObservableCollection<qfditems> exclmac { get; set; }
-		public ObservableCollection<qfditems> inclmac { get; set; }
-		public ObservableCollection<qfditems> exclip { get; set; }
-		public ObservableCollection<qfditems> inclip { get; set; }
+		public ObservableCollection<qfditem> exclmac { get; set; }
+		public ObservableCollection<qfditem> inclmac { get; set; }
+		public ObservableCollection<qfditem> exclip { get; set; }
+		public ObservableCollection<qfditem> inclip { get; set; }
 
 		public static RoutedCommand qfdaddrow = new RoutedCommand();
 		public CommandBinding qfdaddrowbinding;
 
 		public QuickFilterDialog(QuickFilter qf)
 		{
-			exclmac = new ObservableCollection<qfditems>();
-			inclmac = new ObservableCollection<qfditems>();
-			exclip = new ObservableCollection<qfditems>();
-			inclip = new ObservableCollection<qfditems>();
+			exclmac = new ObservableCollection<qfditem>();
+			inclmac = new ObservableCollection<qfditem>();
+			exclip = new ObservableCollection<qfditem>();
+			inclip = new ObservableCollection<qfditem>();
 
 
 			// make local copy of quick filter, in ObservableCollections to back data grids
-			qfditems qi = new qfditems();
-			qi.mask = 1; qi.value = 2; qi.active = true;
-
-			exclmac.Add(qi);
+			exclmac.Add(new qfditem(1,2,true));
 
 			InitializeComponent();
 			QFDgrid.DataContext = this;
@@ -138,7 +140,21 @@ namespace pviewer5
 			qfdaddrowbinding = new CommandBinding(qfdaddrow, Executedqfdaddrow, CanExecuteqfdaddrow);
 			//qfdaddrowbinding.PreviewExecuted += PreviewExecutedqfdaddrow;
 			ExclMACDG.CommandBindings.Add(qfdaddrowbinding);
-			
+
+			/*
+			 * MAINTENTANCE
+			 *		PUT GIT USERNAME AND EMAIL INTO WINES
+			 *				CMSUCHAR
+			 *				CMSUCHAR@VERIZON.NET
+			 *				
+			 * MUSIC ON IPHONNE
+			 * MUSIC ON SD CARD
+			 * CHANGE VIDS ON SD CARD
+			 */
+
+
+
+
 		}
 
 		/*		 *   qfwindow:  dialog to add, delete and switch active/inactive

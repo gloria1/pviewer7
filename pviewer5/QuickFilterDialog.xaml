@@ -43,8 +43,7 @@
                 VirtualizingPanel.VirtualizationMode="Recycling"
                 AutoGenerateColumns="False"
                 ItemsSource="{Binding Path=exclmac}"
-                ItemStringFormat="x"
-                CellStyle="{StaticResource QFDGCellStyle}" Margin="-1,0,1,-0.333">
+                ItemStringFormat="x">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Mask" Binding="{Binding Path=mask}"/>
                     <DataGridTextColumn Header="MAC" Binding="{Binding Path=value}"/>

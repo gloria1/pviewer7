@@ -3,15 +3,37 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:pviewer5"
         Title="Window1" Height="300" Width="300">
-    <Grid Name="W1Grid">
+    <Window.Resources>
+        <Style x:Key="W1DGCellStyle"
+               TargetType="DataGridCell">
+            <Setter Property="Control.FontSize" Value="9pt"/>
+            <Setter Property="Control.FontFamily" Value="Courier New"/>
+            <Setter Property="Control.HorizontalAlignment" Value="Right"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="SeaGreen"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Margin" Value="5,5,5,5"/>
+            <Setter Property="FontSize" Value="9pt"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+        <local:MACToMachineNameConverter x:Key="dmconverter"/>
+    </Window.Resources>
+    <Grid Name="W1Grid"
+         ShowGridLines="True">
         <Grid.RowDefinitions>
             <RowDefinition/>
             <RowDefinition/>
+            <RowDefinition/>
         </Grid.RowDefinitions>
-        <WrapPanel Grid.Row="0">
+        <WrapPanel Grid.Row="2">
             <Button Content="Command"/>
         </WrapPanel>
-        <WrapPanel Grid.Row="1">
+        <GroupBox Header="Window 1 DG groupbox"
+                  Grid.Row="1">
             <DataGrid
                 Name="w1dg"
                 ItemsSource="{Binding Path=list}"
@@ -19,7 +41,9 @@
                 EnableRowVirtualization="True"
                 VirtualizingPanel.IsVirtualizing="True"
                 VirtualizingPanel.VirtualizationMode="Recycling"
-                AutoGenerateColumns="False">
+                AutoGenerateColumns="False"
+                ItemStringFormat="x"
+                >
                 <DataGrid.Columns>
                     <DataGridCheckBoxColumn Header="OnOff" Binding="{Binding Path=onoff}"/>
                     <DataGridTextColumn Header="Text1" Binding="{Binding Path=text1}"/>
@@ -31,9 +55,8 @@
                         <MenuItem Name="w1delrow" Header="Delete Row"/>
                     </ContextMenu>
                 </DataGrid.ContextMenu>
-
             </DataGrid>
-        </WrapPanel>
+        </GroupBox>
 
     </Grid>
 </Window>

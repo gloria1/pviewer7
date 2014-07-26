@@ -46,12 +46,13 @@ namespace pviewer5
 
 		public Window1()
 		{
+			InitializeComponent();
+
 			list = new ObservableCollection<listrow>();
 			list.Add(new listrow(true, "11", "12"));
 			list.Add(new listrow(true, "21", "22"));
 			list.Add(new listrow(true, "31", "32"));
 
-			InitializeComponent();
 			W1Grid.DataContext = this;
 			LAddBinding = new CommandBinding(LAdd, ExecutedLadd, CanExecuteLadd);
 			w1dg.CommandBindings.Add(LAddBinding);
