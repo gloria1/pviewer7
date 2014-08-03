@@ -23,33 +23,6 @@ namespace pviewer5
 {
 	public enum Protocols { Pcap, Ethernet, Wifi, IPv4, ARP, IPv6, TCP, UDP, ICMP, Other, NA }
 
-
-	public class MACToMachineNameConverter : IValueConverter
-	{
-		static Dictionary<ulong, string> macnamemap = new Dictionary<ulong, string>();
-		static MACToMachineNameConverter()
-		{
-			macnamemap.Add(0xc86000c667df, "win8fs 4");
-			macnamemap.Add(0x5404a62bbb5c, "cnvssd7 3");
-			macnamemap.Add(0x000e0cc442ff, "svr 2");
-			macnamemap.Add(0xb0c74536471a, "buffalo ether");
-			macnamemap.Add(0xb0c745364710, "buffalo 24g");
-			macnamemap.Add(0xb0c745364715, "buffalo 5g");
-		}
-
-		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			if (macnamemap.ContainsKey((ulong)value))
-				return macnamemap[(ulong)value];
-			else
-				return String.Format("{0:x}", value);
-		}
-
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			throw new NotImplementedException();
-		}
-	}
 	
 	public class HeaderField				// HeaderField class - purpose is to contain all information that exists for a given header field
 	{										// 	this includes:
@@ -168,7 +141,7 @@ namespace pviewer5
 	public class EthernetHeader : Header
 	{
 		public ulong DestMAC { get; set; }
-		public static MACToMachineNameConverter dmconverter = new MACToMachineNameConverter();
+		public static MACConverter macconverter = new MACConverter();
 		public ulong SrcMAC { get; set; }
 		public uint TypeLen { get; set; }
 
@@ -178,7 +151,7 @@ namespace pviewer5
 			string s;
 
 			s = "DestMAC"; HF.Add(s, new HeaderField(s, Protocols.Ethernet, true, MainWindow.PacketDG, "L2Hdr." + s));
-			((Binding)(HF[s].DGCol.Binding)).Converter = dmconverter;
+			((Binding)(HF[s].DGCol.Binding)).Converter = macconverter;
 			s = "SrcMAC"; HF.Add(s, new HeaderField(s, Protocols.Ethernet, true, MainWindow.PacketDG, "L2Hdr." + s));
 			s = "TypeLen"; HF.Add(s, new HeaderField(s, Protocols.Ethernet, true, MainWindow.PacketDG, "L2Hdr." + s));
 			MainWindow.HFDict.Add(Protocols.Ethernet, HF);
@@ -514,8 +487,23 @@ namespace pviewer5
 
 
 
+	public class DisplaySettings : INotifyPropertyChanged
+	{
+		private bool displayaliases = false;
+		private bool displayipv4inhex = true;
 
+		public bool DisplayAliases { get { return displayaliases; } set { displayaliases = value; Notify(); } }
+		public bool DisplayIPv4InHex { get { return displayipv4inhex; } set { displayipv4inhex= value; Notify(); } }
 
+		public event PropertyChangedEventHandler PropertyChanged;
+
+		protected void Notify()
+		{
+			if (PropertyChanged != null)
+				PropertyChanged(this, new PropertyChangedEventArgs(null));
+		}
+
+	}
 
 
 
@@ -524,7 +512,7 @@ namespace pviewer5
 	{
 		public PcapFileHdr pfh;
 		public PktSetList setlist = new PktSetList();
-		public QuickFilter QF = new QuickFilter();
+		public ObservableCollection<QFItem> qf = new ObservableCollection<QFItem>();
 
 		string s;
 		public Dictionary<string, HeaderField> HF = new Dictionary<string, HeaderField>();
@@ -533,6 +521,8 @@ namespace pviewer5
 		// master dictionary of header field information
 		// top level is dict by protocol
 		// each entry is in turn a dictionary of HeaderField by field name
+		public static DisplaySettings ds = new DisplaySettings();
+
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -570,15 +560,23 @@ namespace pviewer5
 			if (DG1.Visibility == Visibility.Visible) { DG1.Visibility = Visibility.Hidden; DG2.Visibility = Visibility.Visible; }
 			else { DG2.Visibility = Visibility.Hidden; DG1.Visibility = Visibility.Visible; }
 		}*/
-		private void qf(object sender, RoutedEventArgs e)
+		private void qfbutton(object sender, RoutedEventArgs e)
 		{
-			Window qf = new QuickFilterDialog(QF);
-			qf.ShowDialog();
+			Window qfd = new QuickFilterDialog(qf);
+			qfd.ShowDialog();
 		}
-		private void w1(object sender, RoutedEventArgs e)
+		private void mnmbutton(object sender, RoutedEventArgs e)
 		{
-			Window w1 = new Window1();
+			Window w1 = new MACInputDialog();
 			w1.ShowDialog();
+		}
+		private void displayaliastoggle(object sender, RoutedEventArgs e)
+		{
+			ds.DisplayAliases = (bool)displayaliascheckbox.IsChecked;
+		}
+		private void displayipv4inhextoggle(object sender, RoutedEventArgs e)
+		{
+			ds.DisplayIPv4InHex = (bool)displayipv4inhexcheckbox.IsChecked;
 		}
 		private void showethertoggle(object sender, RoutedEventArgs e)
 		{

@@ -20,7 +20,6 @@
             <Setter Property="FontSize" Value="9pt"/>
             <Setter Property="HorizontalAlignment" Value="Center"/>
         </Style>
-        <local:MACToMachineNameConverter x:Key="dmconverter"/>
     </Window.Resources>
     <Grid Name="W1Grid"
          ShowGridLines="True">

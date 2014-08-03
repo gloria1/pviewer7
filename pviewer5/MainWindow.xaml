@@ -10,7 +10,7 @@
             <Setter Property="Control.FontFamily" Value="Courier New"/>
             <Setter Property="Control.HorizontalAlignment" Value="Right"/>
         </Style>
-        <local:MACToMachineNameConverter x:Key="dmconverter"/>
+        <local:MACConverter x:Key="macconverter"/>
     </Window.Resources>
 
     <Grid Name="grid"
@@ -44,9 +44,9 @@
                    Grid.Row="1"
                    Margin="5,5,5,5">
             <Button Content="Quick Filter"
-                    Click="qf"/>
-            <Button Content="Window1"
-                    Click="w1"/>
+                    Click="qfbutton"/>
+            <Button Content="MAC Aliases"
+                    Click="mnmbutton"/>
         </WrapPanel>
         <GroupBox Header="Packet Sets"
                   Name="packsetbox"
@@ -82,6 +82,14 @@
                    Grid.Column="0"
                    Grid.Row="4"
                    Margin="5,5,5,5">
+            <CheckBox Name="displayaliascheckbox"
+                      Content="Display Aliases"
+                    Click="displayaliastoggle"
+                      Margin="20,5"/>
+            <CheckBox Name="displayipv4inhexcheckbox"
+                      Content="Display IPv4 in Hex"
+                    Click="displayipv4inhextoggle"
+                      Margin="20,5"/>
             <CheckBox Name="showetherfields"
                       Content="Show Ethernet"
                     Click="showethertoggle"

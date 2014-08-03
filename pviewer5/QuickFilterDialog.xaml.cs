@@ -20,126 +20,64 @@ using Microsoft.Win32;
 
 namespace pviewer5
 {
+	public enum QFIncl { Include, Exclude }   // Include means if this criterion is matched, include the packet
 
-	public class QFIndiv
+	public class QFItem
 	{
-		public bool active;
-		public ulong nummatched;
-	}		// properties associated with an individual quickfilter criterion
+		public static List<QFIncl> QFInclItems = new List<QFIncl>() { QFIncl.Include, QFIncl.Exclude };
 
-	public class QFIndivSet		// a dictionary, where the key is an ip or mac address and the value is QFIndiv, i.e., properties associated with that address
-	{
-		public Dictionary<ulong, QFIndiv> set = new Dictionary<ulong, QFIndiv>();
-
-		public bool match(ulong value)
-		{
-			if (set.ContainsKey(value))
-				if (set[value].active)
-				{
-					set[value].nummatched++;
-					return true;
-				}
-				else return false;
-			else return false;
-		}
+		public QFIncl inclusion {get; set;}
+		public ulong mask {get; set;}
+		public ulong value {get; set;}
+		public bool active {get; set;}
+		public ulong nummatched {get; set;}
 	}
 
-	public class QuickFilter	// a filter consisting of dictionaries for criteria to include or exclude based on mac or ip
-	// for each dictionary, the key is the mask to be applied to the subject value, and the value is the QFIndivSet of criteria that use that mask
-	{
-		public Dictionary<ulong, QFIndivSet> exclmac = new Dictionary<ulong, QFIndivSet>();	// key will be the mask for each set
-		public Dictionary<ulong, QFIndivSet> exclip = new Dictionary<ulong, QFIndivSet>();	// key will be the mask for each set
-		public Dictionary<ulong, QFIndivSet> inclmac = new Dictionary<ulong, QFIndivSet>();	// key will be the mask for each set
-		public Dictionary<ulong, QFIndivSet> inclip = new Dictionary<ulong, QFIndivSet>();	// key will be the mask for each set
 
-		public bool includebasedonmac(ulong value)
-		{
-			bool exclcriterionmet = false;	// default result is to include
+	// BOOKMARK
+	// working on setting up datagrid columsn for qfdialog
+	// need to distinguish between MAC and IP filters
+	// MAC/IP column should be combobox that allows selection of existing alias strings
 
-			foreach (ulong mask in exclmac.Keys)
-			{
-				if (exclmac[mask].match(value & mask))
-				{
-					exclcriterionmet = true;	// exclusion criteria say this packet should be excluded (pending test vs. inclusion criteria)
-					break;				// no need to test against other exclusion criteria
-				}
-			}
-			if (!exclcriterionmet) return true;	// if no exclusion criteria met, no need to test against inclusion criteria
-			else
-			{								// if we are in this branch, an exclusion criterion was met, so we test against inclusion criteria
-				//     if an inclusion criterion is satisfied, that overrides the exclusion criteria
-				foreach (ulong mask in inclmac.Keys)
-				{
-					if (exclmac[mask].match(value & mask)) return true;	// if match an inclusion criterion, we are done and return true
-				}
-				return false;	// if we got this far, then an exclusion criterion was met and no inclusion criteria met, so result is false
-			}
-		}
-		public bool includebasedonip(ulong value)
-		{
-			bool exclcriterionmet = false;	// default result is to include
 
-			foreach (ulong mask in exclip.Keys)
-			{
-				if (exclmac[mask].match(value & mask))
-				{
-					exclcriterionmet = true;	// exclusion criteria say this packet should be excluded (pending test vs. inclusion criteria)
-					break;				// no need to test against other exclusion criteria
-				}
-			}
-			if (!exclcriterionmet) return true;	// if no exclusion criteria met, no need to test against inclusion criteria
-			else
-			{								// if we are in this branch, an exclusion criterion was met, so we test against inclusion criteria
-				//     if an inclusion criterion is satisfied, that overrides the exclusion criteria
-				foreach (ulong mask in inclip.Keys)
-				{
-					if (exclmac[mask].match(value & mask)) return true;	// if match an inclusion criterion, we are done and return true
-				}
-				return false;	// if we got this far, then an exclusion criterion was met and no inclusion criteria met, so result is false
-			}
-		}
-	}
-
-	public class qfditem
-	{
-		public ulong mask { get; set; }
-		public ulong value { get; set; }
-		public bool active { get; set; }
-
-		public qfditem(ulong m, ulong v, bool a)
-		{
-			mask = m; value = v; active = a;
-		}
-	}
-
+	
+	
+	
+	
+	
 	public partial class QuickFilterDialog : Window
 	{
-		public ObservableCollection<qfditem> exclmac { get; set; }
-		public ObservableCollection<qfditem> inclmac { get; set; }
-		public ObservableCollection<qfditem> exclip { get; set; }
-		public ObservableCollection<qfditem> inclip { get; set; }
-
-		public static RoutedCommand qfdaddrow = new RoutedCommand();
-		public CommandBinding qfdaddrowbinding;
-
-		public QuickFilterDialog(QuickFilter qf)
+		public static RoutedCommand qfaddrow = new RoutedCommand();
+		public ObservableCollection<QFItem> qfproperty { get; set; }
+		
+		public QuickFilterDialog(ObservableCollection<QFItem> qfarg)
 		{
-			exclmac = new ObservableCollection<qfditem>();
-			inclmac = new ObservableCollection<qfditem>();
-			exclip = new ObservableCollection<qfditem>();
-			inclip = new ObservableCollection<qfditem>();
+			CommandBinding qfaddrowbinding;
 
-
-			// make local copy of quick filter, in ObservableCollections to back data grids
-			exclmac.Add(new qfditem(1,2,true));
+			qfproperty = qfarg;
 
 			InitializeComponent();
-			QFDgrid.DataContext = this;
-			// does not work if instantiate the command inside the constructor
-			// qfdaddrow = new RoutedCommand();
-			qfdaddrowbinding = new CommandBinding(qfdaddrow, Executedqfdaddrow, CanExecuteqfdaddrow);
-			//qfdaddrowbinding.PreviewExecuted += PreviewExecutedqfdaddrow;
-			ExclMACDG.CommandBindings.Add(qfdaddrowbinding);
+			QFMACDG.DataContext = this;
+
+			qfaddrowbinding = new CommandBinding(qfaddrow, Executedaddrow, CanExecuteaddrow);
+			QFMACDG.CommandBindings.Add(qfaddrowbinding);
+			qfmacaddrowmenuitem.CommandTarget = QFMACDG;   // added this so that menu command would not be disabled when datagrid first created; not sure exactly why this works, books/online articles refer to WPF not correctly determining the intended command target based on focus model (logical focus? keyboard focus?), so you have to set the command target explicitly
+
+	// BOOKMARK
+	// CHANGING QUICKFILTER STRUCTURE TO SIMPLE LIST (OBSERVABLE COLLECTION ACTUALLY)
+	// WILL RELY ON BRUTE FORCE TO TEST EACH PACKET AGAINST THE LIST
+	// NOW THE DIALOG DATAGRID CAN BIND DIRECTLY TO THE QUICKFILTER
+	// Next steps:
+
+			//		checkboxes to toggle aliasing of mac/ip addresses
+			//		protocol column s.b. combo
+			//		value converter for macs, ips, to format address
+			//		allow input in hex
+			//		allow input in mac, ip format
+			//		drag and drop
+			//		add/delete row respect multi selections
+
+
 
 			/*
 			 * MAINTENTANCE
@@ -147,15 +85,13 @@ namespace pviewer5
 			 *				CMSUCHAR
 			 *				CMSUCHAR@VERIZON.NET
 			 *				
-			 * MUSIC ON IPHONNE
+			 * MUSIC ON IPHONE
 			 * MUSIC ON SD CARD
 			 * CHANGE VIDS ON SD CARD
 			 */
 
-
-
-
 		}
+
 
 		/*		 *   qfwindow:  dialog to add, delete and switch active/inactive
 		 *		separate class from qf
@@ -188,15 +124,19 @@ namespace pviewer5
 		private void QFDAppendFromDisk(object sender, RoutedEventArgs e)
 		{
 		}
-		private static void Executedqfdaddrow(object sender, ExecutedRoutedEventArgs e)
+		private static void Executedaddrow(object sender, ExecutedRoutedEventArgs e)
 		{
-			MessageBox.Show("Executedqfdaddrow function - actually executes the command");
+			ObservableCollection<QFItem> q;
+			DataGrid dg = (DataGrid)e.Source;
+
+			q = (ObservableCollection<QFItem>)(dg.ItemsSource);
+			q.Add(new QFItem());
 		}
-		private static void PreviewExecutedqfdaddrow(object sender, ExecutedRoutedEventArgs e)
+		private static void PreviewExecutedaddrow(object sender, ExecutedRoutedEventArgs e)
 		{
 			MessageBox.Show("PreviewExecutedqfdaddrow function - actually executes the command");
 		}
-		private static void CanExecuteqfdaddrow(object sender, CanExecuteRoutedEventArgs e)
+		private static void CanExecuteaddrow(object sender, CanExecuteRoutedEventArgs e)
 		{
 			e.CanExecute = true;
 		}
