@@ -141,7 +141,7 @@ namespace pviewer5
 	public class EthernetHeader : Header
 	{
 		public ulong DestMAC { get; set; }
-		public static MACConverter macconverter = new MACConverter();
+		public static MACConverterNumberOrAlias macconverter = new MACConverterNumberOrAlias();
 		public ulong SrcMAC { get; set; }
 		public uint TypeLen { get; set; }
 
@@ -153,6 +153,7 @@ namespace pviewer5
 			s = "DestMAC"; HF.Add(s, new HeaderField(s, Protocols.Ethernet, true, MainWindow.PacketDG, "L2Hdr." + s));
 			((Binding)(HF[s].DGCol.Binding)).Converter = macconverter;
 			s = "SrcMAC"; HF.Add(s, new HeaderField(s, Protocols.Ethernet, true, MainWindow.PacketDG, "L2Hdr." + s));
+			((Binding)(HF[s].DGCol.Binding)).Converter = macconverter;
 			s = "TypeLen"; HF.Add(s, new HeaderField(s, Protocols.Ethernet, true, MainWindow.PacketDG, "L2Hdr." + s));
 			MainWindow.HFDict.Add(Protocols.Ethernet, HF);
 		}
@@ -567,7 +568,7 @@ namespace pviewer5
 		}
 		private void mnmbutton(object sender, RoutedEventArgs e)
 		{
-			Window w1 = new MACInputDialog();
+			Window w1 = new MACNameMapDialog();
 			w1.ShowDialog();
 		}
 		private void displayaliastoggle(object sender, RoutedEventArgs e)

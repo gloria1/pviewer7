@@ -14,7 +14,7 @@
             <Setter Property="FontSize" Value="9pt"/>
             <Setter Property="HorizontalAlignment" Value="Center"/>
         </Style>
-        <local:MACConverter x:Key="macconverter"/>
+        <local:MACConverterNumberOrAlias x:Key="macconverternumberoralias"/>
     </Window.Resources>
     <Grid Name="QFDgrid"
           Margin="20,29,20,11.333"
@@ -47,18 +47,18 @@
                     <DataGridComboBoxColumn Header="Incl/Excl" ItemsSource="{Binding Source={x:Static local:QFItem.QFInclItems}}" SelectedItemBinding="{Binding Path=inclusion}"/>
                     <DataGridTextColumn Header="Mask" >
                         <DataGridTextColumn.Binding>
-                            <Binding Path="mask" Converter="{StaticResource macconverter}" >
+                            <Binding Path="mask" Converter="{StaticResource macconverternumberoralias}" >
                                 <Binding.ValidationRules>
-                                    <local:ValidateMACInput/>
+                                    <local:ValidateMACNumberOrAlias/>
                                 </Binding.ValidationRules>
                             </Binding>
                         </DataGridTextColumn.Binding>
                     </DataGridTextColumn>
                     <DataGridTextColumn Header="MAC Address" >
                         <DataGridTextColumn.Binding>
-                            <Binding Path="value" Converter="{StaticResource macconverter}" >
+                            <Binding Path="value" Converter="{StaticResource macconverternumberoralias}" >
                                 <Binding.ValidationRules>
-                                    <local:ValidateMACInput/>
+                                    <local:ValidateMACNumberOrAlias/>
                                 </Binding.ValidationRules>
                             </Binding>
                         </DataGridTextColumn.Binding>

@@ -1,13 +1,13 @@
-﻿<Window
+﻿<Window 
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:pviewer5"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="pviewer5.MACInputDialog"
-        Title="MACInputDialog"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="pviewer5.MACNameMapDialog"
+        Title="MACNameMapDialog"
         WindowStartupLocation="CenterOwner"
-        ShowInTaskbar="False">
+        ShowInTaskbar="False" Height="468.667" Width="451">
     <Window.Resources>
-        <local:MACConverter x:Key="macconverter"/>
+        <local:MACConverterNumberOnly x:Key="macconverternumberonly"/>
     </Window.Resources>
     <Grid x:Name="mnmgrid"
 		Margin="20,29,20,11.333"
@@ -33,24 +33,24 @@
 				VirtualizingPanel.IsVirtualizing="True"
 				VirtualizingPanel.VirtualizationMode="Recycling"
 				AutoGenerateColumns="False"
-				ItemsSource="{Binding mi}"
+				ItemsSource="{Binding Path=mi}"
 				ItemStringFormat="x"
 				CanUserAddRows="False">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="MAC Address" >
+                    <DataGridTextColumn Header="MAC Address">
                         <DataGridTextColumn.Binding>
-                            <Binding Path="mac" Converter="{StaticResource macconverter}" >
+                            <Binding Path="mac" Converter="{StaticResource macconverternumberonly}" >
                                 <Binding.ValidationRules>
-                                    <local:ValidateMACInput/>
+                                    <local:ValidateMACNumber/>
                                 </Binding.ValidationRules>
                             </Binding>
                         </DataGridTextColumn.Binding>
                     </DataGridTextColumn>
-                    <DataGridTextColumn Header="Alias" Binding="{Binding alias}" />
+                    <DataGridTextColumn Header="Alias" Binding="{Binding alias}"/>
                 </DataGrid.Columns>
                 <DataGrid.ContextMenu>
                     <ContextMenu>
-                        <MenuItem x:Name="mnmaddrowmenuitem" Header="Add Row" Command="{x:Static local:MACInputDialog.mnmaddrow}"/>
+                        <MenuItem x:Name="mnmaddrowmenuitem" Header="Add Row" Command="{x:Static local:MACNameMapDialog.mnmaddrow}"/>
                         <MenuItem x:Name="mnmdelrowmenuitem" Header="Delete Row"/>
                     </ContextMenu>
                 </DataGrid.ContextMenu>

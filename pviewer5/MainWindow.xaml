@@ -10,7 +10,6 @@
             <Setter Property="Control.FontFamily" Value="Courier New"/>
             <Setter Property="Control.HorizontalAlignment" Value="Right"/>
         </Style>
-        <local:MACConverter x:Key="macconverter"/>
     </Window.Resources>
 
     <Grid Name="grid"

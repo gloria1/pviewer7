@@ -22,27 +22,26 @@ using System.Text.RegularExpressions;
 namespace pviewer5
 {
 
-
-
-	// to add:
-	// Dialog to edit mac name map dictionary - add, delete, edit, load/save
-	//   use same datagrid code as quickfilter dialog
-
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	public class MACTools
 	{
+
+		public static Dictionary<ulong, string> macnamemap = new Dictionary<ulong, string>() 
+		{
+				{0x000000000000, "ALL ZEROES"},
+				{0xc86000c65634, "win8fs 4"},
+				{0x5404a62bbb5c, "cnvssd7 3"},
+				{0x000e0cc442ff, "svr 2"},
+				{0xb0c74536471a, "buffalo ether"},
+				{0xb0c745364710, "buffalo 24g"},
+				{0xb0c745364715, "buffalo 5g"}
+		};
+
 		public static ulong? StringToMAC(string s)
 		{
-			string regmac = "^([a-fA-F0-9]{0,2}:){0,5}[a-fA-F0-9]{0,2}$";
+			// returns null if string cannot be parsed
+
+
+			string regmac = "^([a-fA-F0-9]{0,2}[-:]){0,5}[a-fA-F0-9]{0,2}$";
 			string[] macbits = new string[6];
 
 			try
@@ -86,10 +85,28 @@ namespace pviewer5
 			s = String.Format("{0:x2}:{1:x2}:{2:x2}:{3:x2}:{4:x2}:{5:x2}", b[0], b[1], b[2], b[3], b[4], b[5]);
 			return s;
 		}
+
 	}
 
-	public class ValidateMACInput : ValidationRule
+	public class ValidateMACNumber : ValidationRule
 	{
+		// validates that string is valid as either raw hex number or mac-formatted hex number (using StringToMAC function)
+		public override ValidationResult Validate(object value, System.Globalization.CultureInfo cultureInfo)
+		{
+			ulong? v = 0;
+
+			// try to parse as a raw mac address
+			v = MACTools.StringToMAC((string)value);
+			if (v != null) return new ValidationResult(true, "Valid MAC Address");
+			else return new ValidationResult(false, "Not a valid MAC address");
+		}
+	}
+
+	public class ValidateMACNumberOrAlias : ValidationRule
+	{
+		// validates that string is valid as either raw hex number or mac-formatted hex number (using StringToMAC function)
+		//      or that string is a valid entry in alias registry
+
 		public override ValidationResult Validate(object value, System.Globalization.CultureInfo cultureInfo)
 		{
 			ulong? v = 0;
@@ -97,33 +114,42 @@ namespace pviewer5
 			// first try to parse as a raw mac address
 			v = MACTools.StringToMAC((string)value);
 			if (v != null) return new ValidationResult(true, "Valid MAC Address");
-
 			// if that failed, see if string exists in macnamemap
-			foreach (ulong u in MACConverter.macnamemap.Keys)
-				if ((string)value == MACConverter.macnamemap[u])
+			foreach (ulong u in MACTools.macnamemap.Keys)
+				if ((string)value == MACTools.macnamemap[u])
 					return new ValidationResult(true, "Valid MAC Address");
-
 			return new ValidationResult(false, "Not a valid MAC address");
 		}
 	}
 
-	public class MACConverter : IValueConverter
+	public class MACConverterNumberOnly : IValueConverter
 	{
-
-		public static Dictionary<ulong, string> macnamemap = new Dictionary<ulong, string>() 
-		{
-			{0x000000000000, "ALL ZEROES"},
-			{0xc86000c65634, "win8fs 4"},
-			{0x5404a62bbb5c, "cnvssd7 3"},
-			{0x000e0cc442ff, "svr 2"},
-			{0xb0c74536471a, "buffalo ether"},
-			{0xb0c745364710, "buffalo 24g"},
-			{0xb0c745364715, "buffalo 5g"}
-		};
-
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (MainWindow.ds.DisplayAliases && macnamemap.ContainsKey((ulong)value)) return macnamemap[(ulong)value];
+			return MACTools.MACToString((ulong)value);
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			ulong? v = 0;
+
+			// first try to parse as a raw mac address
+			v = MACTools.StringToMAC((string)value);
+			if (v != null) return v;
+
+			// we should never get to this point, since validation step will not pass unless value is either valid raw mac 
+			// however, just in case put up a messagebox and return 0
+			MessageBox.Show("ConvertBack could not process a raw mac address.  Why did this pass validation????");
+			return 0;
+		}
+	}
+
+
+	public class MACConverterNumberOrAlias : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			if (MainWindow.ds.DisplayAliases && MACTools.macnamemap.ContainsKey((ulong)value)) return MACTools.macnamemap[(ulong)value];
 			else return MACTools.MACToString((ulong)value);
 		}
 
@@ -136,8 +162,8 @@ namespace pviewer5
 			if (v != null) return v;
 
 			// if that failed, see if string exists in macnamemap
-			foreach (ulong u in MACConverter.macnamemap.Keys)
-				if ((string)value == MACConverter.macnamemap[u])
+			foreach (ulong u in MACTools.macnamemap.Keys)
+				if ((string)value == MACTools.macnamemap[u])
 					return u;
 
 			// we should never get to this point, since validation step will not pass unless value is either valid raw mac or existing entry in macnamemap
@@ -147,27 +173,29 @@ namespace pviewer5
 		}
 	}
 
-	public partial class MACInputDialog : Window
+	public partial class MACNameMapDialog : Window
 	{
 		public static RoutedCommand mnmaddrow = new RoutedCommand();
 
-		public struct mnmitem {
+		public class mnmitem {
 			public ulong mac {get; set;}
 			public string alias {get; set;}
 
-			public mnmitem(ulong u, string s) : this()
-			{ this.mac = u; this.alias = s; }
+			public mnmitem(ulong u, string s)
+			{
+				this.mac = u;
+				this.alias = s; 
+			}
 		}
-
 		public ObservableCollection<mnmitem> mi { get; set; }
 
-		public MACInputDialog()
+		public MACNameMapDialog()
 		{
 			CommandBinding mnmaddrowbinding;
 
 			mi = new ObservableCollection<mnmitem>();
-			foreach (ulong u in MACConverter.macnamemap.Keys)
-				mi.Add(new mnmitem(u, MACConverter.macnamemap[u]));
+			foreach (ulong u in MACTools.macnamemap.Keys)
+				mi.Add(new mnmitem(u, MACTools.macnamemap[u]));
 			
 			InitializeComponent();
 			MNMDG.DataContext = this;
@@ -178,38 +206,67 @@ namespace pviewer5
 
 
 			// add handlers for 
-			//		addrow
-			//		accept (do not allow if validation errors
-			//			ideally, disable button when validation errors occur)
-			//		cancel
 			//		file save/load/append from
 
 
 
 		}
 
+		public bool IsValid(DependencyObject parent)
+		{
+			// this is from http://stackoverflow.com/questions/17951045/wpf-datagrid-validation-haserror-is-always-false-mvvm
+
+			if (Validation.GetHasError(parent))
+				return false;
+
+			// Validate all the bindings on the children
+			for (int i = 0; i != VisualTreeHelper.GetChildrenCount(parent); ++i)
+			{
+				DependencyObject child = VisualTreeHelper.GetChild(parent, i);
+				if (!IsValid(child)) { return false; }
+			}
+
+			return true;
+		}
 
 		private void mnmAccept(object sender, RoutedEventArgs e)
 		{
+			if (IsValid(mnmgrid))
+			{
+				MACTools.macnamemap.Clear();
+
+				// we have not validated earlier that the list of macs is unique
+				// it must be unique to be translated back into a dictionary key for MACTools.macnamemap
+				foreach (mnmitem i in MNMDG.ItemsSource)
+				{
+					try
+					{
+						MACTools.macnamemap.Add(i.mac, i.alias);
+					}
+					catch
+					{
+						MessageBox.Show("Duplicate MAC addresses not allowed");
+						return;
+					}
+				}
+				DialogResult = true;
+				// no need to call Close, since changing DialogResult to non-null automatically closes window
+				//Close();
+			}
+			else MessageBox.Show("Resolve Validation Errors");
+
+
 			// do we automatically trigger re-application of filter, or have separate command for that?
 			// if/when reapply, need to reset nummatched properties
-
-
-			// put macs and aliases back to MACConverter.macnamemap
-
-/*			if (!Validation.GetHasError(input))
-			{
-				macresult = macentered;
-				this.DialogResult = true;
-				//Close(); not necessary, setting dialogresult to true automatically closes
-			}
-*/
-			// if there is a validation error, ignore the ok button
-		
 		}
+
 		private void mnmCancel(object sender, RoutedEventArgs e)
 		{
+			DialogResult = false;
+			// no need to call Close, since changing DialogResult to non-null automatically closes window
+			//Close();
 		}
+
 		private void mnmSaveToDisk(object sender, RoutedEventArgs e)
 		{
 		}
@@ -221,15 +278,15 @@ namespace pviewer5
 		}
 		private static void Executedaddrow(object sender, ExecutedRoutedEventArgs e)
 		{
-			ObservableCollection<QFItem> q;
+			ObservableCollection<mnmitem> q;
 			DataGrid dg = (DataGrid)e.Source;
 
-			q = (ObservableCollection<QFItem>)(dg.ItemsSource);
-			q.Add(new QFItem());
+			q = (ObservableCollection<mnmitem>)(dg.ItemsSource);
+
+			q.Add(new mnmitem(0, ""));
 		}
 		private static void PreviewExecutedaddrow(object sender, ExecutedRoutedEventArgs e)
 		{
-			MessageBox.Show("PreviewExecutedqfdaddrow function - actually executes the command");
 		}
 		private static void CanExecuteaddrow(object sender, CanExecuteRoutedEventArgs e)
 		{
