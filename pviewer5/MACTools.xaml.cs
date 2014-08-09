@@ -18,14 +18,68 @@ using System.Windows.Shapes;
 using System.IO;
 using Microsoft.Win32;
 using System.Text.RegularExpressions;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+
 
 namespace pviewer5
 {
 
+
 	public class MACTools
 	{
+		[Serializable]
+		public class macnamemapclass : Dictionary<ulong, string>
+		{
+			// need the following constructor (from ISerializable, which is inherited by Dictionary)
+			protected macnamemapclass(SerializationInfo info, StreamingContext ctx) : base(info, ctx) {}
+			// need to explicitly declare an empty constructor, because without this, new tries to use the above constructor
+			public macnamemapclass() { }
 
-		public static Dictionary<ulong, string> macnamemap = new Dictionary<ulong, string>() 
+			public macnametableclass maptotable()	// transfers macnamemap dictionary to a table to support a datagrid
+			{
+				macnametableclass table = new macnametableclass();
+
+				foreach (ulong k in this.Keys) table.Add(new mnmtableitem(k, this[k]));
+				return table;
+			}
+		}
+
+		//[Serializable]
+		public class macnametableclass : ObservableCollection<mnmtableitem> //, INotifyPropertyChanged
+		{
+			public macnamemapclass tabletomap()	// transfers macname table from a datagrid to a macnamemap dictionary
+			{
+				macnamemapclass map = new macnamemapclass();
+
+				// need to catch exceptions in case table has duplicate mac entries - if this is the case, just return null
+				try
+				{
+					foreach (mnmtableitem i in this) map.Add(i.mac, i.alias);
+				}
+				catch
+				{
+					return null;
+				}
+				return map;
+			}
+		}
+
+
+		public class mnmtableitem
+		{
+			public ulong mac { get; set; }
+			public string alias { get; set; }
+			
+			public mnmtableitem(ulong u, string s)
+				{
+					this.mac = u;
+					this.alias = s;
+				}
+		}
+
+		// the "official" mac name map which will be used in the value converter
+		public static macnamemapclass map = new macnamemapclass() 
 		{
 				{0x000000000000, "ALL ZEROES"},
 				{0xc86000c65634, "win8fs 4"},
@@ -35,6 +89,7 @@ namespace pviewer5
 				{0xb0c745364710, "buffalo 24g"},
 				{0xb0c745364715, "buffalo 5g"}
 		};
+
 
 		public static ulong? StringToMAC(string s)
 		{
@@ -69,7 +124,6 @@ namespace pviewer5
 
 			return null;
 		}
-
 		public static string MACToString(ulong value)
 		{
 			ulong[] b = new ulong[6];
@@ -85,7 +139,6 @@ namespace pviewer5
 			s = String.Format("{0:x2}:{1:x2}:{2:x2}:{3:x2}:{4:x2}:{5:x2}", b[0], b[1], b[2], b[3], b[4], b[5]);
 			return s;
 		}
-
 	}
 
 	public class ValidateMACNumber : ValidationRule
@@ -115,8 +168,8 @@ namespace pviewer5
 			v = MACTools.StringToMAC((string)value);
 			if (v != null) return new ValidationResult(true, "Valid MAC Address");
 			// if that failed, see if string exists in macnamemap
-			foreach (ulong u in MACTools.macnamemap.Keys)
-				if ((string)value == MACTools.macnamemap[u])
+			foreach (ulong u in MACTools.map.Keys)
+				if ((string)value == MACTools.map[u])
 					return new ValidationResult(true, "Valid MAC Address");
 			return new ValidationResult(false, "Not a valid MAC address");
 		}
@@ -124,6 +177,8 @@ namespace pviewer5
 
 	public class MACConverterNumberOnly : IValueConverter
 	{
+		// converts number to/from display format mac address, without checking the mac alias dictionary
+
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			return MACTools.MACToString((ulong)value);
@@ -144,12 +199,13 @@ namespace pviewer5
 		}
 	}
 
-
 	public class MACConverterNumberOrAlias : IValueConverter
 	{
+		// converts number to/from display format mac address, including translating aliases
+
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (MainWindow.ds.DisplayAliases && MACTools.macnamemap.ContainsKey((ulong)value)) return MACTools.macnamemap[(ulong)value];
+			if (MainWindow.ds.DisplayAliases && MACTools.map.ContainsKey((ulong)value)) return MACTools.map[(ulong)value];
 			else return MACTools.MACToString((ulong)value);
 		}
 
@@ -162,8 +218,8 @@ namespace pviewer5
 			if (v != null) return v;
 
 			// if that failed, see if string exists in macnamemap
-			foreach (ulong u in MACTools.macnamemap.Keys)
-				if ((string)value == MACTools.macnamemap[u])
+			foreach (ulong u in MACTools.map.Keys)
+				if ((string)value == MACTools.map[u])
 					return u;
 
 			// we should never get to this point, since validation step will not pass unless value is either valid raw mac or existing entry in macnamemap
@@ -176,26 +232,13 @@ namespace pviewer5
 	public partial class MACNameMapDialog : Window
 	{
 		public static RoutedCommand mnmaddrow = new RoutedCommand();
-
-		public class mnmitem {
-			public ulong mac {get; set;}
-			public string alias {get; set;}
-
-			public mnmitem(ulong u, string s)
-			{
-				this.mac = u;
-				this.alias = s; 
-			}
-		}
-		public ObservableCollection<mnmitem> mi { get; set; }
+		public MACTools.macnametableclass dgtable {get;set;}
 
 		public MACNameMapDialog()
 		{
 			CommandBinding mnmaddrowbinding;
 
-			mi = new ObservableCollection<mnmitem>();
-			foreach (ulong u in MACTools.macnamemap.Keys)
-				mi.Add(new mnmitem(u, MACTools.macnamemap[u]));
+			dgtable = MACTools.map.maptotable();
 			
 			InitializeComponent();
 			MNMDG.DataContext = this;
@@ -228,62 +271,147 @@ namespace pviewer5
 
 			return true;
 		}
-
 		private void mnmAccept(object sender, RoutedEventArgs e)
 		{
-			if (IsValid(mnmgrid))
+			MACTools.macnamemapclass map = new MACTools.macnamemapclass();
+
+			if (!IsValid(mnmgrid))
 			{
-				MACTools.macnamemap.Clear();
-
-				// we have not validated earlier that the list of macs is unique
-				// it must be unique to be translated back into a dictionary key for MACTools.macnamemap
-				foreach (mnmitem i in MNMDG.ItemsSource)
-				{
-					try
-					{
-						MACTools.macnamemap.Add(i.mac, i.alias);
-					}
-					catch
-					{
-						MessageBox.Show("Duplicate MAC addresses not allowed");
-						return;
-					}
-				}
-				DialogResult = true;
-				// no need to call Close, since changing DialogResult to non-null automatically closes window
-				//Close();
+				MessageBox.Show("Resolve Validation Errors");
+				return;
 			}
-			else MessageBox.Show("Resolve Validation Errors");
-
+			else
+			{
+				map = dgtable.tabletomap();
+				if (map == null)		// if error transferring table due to duplicate macs, inform user and return to dialog		
+				{
+					MessageBox.Show("Duplicate MAC addresses not allowed");
+					return;
+				}
+				else        // else transfer local map to official map and close dialog
+				{
+					MACTools.map = map;
+					DialogResult = true;
+					// no need to call Close, since changing DialogResult to non-null automatically closes window
+					//Close();
+				}
+			}
 
 			// do we automatically trigger re-application of filter, or have separate command for that?
 			// if/when reapply, need to reset nummatched properties
 		}
-
 		private void mnmCancel(object sender, RoutedEventArgs e)
 		{
 			DialogResult = false;
 			// no need to call Close, since changing DialogResult to non-null automatically closes window
 			//Close();
 		}
-
 		private void mnmSaveToDisk(object sender, RoutedEventArgs e)
 		{
+			SaveFileDialog dlg = new SaveFileDialog();
+			FileStream fs;
+			IFormatter formatter = new BinaryFormatter();
+			MACTools.macnamemapclass map = new MACTools.macnamemapclass();
+
+			// first need to transfer datagrid table to official map
+			if (!IsValid(mnmgrid))
+			{
+				MessageBox.Show("Resolve Validation Errors.\nTable not saved.");
+				return;
+			}
+			else 
+			{
+				map = dgtable.tabletomap();
+				if (map == null)		// if error transferring table due to duplicate macs, inform user and return to dialog		
+				{
+					MessageBox.Show("Duplicate MAC addresses not allowed.\nTable not saved.");
+					return;
+				}
+				else
+				{
+					dlg.InitialDirectory = "c:\\pviewer\\";
+					dlg.DefaultExt = ".macnamemap";
+					dlg.OverwritePrompt = true;
+
+					if (dlg.ShowDialog() == true)
+					{
+						fs = new FileStream(dlg.FileName, FileMode.OpenOrCreate);
+						formatter.Serialize(fs, map);
+						fs.Close();
+					}
+				}
+			}
 		}
 		private void mnmLoadFromDisk(object sender, RoutedEventArgs e)
 		{
+			OpenFileDialog dlg = new OpenFileDialog();
+			FileStream fs;
+			IFormatter formatter = new BinaryFormatter();
+
+			dlg.InitialDirectory = "c:\\pviewer\\";
+			dlg.DefaultExt = ".macnamemap";
+			dlg.Multiselect = false;
+
+			if (dlg.ShowDialog() == true)
+			{
+				fs = new FileStream(dlg.FileName, FileMode.Open);
+
+				try
+				{
+					dgtable = ((MACTools.macnamemapclass)formatter.Deserialize(fs)).maptotable();
+					// next command re-sets ItemsSource, window on screen does not update to show new contents of dgtable, don't know why
+					// there is probably some mechanism to get the display to update without re-setting the ItemsSource, but this seems to work
+					MNMDG.ItemsSource = dgtable;
+				}
+				catch
+				{
+					MessageBox.Show("File not read");
+				}
+				finally
+				{
+					fs.Close();
+				}
+			}
 		}
 		private void mnmAppendFromDisk(object sender, RoutedEventArgs e)
 		{
+			OpenFileDialog dlg = new OpenFileDialog();
+			FileStream fs;
+			IFormatter formatter = new BinaryFormatter();
+
+			dlg.InitialDirectory = "c:\\pviewer\\";
+			dlg.DefaultExt = ".macnamemap";
+			dlg.Multiselect = false;
+
+			if (dlg.ShowDialog() == true)
+			{
+				fs = new FileStream(dlg.FileName, FileMode.Open);
+
+				try
+				{
+					foreach(MACTools.mnmtableitem i in ((MACTools.macnamemapclass)formatter.Deserialize(fs)).maptotable()) dgtable.Add(i);
+					// next command re-sets ItemsSource, window on screen does not update to show new contents of dgtable, don't know why
+					// there is probably some mechanism to get the display to update without re-setting the ItemsSource, but this seems to work
+					MNMDG.ItemsSource = dgtable;
+				}
+				catch
+				{
+					MessageBox.Show("File not read"); fs.Close(); return; 
+				}
+				finally 
+				{
+					fs.Close();
+				}
+			}
 		}
 		private static void Executedaddrow(object sender, ExecutedRoutedEventArgs e)
 		{
-			ObservableCollection<mnmitem> q;
+			MACTools.macnametableclass q;
 			DataGrid dg = (DataGrid)e.Source;
 
-			q = (ObservableCollection<mnmitem>)(dg.ItemsSource);
+			q = (MACTools.macnametableclass)(dg.ItemsSource);
 
-			q.Add(new mnmitem(0, ""));
+			q.Add(new MACTools.mnmtableitem(0, ""));
 		}
 		private static void PreviewExecutedaddrow(object sender, ExecutedRoutedEventArgs e)
 		{

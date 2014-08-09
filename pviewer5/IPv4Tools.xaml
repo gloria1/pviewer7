@@ -3,14 +3,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:pviewer5"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" 
-        x:Class="pviewer5.MACNameMapDialog"
-        Title="MACNameMapDialog"
+        x:Class="pviewer5.IPv4NameMapDialog"
+        Title="IPv4NameMapDialog"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False" Height="468.667" Width="451">
     <Window.Resources>
-        <local:MACConverterNumberOnly x:Key="macconverternumberonly"/>
+        <local:IPv4ConverterNumberOnly x:Key="ipv4converternumberonly"/>
     </Window.Resources>
-    <Grid x:Name="mnmgrid"
+    <Grid x:Name="inmgrid"
 		Margin="20,29,20,11.333"
 		ShowGridLines="True">
         <Grid.ColumnDefinitions>
@@ -20,7 +20,7 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <GroupBox Header="Map of MAC Addresses To Aliases"
+        <GroupBox Header="Map of IPv4 Addresses To Aliases"
 			Grid.Column="0"
 			Grid.Row="0"
 			Margin="5,5,5,5">
@@ -28,7 +28,7 @@
             <!-- added VirtualizingPanel lines based on http://www.codewrecks.com/blog/index.php/2012/07/06/wpf-datagrid-poor-performance-on-sorting/ -->
             <!-- added CanUserAddrRows="False" to prevent display of blank row at end-->
             <DataGrid
-				x:Name="MNMDG"
+				x:Name="INMDG"
 				EnableColumnVirtualization="True"
 				EnableRowVirtualization="True"
 				VirtualizingPanel.IsVirtualizing="True"
@@ -38,11 +38,11 @@
 				ItemStringFormat="x"
 				CanUserAddRows="False">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="MAC Address">
+                    <DataGridTextColumn Header="IPv4 Address">
                         <DataGridTextColumn.Binding>
-                            <Binding Path="mac" Converter="{StaticResource macconverternumberonly}" >
+                            <Binding Path="ipv4" Converter="{StaticResource ipv4converternumberonly}" >
                                 <Binding.ValidationRules>
-                                    <local:ValidateMACNumber/>
+                                    <local:ValidateIPv4Number/>
                                 </Binding.ValidationRules>
                             </Binding>
                         </DataGridTextColumn.Binding>
@@ -51,8 +51,8 @@
                 </DataGrid.Columns>
                 <DataGrid.ContextMenu>
                     <ContextMenu>
-                        <MenuItem x:Name="mnmaddrowmenuitem" Header="Add Row" Command="{x:Static local:MACNameMapDialog.mnmaddrow}"/>
-                        <MenuItem x:Name="mnmdelrowmenuitem" Header="Delete Row"/>
+                        <MenuItem x:Name="inmaddrowmenuitem" Header="Add Row" Command="{x:Static local:IPv4NameMapDialog.inmaddrow}"/>
+                        <MenuItem x:Name="inmdelrowmenuitem" Header="Delete Row"/>
                     </ContextMenu>
                 </DataGrid.ContextMenu>
             </DataGrid>
@@ -63,15 +63,15 @@
 			HorizontalAlignment="Right"
 			Margin="5,5,5,5">
             <Button Content="Accept"
-				Click="mnmAccept"/>
+				Click="inmAccept"/>
             <Button Content="Cancel"
-				Click="mnmCancel"/>
+				Click="inmCancel"/>
             <Button Content="Save To Disk"
-				Click="mnmSaveToDisk"/>
+				Click="inmSaveToDisk"/>
             <Button Content="Load from Disk"
-				Click="mnmLoadFromDisk"/>
+				Click="inmLoadFromDisk"/>
             <Button Content="Append From Disk"
-				Click="mnmAppendFromDisk"/>
+				Click="inmAppendFromDisk"/>
         </WrapPanel>
     </Grid>
 </Window>

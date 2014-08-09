@@ -40,11 +40,11 @@
                 VirtualizingPanel.IsVirtualizing="True"
                 VirtualizingPanel.VirtualizationMode="Recycling"
                 AutoGenerateColumns="False"
-                ItemsSource="{Binding Path=qfproperty}"
+                ItemsSource="{Binding Path=qflocal}"
                 ItemStringFormat="x"
                 CanUserAddRows="False">
                 <DataGrid.Columns>
-                    <DataGridComboBoxColumn Header="Incl/Excl" ItemsSource="{Binding Source={x:Static local:QFItem.QFInclItems}}" SelectedItemBinding="{Binding Path=inclusion}"/>
+                    <DataGridComboBoxColumn Header="Incl/Excl" ItemsSource="{Binding Source={x:Static local:QuickFilterTools.QFInclItems}}" SelectedItemBinding="{Binding Path=inclusion}"/>
                     <DataGridTextColumn Header="Mask" >
                         <DataGridTextColumn.Binding>
                             <Binding Path="mask" Converter="{StaticResource macconverternumberoralias}" >

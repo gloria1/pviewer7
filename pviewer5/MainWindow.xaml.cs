@@ -513,7 +513,6 @@ namespace pviewer5
 	{
 		public PcapFileHdr pfh;
 		public PktSetList setlist = new PktSetList();
-		public ObservableCollection<QFItem> qf = new ObservableCollection<QFItem>();
 
 		string s;
 		public Dictionary<string, HeaderField> HF = new Dictionary<string, HeaderField>();
@@ -563,12 +562,17 @@ namespace pviewer5
 		}*/
 		private void qfbutton(object sender, RoutedEventArgs e)
 		{
-			Window qfd = new QuickFilterDialog(qf);
+			Window qfd = new QuickFilterDialog();
 			qfd.ShowDialog();
 		}
 		private void mnmbutton(object sender, RoutedEventArgs e)
 		{
 			Window w1 = new MACNameMapDialog();
+			w1.ShowDialog();
+		}
+		private void inmbutton(object sender, RoutedEventArgs e)
+		{
+			Window w1 = new IPv4NameMapDialog();
 			w1.ShowDialog();
 		}
 		private void displayaliastoggle(object sender, RoutedEventArgs e)

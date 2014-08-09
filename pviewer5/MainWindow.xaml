@@ -46,7 +46,9 @@
                     Click="qfbutton"/>
             <Button Content="MAC Aliases"
                     Click="mnmbutton"/>
-        </WrapPanel>
+            <Button Content="IPv4 Aliases"
+                    Click="inmbutton"/>
+       </WrapPanel>
         <GroupBox Header="Packet Sets"
                   Name="packsetbox"
                   Grid.Column="0"
