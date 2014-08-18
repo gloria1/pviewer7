@@ -1,0 +1,31 @@
+﻿
+
+
+
+
+remove (or comment out) facility to view packets excluded via quickfilter
+	separate datagrid
+	qfexcluded packet set in mainwindow
+	logic in file read method that puts an "excluded" packet into separate packet set
+
+
+handle ipv4 "options" field
+
+
+quickfilters
+	test performance - if too slow, try optimizing by
+		ordering filters
+		structuring into dictionaries (one dict for each mask value) using comparevalue as the key
+
+	maybe also add other criteria, like ether type/len field (to exclude ipv6 noise, for example)
+
+	dialog improvements
+		checkboxes to toggle aliasing of mac/ip addresses
+		drag and drop
+		add/delete row respect multi selections
+
+
+
+
+
+

@@ -88,27 +88,29 @@ namespace pviewer5
 		{
 			// returns null if string cannot be parsed
 
-			string regipv4 = "^([a-fA-F0-9]{0,2}[.]){0,3}[a-fA-F0-9]{0,2}$";
+			bool hex = MainWindow.ds.DisplayIPv4InHex;
+			string regipv4 = (hex ? "^([a-fA-F0-9]{0,2}.){0,3}[a-fA-F0-9]{0,2}$" : "^([0-9]{0,3}.){0,3}[0-9]{0,3}$");
+			NumberStyles style = (hex ? NumberStyles.HexNumber : NumberStyles.Integer);
 			string[] ipv4bits = new string[4];
 
 			try
 			{
-				return ulong.Parse(s, NumberStyles.HexNumber);
+				return ulong.Parse(s, style);
 			}
 			catch (FormatException ex)
 			{
 				if (Regex.IsMatch(s, regipv4))
 				{
-					ipv4bits = Regex.Split(s, ".");
+					ipv4bits = Regex.Split(s, "\\.");
 					// resize array to 4 - we want to tolerate missing dots, i.e., user entering less than 4 segments,
 					// split will produce array with number of elements equal to nmber of dots + 1
 					Array.Resize<string>(ref ipv4bits, 4);
 
 					for (int i = 0; i < 4; i++) { ipv4bits[i] = "0" + ipv4bits[i]; }
-					return ulong.Parse(ipv4bits[0], NumberStyles.HexNumber) * 0x0000000001000000 +
-							ulong.Parse(ipv4bits[1], NumberStyles.HexNumber) * 0x0000000000010000 +
-							ulong.Parse(ipv4bits[2], NumberStyles.HexNumber) * 0x0000000000000100 +
-							ulong.Parse(ipv4bits[3], NumberStyles.HexNumber) * 0x0000000000000001;
+					return  ulong.Parse(ipv4bits[0], style) * 0x0000000001000000 +
+							ulong.Parse(ipv4bits[1], style) * 0x0000000000010000 +
+							ulong.Parse(ipv4bits[2], style) * 0x0000000000000100 +
+							ulong.Parse(ipv4bits[3], style) * 0x0000000000000001;
 				}
 			}
 
@@ -124,7 +126,9 @@ namespace pviewer5
 			b[2] = ((value & 0xff00) / 0x100);
 			b[3] = ((value & 0xff) / 0x1);
 
-			s = String.Format("{0:x2}.{1:x2}.{2:x2}.{3:x2}", b[0], b[1], b[2], b[3]);
+			if (MainWindow.ds.DisplayIPv4InHex) s = String.Format("{0:x2}.{1:x2}.{2:x2}.{3:x2}", b[0], b[1], b[2], b[3]);
+			else                                s = String.Format("{0}.{1}.{2}.{3}", b[0], b[1], b[2], b[3]);
+
 			return s;
 		}
 	}

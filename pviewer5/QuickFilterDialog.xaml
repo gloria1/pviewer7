@@ -15,6 +15,7 @@
             <Setter Property="HorizontalAlignment" Value="Center"/>
         </Style>
         <local:MACConverterNumberOrAlias x:Key="macconverternumberoralias"/>
+        <local:IPv4ConverterNumberOrAlias x:Key="ipv4converternumberoralias"/>
     </Window.Resources>
     <Grid Name="QFDgrid"
           Margin="20,29,20,11.333"
@@ -23,6 +24,7 @@
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -40,7 +42,7 @@
                 VirtualizingPanel.IsVirtualizing="True"
                 VirtualizingPanel.VirtualizationMode="Recycling"
                 AutoGenerateColumns="False"
-                ItemsSource="{Binding Path=qflocal}"
+                ItemsSource="{Binding Path=qfmaclocal}"
                 ItemStringFormat="x"
                 CanUserAddRows="False">
                 <DataGrid.Columns>
@@ -68,11 +70,59 @@
                 </DataGrid.Columns>
                <DataGrid.ContextMenu>
                     <ContextMenu>
-                        <MenuItem Name="qfmacaddrowmenuitem" Header="Add Row" Command="{x:Static local:QuickFilterDialog.qfaddrow}"/>
+                        <MenuItem Name="qfmacaddrowmenuitem" Header="Add Row" Command="{x:Static local:QuickFilterDialog.qfmacaddrow}"/>
                         <MenuItem Name="qfmacdelrowmenuitem" Header="Delete Row"/>
                     </ContextMenu>
                 </DataGrid.ContextMenu>
              </DataGrid>
+        </GroupBox>
+        <GroupBox Header="Criteria - IPv4"
+                  Grid.Column="0"
+                  Grid.Row="1"
+                  Margin="5,5,5,5">
+            <!-- added Enable*Virtualization lines based on http://www.elegant-software.net/2014/05/performance-of-the-wpf-datagrid.html -->
+            <!-- added VirtualizingPanel lines based on http://www.codewrecks.com/blog/index.php/2012/07/06/wpf-datagrid-poor-performance-on-sorting/ -->
+            <!-- added CanUserAddrRows="False" to prevent display of blank row at end-->
+            <DataGrid
+                Name="QFIPv4DG"
+                EnableColumnVirtualization="True"
+                EnableRowVirtualization="True"
+                VirtualizingPanel.IsVirtualizing="True"
+                VirtualizingPanel.VirtualizationMode="Recycling"
+                AutoGenerateColumns="False"
+                ItemsSource="{Binding Path=qfipv4local}"
+                ItemStringFormat="x"
+                CanUserAddRows="False">
+                <DataGrid.Columns>
+                    <DataGridComboBoxColumn Header="Incl/Excl" ItemsSource="{Binding Source={x:Static local:QuickFilterTools.QFInclItems}}" SelectedItemBinding="{Binding Path=inclusion}"/>
+                    <DataGridTextColumn Header="Mask" >
+                        <DataGridTextColumn.Binding>
+                            <Binding Path="mask" Converter="{StaticResource ipv4converternumberoralias}" >
+                                <Binding.ValidationRules>
+                                    <local:ValidateIPv4NumberOrAlias/>
+                                </Binding.ValidationRules>
+                            </Binding>
+                        </DataGridTextColumn.Binding>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="IPv4 Address" >
+                        <DataGridTextColumn.Binding>
+                            <Binding Path="value" Converter="{StaticResource ipv4converternumberoralias}" >
+                                <Binding.ValidationRules>
+                                    <local:ValidateIPv4NumberOrAlias/>
+                                </Binding.ValidationRules>
+                            </Binding>
+                        </DataGridTextColumn.Binding>
+                    </DataGridTextColumn>
+                    <DataGridCheckBoxColumn Header="Active" Binding="{Binding Path=active}"/>
+                    <DataGridTextColumn Header="# Matched" IsReadOnly="True" Binding="{Binding Path=nummatched}"/>
+                </DataGrid.Columns>
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Name="qfipv4addrowmenuitem" Header="Add Row" Command="{x:Static local:QuickFilterDialog.qfipv4addrow}"/>
+                        <MenuItem Name="qfipv4delrowmenuitem" Header="Delete Row"/>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+            </DataGrid>
         </GroupBox>
         <WrapPanel Name="buttonbar"
                    Grid.ColumnSpan="2"

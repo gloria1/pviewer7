@@ -65,7 +65,6 @@ namespace pviewer5
 			}
 		}
 
-
 		public class mnmtableitem
 		{
 			public ulong mac { get; set; }
@@ -82,6 +81,10 @@ namespace pviewer5
 		public static macnamemapclass map = new macnamemapclass() 
 		{
 				{0x000000000000, "ALL ZEROES"},
+				{0x2818785702e3, "spr wifi"},
+				{0x00249b097799, "spr ether on usb"},
+				{0x281878b6c14e, "spr ether on dock"},
+				{0xc86000c667df, "win8fs 2"},
 				{0xc86000c65634, "win8fs 4"},
 				{0x5404a62bbb5c, "cnvssd7 3"},
 				{0x000e0cc442ff, "svr 2"},
@@ -89,7 +92,6 @@ namespace pviewer5
 				{0xb0c745364710, "buffalo 24g"},
 				{0xb0c745364715, "buffalo 5g"}
 		};
-
 
 		public static ulong? StringToMAC(string s)
 		{
@@ -107,7 +109,7 @@ namespace pviewer5
 			{
 				if (Regex.IsMatch(s, regmac))
 				{
-					macbits = Regex.Split(s, ":");
+					macbits = Regex.Split(s, "[:-]");
 					// resize array to 6 - we want to tolerate missing colons, i.e., user entering less than 6 segments,
 					// split will produce array with number of elements equal to nmber of colons + 1
 					Array.Resize<string>(ref macbits,6);
@@ -245,13 +247,6 @@ namespace pviewer5
 			mnmaddrowbinding = new CommandBinding(mnmaddrow, Executedaddrow, CanExecuteaddrow);
 			MNMDG.CommandBindings.Add(mnmaddrowbinding);
 			mnmaddrowmenuitem.CommandTarget = MNMDG;   // added this so that menu command would not be disabled when datagrid first created; not sure exactly why this works, books/online articles refer to WPF not correctly determining the intended command target based on focus model (logical focus? keyboard focus?), so you have to set the command target explicitly
-
-
-
-			// add handlers for 
-			//		file save/load/append from
-
-
 
 		}
 

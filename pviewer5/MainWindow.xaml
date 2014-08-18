@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:pviewer5"
-        Title="MainWindow" Height="551.333" Width="549.667">
+        Title="MainWindow">
 
     <Window.Resources>
         <Style x:Key="DGCellStyle">
@@ -13,19 +13,17 @@
     </Window.Resources>
 
     <Grid Name="grid"
-          Margin="20,20,20,20"
-          ShowGridLines="True">
+          Margin="20,20,20,20">
         <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <WrapPanel Name="filebar"
                    Grid.Column="0"
@@ -39,8 +37,8 @@
 
         </WrapPanel>
         <WrapPanel Name="buttonbar"
-                   Grid.Column="0"
-                   Grid.Row="1"
+                   Grid.Column="1"
+                   Grid.Row="0"
                    Margin="5,5,5,5">
             <Button Content="Quick Filter"
                     Click="qfbutton"/>
@@ -52,11 +50,11 @@
         <GroupBox Header="Packet Sets"
                   Name="packsetbox"
                   Grid.Column="0"
-                  Grid.Row="2"
+                  Grid.Row="1"
                   Margin="5,5,5,5">
             <ListBox ItemsSource="{Binding}"
                      IsSynchronizedWithCurrentItem="True"
-                     MinHeight="100">
+                     MinHeight="40">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding Path=Info}"/>
@@ -66,12 +64,12 @@
         </GroupBox>
         <GroupBox Header="Criteria of Current Set"
                   Name="currentcriteriabox"
-                  Grid.Column="0"  
-                  Grid.Row="3"
+                  Grid.Column="1"  
+                  Grid.Row="1"
                   Margin="5,5,5,5">
             <ListBox ItemsSource="{Binding Path=/criteria}"
                      IsSynchronizedWithCurrentItem="True"
-                     MinHeight="100">
+                     MinHeight="40">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding Path=CritInfo}"/>
@@ -81,15 +79,17 @@
         </GroupBox>
         <WrapPanel Name="viewsettings"
                    Grid.Column="0"
-                   Grid.Row="4"
+                   Grid.ColumnSpan="2"
+                   Grid.Row="2"
                    Margin="5,5,5,5">
             <CheckBox Name="displayaliascheckbox"
                       Content="Display Aliases"
-                    Click="displayaliastoggle"
+                      Click="displayaliastoggle"
                       Margin="20,5"/>
             <CheckBox Name="displayipv4inhexcheckbox"
                       Content="Display IPv4 in Hex"
                     Click="displayipv4inhextoggle"
+                      IsChecked="True"
                       Margin="20,5"/>
             <CheckBox Name="showetherfields"
                       Content="Show Ethernet"
@@ -113,9 +113,10 @@
                       Margin="20,5"/>
         </WrapPanel>
         <GroupBox Header="Packets in Current Set"
-                  Name="currentpacketlistbox"
+                  Name="currentpacketdg"
                   Grid.Column="0"  
-                  Grid.Row="5"
+                  Grid.ColumnSpan="2"
+                  Grid.Row="3"
                   Margin="5,5,5,5">
             <!-- added Enable*Virtualization lines based on http://www.elegant-software.net/2014/05/performance-of-the-wpf-datagrid.html -->
             <!-- added VirtualizingPanel lines based on http://www.codewrecks.com/blog/index.php/2012/07/06/wpf-datagrid-poor-performance-on-sorting/ -->
@@ -127,6 +128,32 @@
                 VirtualizingPanel.VirtualizationMode="Recycling"
                 AutoGenerateColumns="False"
                 ItemsSource="{Binding Path=/pkts}"
+                CellStyle="{StaticResource DGCellStyle}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Datalink" Binding="{Binding Path=ph.datalink}"/>
+                    <DataGridTextColumn Header="Timesecs" Binding="{Binding Path=ph.timesecs}"/>
+                    <DataGridTextColumn Header="Timeusecs" Binding="{Binding Path=ph.timeusecs}"/>
+                    <DataGridTextColumn Header="Caplen" Binding="{Binding Path=ph.caplen}" />
+                    <DataGridTextColumn Header="Wirelen" Binding="{Binding Path=ph.len}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
+        <GroupBox Header="Packets Excluded by QuickFilter"
+                  Name="qfexcldg"
+                  Grid.Column="0"  
+                  Grid.ColumnSpan="2"
+                  Grid.Row="4"
+                  Margin="5,5,5,5">
+            <!-- added Enable*Virtualization lines based on http://www.elegant-software.net/2014/05/performance-of-the-wpf-datagrid.html -->
+            <!-- added VirtualizingPanel lines based on http://www.codewrecks.com/blog/index.php/2012/07/06/wpf-datagrid-poor-performance-on-sorting/ -->
+            <DataGrid
+                Name="QFExclGrid"
+                EnableColumnVirtualization="True"
+                EnableRowVirtualization="True"
+                VirtualizingPanel.IsVirtualizing="True"
+                VirtualizingPanel.VirtualizationMode="Recycling"
+                AutoGenerateColumns="False"
+                ItemsSource="{Binding Path=pkts}"
                 CellStyle="{StaticResource DGCellStyle}">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Datalink" Binding="{Binding Path=ph.datalink}"/>

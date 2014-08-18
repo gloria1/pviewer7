@@ -23,14 +23,13 @@ namespace pviewer5
 {
 	public enum Protocols { Pcap, Ethernet, Wifi, IPv4, ARP, IPv6, TCP, UDP, ICMP, Other, NA }
 
-	
 	public class HeaderField				// HeaderField class - purpose is to contain all information that exists for a given header field
 	{										// 	this includes:
 		public string Label;				//			settings that control how it is displayed
 		public Protocols Protocol;			//			a reference to the DataGridTextColumn that displays it
 		public bool Basic;					//	The class for each protocol header type will include a static constructor that
 		public DataGridTextColumn DGCol;	// 		1) creates a dictionary of HeaderField instances, one for each field in that protocol's header
-		//		2) add that protocol's dictionary to the master dictionary which is declared (static) in MainWindow
+											//		2) add that protocol's dictionary to the master dictionary which is declared (static) in MainWindow
 
 		public HeaderField(string label, Protocols prot, bool basic, DataGrid dg, string bindingpath)
 		{
@@ -45,6 +44,7 @@ namespace pviewer5
 			dg.Columns.Add(DGCol);
 		}
 	}
+
 	public class PcapFileHdr
 	{
 		public uint magicnumber;    // "magic number" - see http://wiki.wireshark.org/Development/LibpcapFileFormat
@@ -93,11 +93,13 @@ namespace pviewer5
 
 		}
 	}
+
 	public class Header						// Base class for protocol headers of all kinds
 	{
 		public uint Layer;          // 0 for PCAP, otherwise it's the OSI layer (e.g., 2 for Ether, 3 for IP, etc)
 		public Protocols Protocol;
 	}
+
 	public class PcapPktHdr : Header
 	{
 		public uint datalink { get; set; }      // copy of datalink type from capture file
@@ -138,16 +140,18 @@ namespace pviewer5
 			len = (fh.bigendian ? flip32(d, 12) : BitConverter.ToUInt32(d, 12));
 		}
 	}
+
 	public class EthernetHeader : Header
 	{
-		public ulong DestMAC { get; set; }
 		public static MACConverterNumberOrAlias macconverter = new MACConverterNumberOrAlias();
+		public ulong DestMAC { get; set; }
 		public ulong SrcMAC { get; set; }
 		public uint TypeLen { get; set; }
 
 		static EthernetHeader()          // static constructor, constructs header field dictionary and adds to master dictionary of header fields
 		{
 			Dictionary<string, HeaderField> HF = new Dictionary<string, HeaderField>();
+			Dictionary<string, HeaderField> HFExcl = new Dictionary<string, HeaderField>();
 			string s;
 
 			s = "DestMAC"; HF.Add(s, new HeaderField(s, Protocols.Ethernet, true, MainWindow.PacketDG, "L2Hdr." + s));
@@ -155,7 +159,17 @@ namespace pviewer5
 			s = "SrcMAC"; HF.Add(s, new HeaderField(s, Protocols.Ethernet, true, MainWindow.PacketDG, "L2Hdr." + s));
 			((Binding)(HF[s].DGCol.Binding)).Converter = macconverter;
 			s = "TypeLen"; HF.Add(s, new HeaderField(s, Protocols.Ethernet, true, MainWindow.PacketDG, "L2Hdr." + s));
+
 			MainWindow.HFDict.Add(Protocols.Ethernet, HF);
+
+// BELOW IS TEMPORARY - DELETE WHEN NO LONGER NEED TO VIEW QUICKFILTER EXCLUDED PACKETS
+			s = "DestMAC"; HFExcl.Add(s, new HeaderField(s, Protocols.Ethernet, true, MainWindow.ExclDG, "L2Hdr." + s));
+			((Binding)(HFExcl[s].DGCol.Binding)).Converter = macconverter;
+			s = "SrcMAC"; HFExcl.Add(s, new HeaderField(s, Protocols.Ethernet, true, MainWindow.ExclDG, "L2Hdr." + s));
+			((Binding)(HFExcl[s].DGCol.Binding)).Converter = macconverter;
+
+			MainWindow.HFDictExcl.Add(Protocols.Ethernet, HFExcl);
+
 		}
 
 		public EthernetHeader(FileStream fs, ref uint RemainingLength, ref bool NotParsed)
@@ -170,6 +184,7 @@ namespace pviewer5
 			RemainingLength -= 0xe;
 		}
 	}
+
 	public class ARPHeader : Header
 	{
 		public uint ARPHWType { get; set; }
@@ -196,6 +211,7 @@ namespace pviewer5
 			s = "ARPSenderProt"; HF.Add(s, new HeaderField(s, Protocols.ARP, true, MainWindow.PacketDG, "L3Hdr." + s));
 			s = "ARPTargetHW"; HF.Add(s, new HeaderField(s, Protocols.ARP, true, MainWindow.PacketDG, "L3Hdr." + s));
 			s = "ARPTargetProt"; HF.Add(s, new HeaderField(s, Protocols.ARP, true, MainWindow.PacketDG, "L3Hdr." + s));
+
 			MainWindow.HFDict.Add(Protocols.ARP, HF);
 		}
 
@@ -224,8 +240,10 @@ namespace pviewer5
 			RemainingLength -= 0x14;
 		}
 	}
+
 	public class IPv4Header : Header
 	{
+		public static IPv4ConverterNumberOrAlias ipv4converter = new IPv4ConverterNumberOrAlias();
 		public uint IPv4Ver { get; set; }
 		public uint IPv4HdrLen { get; set; }
 		public uint IPv4TOS { get; set; }
@@ -237,14 +255,15 @@ namespace pviewer5
 		public uint IPv4TTL { get; set; }
 		public uint IPv4Prot { get; set; }
 		public uint IPv4Checksum { get; set; }
-		public uint IPv4SrcIP { get; set; }
-		public uint IPv4DestIP { get; set; }
+		public ulong IPv4SrcIP { get; set; }
+		public ulong IPv4DestIP { get; set; }
 		public uint IPv4OptionLen { get; set; }
 		public byte[] IPv4Options { get; set; }
 
 		static IPv4Header()          // static constructor, constructs header field dictionary and adds to master dictionary of header fields
 		{
 			Dictionary<string, HeaderField> HF = new Dictionary<string, HeaderField>();
+			Dictionary<string, HeaderField> HFExcl = new Dictionary<string, HeaderField>();
 			string s;
 
 			s = "IPv4Ver"; HF.Add(s, new HeaderField(s, Protocols.IPv4, false, MainWindow.PacketDG, "L3Hdr." + s));
@@ -259,9 +278,21 @@ namespace pviewer5
 			s = "IPv4Prot"; HF.Add(s, new HeaderField(s, Protocols.IPv4, true, MainWindow.PacketDG, "L3Hdr." + s));
 			s = "IPv4Checksum"; HF.Add(s, new HeaderField(s, Protocols.IPv4, false, MainWindow.PacketDG, "L3Hdr." + s));
 			s = "IPv4SrcIP"; HF.Add(s, new HeaderField(s, Protocols.IPv4, true, MainWindow.PacketDG, "L3Hdr." + s));
+			((Binding)(HF[s].DGCol.Binding)).Converter = ipv4converter;
 			s = "IPv4DestIP"; HF.Add(s, new HeaderField(s, Protocols.IPv4, true, MainWindow.PacketDG, "L3Hdr." + s));
+			((Binding)(HF[s].DGCol.Binding)).Converter = ipv4converter;
 			s = "IPv4OptionLen"; HF.Add(s, new HeaderField(s, Protocols.IPv4, false, MainWindow.PacketDG, "L3Hdr." + s));
+
 			MainWindow.HFDict.Add(Protocols.IPv4, HF);
+
+
+// BELOW IS TEMPORARY - DELETE WHEN NO LONGER NEED TO VIEW QUICKFILTER EXCLUDED PACKETS
+			s = "IPv4SrcIP"; HFExcl.Add(s, new HeaderField(s, Protocols.IPv4, true, MainWindow.ExclDG, "L3Hdr." + s));
+			((Binding)(HFExcl[s].DGCol.Binding)).Converter = ipv4converter;
+			s = "IPv4DestIP"; HFExcl.Add(s, new HeaderField(s, Protocols.IPv4, true, MainWindow.ExclDG, "L3Hdr." + s));
+			((Binding)(HFExcl[s].DGCol.Binding)).Converter = ipv4converter;
+
+			MainWindow.HFDictExcl.Add(Protocols.IPv4, HFExcl);
 		}
 
 		public IPv4Header(FileStream fs, ref uint RemainingLength, ref bool NotParsed)
@@ -300,8 +331,11 @@ namespace pviewer5
 			RemainingLength -= IPv4HdrLen * 4;
 		}
 	}
+
 	public class PcapPkt
 	{
+		public bool qfexcluded;
+	
 		public PcapPktHdr ph { get; set; }
 		public uint RemainingLength;
 		public bool NotParsed;
@@ -315,6 +349,7 @@ namespace pviewer5
 
 		public PcapPkt(FileStream fs, PcapFileHdr fh)
 		{
+			qfexcluded = false;
 			ph = new PcapPktHdr(fs, fh);
 			RemainingLength = (uint)ph.caplen;
 			NotParsed = false;  // state indicator maintained by header constructors - if constructor is unable to fully parse the header
@@ -324,16 +359,28 @@ namespace pviewer5
 			switch (ph.datalink)
 			{
 				case 1:         // ethernet
-					L2Protocol = Protocols.Ethernet;
 					L2Hdr = new EthernetHeader(fs, ref RemainingLength, ref NotParsed);
-					if (NotParsed) L2Hdr = null;      // NotParsed==true means the ethernet header was not read
-					else switch (((EthernetHeader)L2Hdr).TypeLen)
+					if (NotParsed)
+					{
+						L2Hdr = null;      // NotParsed==true means the ethernet header was not read
+						DoneParsing = true;
+					}
+					else
+					{
+						L2Protocol = Protocols.Ethernet;
+						if (QuickFilterTools.QFMAC.Exclude(((EthernetHeader)L2Hdr).DestMAC) || QuickFilterTools.QFMAC.Exclude(((EthernetHeader)L2Hdr).SrcMAC))
+						{
+							qfexcluded = true;
+							DoneParsing = true;
+						}
+						else switch (((EthernetHeader)L2Hdr).TypeLen)
 						{
 							case 0x800: L3Protocol = Protocols.IPv4; break;
 							case 0x806: L3Protocol = Protocols.ARP; break;
 							case 0x8dd: L3Protocol = Protocols.IPv6; break;
 							default: DoneParsing = true; break;
 						}
+					}
 					break;
 				default:
 					DoneParsing = true; break;
@@ -343,12 +390,19 @@ namespace pviewer5
 				{
 					case Protocols.ARP:
 						L3Hdr = new ARPHeader(fs, ref RemainingLength, ref NotParsed);
-						if (NotParsed) L3Hdr = null;      // NotParsed==true means the header was not read
+						if (NotParsed) {L3Hdr = null; DoneParsing=true;}      // NotParsed==true means the header was not read
 						DoneParsing = true;
 						break;
 					case Protocols.IPv4:
 						L3Hdr = new IPv4Header(fs, ref RemainingLength, ref NotParsed);
-						if (NotParsed) L3Hdr = null;      // NotParsed==true means the header was not read
+						if (NotParsed) { L3Hdr = null; DoneParsing = true; }      // NotParsed==true means the header was not read
+
+						else if (QuickFilterTools.QFIPv4.Exclude(((IPv4Header)L3Hdr).IPv4DestIP) || QuickFilterTools.QFIPv4.Exclude(((IPv4Header)L3Hdr).IPv4SrcIP))
+						{
+							qfexcluded = true;
+							DoneParsing = true;
+						}
+
 						else switch (((IPv4Header)L3Hdr).IPv4Prot)
 							{
 								case 0x06: L4Protocol = Protocols.TCP; break;
@@ -358,6 +412,7 @@ namespace pviewer5
 						break;
 					case Protocols.IPv6:
 					default:
+						DoneParsing = true;
 						break;
 				}
 
@@ -410,6 +465,7 @@ namespace pviewer5
 		}
 		public string CritInfo { get { return string.Format("type {0} mask {1:x8} reln {2} comparevalue {3:x4}", CritType, mask, reln, comparevalue); } }
 	}
+
 	public class PktSet : INotifyPropertyChanged
 	{
 		private string name;
@@ -457,6 +513,7 @@ namespace pviewer5
 			get { return name + ", count=" + pkts.Count; }
 		}
 	}
+
 	public class PktSetList : INotifyPropertyChanged
 	{
 		public ObservableCollection<PktSet> sets { get; set; }
@@ -473,7 +530,8 @@ namespace pviewer5
 		{
 			sets = new ObservableCollection<PktSet>();
 			sets.Add(new PktSet("default packet set"));     // packet set list must always include at least one set
-			Notify();                                       // this creates one set with the default criteria, which matches all packets
+						                                       // this creates one set with the default criteria, which matches all packets
+			Notify();
 		}
 
 		public int PktSetListAdd(PcapPkt pkt)       // adds a packet to the set list, returns 0 if added to a set, -1 if not added to any set (which should never happen)
@@ -482,11 +540,10 @@ namespace pviewer5
 			{
 				if (set.PktSetConsiderPkt(pkt)) return 0;
 			}
+
 			return -1;                              // return -1 if packet did not meet criteria in any set
 		}
 	}
-
-
 
 	public class DisplaySettings : INotifyPropertyChanged
 	{
@@ -506,38 +563,46 @@ namespace pviewer5
 
 	}
 
-
-
-
 	public partial class MainWindow : Window
 	{
-		public PcapFileHdr pfh;
 		public PktSetList setlist = new PktSetList();
+		public PktSet qfexcluded = new PktSet("excluded by quickfilter");
 
-		string s;
-		public Dictionary<string, HeaderField> HF = new Dictionary<string, HeaderField>();
 		public static DataGrid PacketDG;    // copy of packet data grid reference, static so that other classes can refer to it
 		public static Dictionary<Protocols, Dictionary<string, HeaderField>> HFDict = new Dictionary<Protocols, Dictionary<string, HeaderField>>();
-		// master dictionary of header field information
-		// top level is dict by protocol
-		// each entry is in turn a dictionary of HeaderField by field name
+											// master dictionary of header field information
+											// top level is dict by protocol
+											// each entry is in turn a dictionary of HeaderField by field name
+
+	// TEMPORARY - PROVISION FOR VIEWING QF EXLUDED PACKETS
+		// WHEN NO LONGER NEEDED, ALSO DELETE
+		//		CODE IN ETHER AND IPV4 HEADER STATIC CONSTRUCTORS THAT CREATES THE EXTRA HF ENTRIES
+		public static Dictionary<Protocols, Dictionary<string, HeaderField>> HFDictExcl = new Dictionary<Protocols, Dictionary<string, HeaderField>>();
+		public static DataGrid ExclDG;    // copy of packet data grid reference, static so that other classes can refer to it
+		
 		public static DisplaySettings ds = new DisplaySettings();
 
 		public MainWindow()
 		{
 			InitializeComponent();
 			grid.DataContext = setlist.sets;
+			QFExclGrid.DataContext = qfexcluded;
 			PacketDG = PacketDataGrid;
+			ExclDG = QFExclGrid;
 
-			//setlist.sets.Insert(0,new PktSet("ARP packets", new PktCrit(3,0xffffffff, 0, 0x0806)));
+			setlist.sets.Insert(0, new PktSet("ARP packets", new PktCrit(3, 0xffffffff, 0, 0x0806)));
+			setlist.sets.Insert(0, new PktSet("IPv6 packets", new PktCrit(3, 0xffffffff, 0, 0x86dd)));
+
 		}
 
 		private void ChooseFile(object sender, RoutedEventArgs e)
 		{
+			PcapFileHdr pfh;
 			OpenFileDialog dlg = new OpenFileDialog();
 			Nullable<bool> result;
 			FileStream fs;
-			PktSet p = setlist.sets[0];
+			PcapPkt pkt;
+//			PktSet p = setlist.sets[0];
 
 			dlg.Multiselect = false;
 			dlg.InitialDirectory = "C:\\capfiles\\";
@@ -545,21 +610,24 @@ namespace pviewer5
 
 			if (result == true)
 			{
+				QuickFilterTools.QFMAC.ResetCounters();
+				QuickFilterTools.QFIPv4.ResetCounters();
+				foreach (PktSet set in setlist.sets) set.pkts.Clear();
+				qfexcluded.pkts.Clear();
 				filename.Content = dlg.FileName;
 				fs = new FileStream(dlg.FileName, FileMode.Open);
 				pfh = new PcapFileHdr(fs);
-				while (fs.Position < fs.Length) setlist.PktSetListAdd(new PcapPkt(fs, pfh));
+				while (fs.Position < fs.Length)
+				{
+					pkt = new PcapPkt(fs, pfh);
+// NEXT LINE IS TEMPORARY - ONCE QUICKFILTER IS TRUSTED, PACKETS THAT ARE EXCLUDED SHOULD SIMPLY BE DESTROYED
+					if (pkt.qfexcluded) qfexcluded.pkts.Add(pkt);
+					else setlist.PktSetListAdd(pkt);
+				}
 				fs.Close();
 			}
-			else MessageBox.Show("No file chosen, so no action taken");
 		}
 
-		// BUTTON CLICK HANDLER TO TOGGLE VISIBILITY OF TWO ELEMENTS IN SAME GRID SLOT
-		/*private void DGBClick(object sender, RoutedEventArgs e)
-		{
-			if (DG1.Visibility == Visibility.Visible) { DG1.Visibility = Visibility.Hidden; DG2.Visibility = Visibility.Visible; }
-			else { DG2.Visibility = Visibility.Hidden; DG1.Visibility = Visibility.Visible; }
-		}*/
 		private void qfbutton(object sender, RoutedEventArgs e)
 		{
 			Window qfd = new QuickFilterDialog();
@@ -569,24 +637,33 @@ namespace pviewer5
 		{
 			Window w1 = new MACNameMapDialog();
 			w1.ShowDialog();
+			CollectionViewSource.GetDefaultView(PacketDG.ItemsSource).Refresh();
+			CollectionViewSource.GetDefaultView(ExclDG.ItemsSource).Refresh();
 		}
 		private void inmbutton(object sender, RoutedEventArgs e)
 		{
 			Window w1 = new IPv4NameMapDialog();
 			w1.ShowDialog();
+			CollectionViewSource.GetDefaultView(PacketDG.ItemsSource).Refresh();
+			CollectionViewSource.GetDefaultView(ExclDG.ItemsSource).Refresh();
 		}
 		private void displayaliastoggle(object sender, RoutedEventArgs e)
 		{
 			ds.DisplayAliases = (bool)displayaliascheckbox.IsChecked;
+			CollectionViewSource.GetDefaultView(PacketDG.ItemsSource).Refresh();
+			CollectionViewSource.GetDefaultView(ExclDG.ItemsSource).Refresh();
 		}
 		private void displayipv4inhextoggle(object sender, RoutedEventArgs e)
 		{
 			ds.DisplayIPv4InHex = (bool)displayipv4inhexcheckbox.IsChecked;
+			CollectionViewSource.GetDefaultView(PacketDG.ItemsSource).Refresh();
+			CollectionViewSource.GetDefaultView(ExclDG.ItemsSource).Refresh();
 		}
 		private void showethertoggle(object sender, RoutedEventArgs e)
 		{
 			Visibility newvis = (bool)showetherfields.IsChecked ? Visibility.Visible : Visibility.Hidden;
 			foreach (HeaderField h in HFDict[Protocols.Ethernet].Values) if (h.Basic) h.DGCol.Visibility = newvis;
+			foreach (HeaderField h in HFDictExcl[Protocols.Ethernet].Values) if (h.Basic) h.DGCol.Visibility = newvis;
 		}
 		private void showarpbasictoggle(object sender, RoutedEventArgs e)
 		{
@@ -602,6 +679,7 @@ namespace pviewer5
 		{
 			Visibility newvis = (bool)showipv4basicfields.IsChecked ? Visibility.Visible : Visibility.Hidden;
 			foreach (HeaderField h in HFDict[Protocols.IPv4].Values) if (h.Basic) h.DGCol.Visibility = newvis;
+			foreach (HeaderField h in HFDictExcl[Protocols.IPv4].Values) if (h.Basic) h.DGCol.Visibility = newvis;
 		}
 		private void showipv4detailtoggle(object sender, RoutedEventArgs e)
 		{
