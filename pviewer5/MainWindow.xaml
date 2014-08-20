@@ -136,6 +136,12 @@
                     <DataGridTextColumn Header="Caplen" Binding="{Binding Path=ph.caplen}" />
                     <DataGridTextColumn Header="Wirelen" Binding="{Binding Path=ph.len}"/>
                 </DataGrid.Columns>
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Name="tabulatecommandmenuitem" Header="Tabulate" Command="{x:Static local:MainWindow.tabulatecommand}"/>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+
             </DataGrid>
         </GroupBox>
         <GroupBox Header="Packets Excluded by QuickFilter"

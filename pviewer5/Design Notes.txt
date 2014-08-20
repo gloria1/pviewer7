@@ -1,4 +1,65 @@
 ﻿
+workflow, ui and backing data
+
+	1) make loading a file a distinct operation, which parses all packets and puts them into a single list (and applies quickfilter, which will create a second list temporarily while i test it)
+	2) application of packet sets creates a set of pointers into the master packet list
+	3) doing the "group into convos" operation creates a list of convos *within each packet set*
+		3.1) testing for convo membership is a method within each headerfield class
+		3.2) user must specify which protocols to do convo testing for
+		3.3) apply convo testing for lwoer level protocols first - so, say, ipv4 gets defragged first, then tcp fragments get combined
+			3.3.1) so that means each there will be a separate pass through the packets for each layer(?)
+			3.3.2) 
+		3.4) a convo is
+			3.4.1) a special case of a packet
+			3.4.2) one (or more??) of the packet header members will be populated with the common header information
+			3.4.3) instead of data, there will be a list of pointers to member packets (Which can themselves be convos)
+
+
+
+
+
+
+
+
+git - how to roll back????
+    - how to open a branch to an earlier version so i can just look at how it used to work
+
+
+timestamp value converter for display
+
+hex data view for data portion of each packet (as detail view in datagrid?)
+
+tool to summarize column of packet data grid with counts (sort by count, or by item value)
+	difficulty is how to extract a list of the values of a certain field from setlist.sets.pkts
+	the datagrid column can give the binding, which contains the headerfield path as a string
+	is there a method that will automatically get the values in a datagrid column (try internet search - was not online when tried this)
+	can reflection use the path string to access the properties of pkts?  (probably yes, but is it fast enough - see p. 781 of c# in a nutshell)
+
+
+aggregate ipv4 fragments
+	handle dumps that do not include all fragments
+
+add support for more protocols
+	tcp
+	udp
+	icmp
+	icmp router discovery (rfc 1256 - is this still current?)
+	icmp other extensions
+
+group "conversations"
+	examples of conversations:
+		arp request and response
+		tcp session
+
+	definition of a conversation:
+		-
+		-
+
+	how a conversation should be presented in gui
+		- allow for expand/collapse??
+
+	how to handle incomplete conversation
+
 
 
 

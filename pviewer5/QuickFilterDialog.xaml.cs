@@ -247,9 +247,10 @@ namespace pviewer5
 
 			qd.qfmaclocal.Add(new QuickFilterTools.QFItem());
 		}
-		private static void PreviewExecutedmacaddrow(object sender, ExecutedRoutedEventArgs e)
-		{
-		}
+// needed?
+	//	private static void PreviewExecutedmacaddrow(object sender, ExecutedRoutedEventArgs e)
+	//	{
+	//	}
 		private static void CanExecutemacaddrow(object sender, CanExecuteRoutedEventArgs e)
 		{
 			e.CanExecute = true;

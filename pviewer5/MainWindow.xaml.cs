@@ -21,7 +21,7 @@ using Microsoft.Win32;
 
 namespace pviewer5
 {
-	public enum Protocols { Pcap, Ethernet, Wifi, IPv4, ARP, IPv6, TCP, UDP, ICMP, Other, NA }
+	public enum Protocols { Pcap, Ethernet, Wifi, IPv4, ARP, IPv6, TCP, UDP, ICMP, IGMP, GGP, Other, NA }
 
 	public class HeaderField				// HeaderField class - purpose is to contain all information that exists for a given header field
 	{										// 	this includes:
@@ -332,6 +332,95 @@ namespace pviewer5
 		}
 	}
 
+	public class ICMPHeader : Header
+	{
+		public uint ICMPType { get; set; }
+		public uint ICMPCode { get; set; }
+		public uint ICMPChecksum { get; set; }
+		public uint ICMPUnused { get; set; }
+		public uint ICMPPointer { get; set; }
+		public ulong ICMPGatewayAddress { get; set; }
+		public uint ICMPIdentifier { get; set; }
+		public uint ICMPSequenceNumber { get; set; }
+		public ulong ICMPOriginateTimestamp { get; set; }
+		public ulong ICMPReceiveTimestamp { get; set; }
+		public ulong ICMPTransmitTimestamp { get; set; }
+
+		static ICMPHeader()          // static constructor, constructs header field dictionary and adds to master dictionary of header fields
+		{
+			Dictionary<string, HeaderField> HF = new Dictionary<string, HeaderField>();
+			string s;
+
+			s = "ICMPType"; HF.Add(s, new HeaderField(s, Protocols.ICMP, true, MainWindow.PacketDG, "L4Hdr." + s));
+			s = "ICMPCode"; HF.Add(s, new HeaderField(s, Protocols.ICMP, true, MainWindow.PacketDG, "L4Hdr." + s));
+			s = "ICMPChecksum"; HF.Add(s, new HeaderField(s, Protocols.ICMP, false, MainWindow.PacketDG, "L4Hdr." + s));
+			s = "ICMPUnused"; HF.Add(s, new HeaderField(s, Protocols.ICMP, false, MainWindow.PacketDG, "L4Hdr." + s));
+			s = "ICMPPointer"; HF.Add(s, new HeaderField(s, Protocols.ICMP, false, MainWindow.PacketDG, "L4Hdr." + s));
+			s = "ICMPGatewayAddress"; HF.Add(s, new HeaderField(s, Protocols.ICMP, false, MainWindow.PacketDG, "L4Hdr." + s));
+			s = "ICMPIdentifier"; HF.Add(s, new HeaderField(s, Protocols.ICMP, false, MainWindow.PacketDG, "L4Hdr." + s));
+			s = "ICMPSequenceNumber"; HF.Add(s, new HeaderField(s, Protocols.ICMP, false, MainWindow.PacketDG, "L4Hdr." + s));
+			s = "ICMPOriginateTimestamp"; HF.Add(s, new HeaderField(s, Protocols.ICMP, false, MainWindow.PacketDG, "L4Hdr." + s));
+			s = "ICMPReceiveTimestamp"; HF.Add(s, new HeaderField(s, Protocols.ICMP, false, MainWindow.PacketDG, "L4Hdr." + s));
+			s = "ICMPTransmitTimestamp"; HF.Add(s, new HeaderField(s, Protocols.ICMP, false, MainWindow.PacketDG, "L4Hdr." + s));
+
+			MainWindow.HFDict.Add(Protocols.ICMP, HF);
+		}
+
+		public ICMPHeader(FileStream fs, ref uint RemainingLength, ref bool NotParsed)
+		{
+
+// DO WE ALSO NEED TO HANDLE TYPE 9, ICMP ROUTER DISCOVER MESSAGES?? (SEE RFC 1256)
+
+
+
+			Layer = 4;
+			Protocol = Protocols.ICMP;
+			if (RemainingLength < 0x08) { NotParsed = true; return; }
+			ICMPType = (uint)fs.ReadByte();
+			ICMPCode = (uint)fs.ReadByte();
+			ICMPChecksum = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
+			RemainingLength -= 0x04;
+
+			switch (ICMPType)
+			{
+				case 3:		// destination unreachable
+				case 11:	// time exceeded
+				case 4:		// source quench
+					ICMPUnused = (uint)fs.ReadByte() * 0x1000000 + (uint)fs.ReadByte() * 0x10000 + (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
+					RemainingLength -= 0x04;
+					break;
+				case 12:	// parameter problem
+					ICMPPointer = (uint)fs.ReadByte();
+					ICMPUnused = (uint)fs.ReadByte() * 0x10000 + (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
+					RemainingLength -= 0x04;
+					break;
+				case 5:		// redirect
+					ICMPGatewayAddress = (uint)fs.ReadByte() * 0x1000000 + (uint)fs.ReadByte() * 0x10000 + (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
+					RemainingLength -= 0x04;
+					break;
+				case 8:		// echo
+				case 0:		// echo reply
+				case 15:	// information request
+				case 16:	// information reply
+					ICMPIdentifier = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
+					ICMPSequenceNumber = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
+					RemainingLength -= 0x04;
+					break;
+				case 13:	// timestamp
+				case 14:	// timestamp reply
+					if (RemainingLength < 0x10) { fs.Seek(-0x4, SeekOrigin.Current); /*need to "unread" the first 4 bytes since this will not be a valid header*/ RemainingLength += 0x4; NotParsed = true; return; }
+					ICMPOriginateTimestamp = (uint)fs.ReadByte() * 0x1000000 + (uint)fs.ReadByte() * 0x10000 + (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
+					ICMPReceiveTimestamp = (uint)fs.ReadByte() * 0x1000000 + (uint)fs.ReadByte() * 0x10000 + (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
+					ICMPTransmitTimestamp = (uint)fs.ReadByte() * 0x1000000 + (uint)fs.ReadByte() * 0x10000 + (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
+					RemainingLength -= 0x10;
+					break;
+				default:
+					break;
+			}
+		}
+	}
+
+
 	public class PcapPkt
 	{
 		public bool qfexcluded;
@@ -405,12 +494,27 @@ namespace pviewer5
 
 						else switch (((IPv4Header)L3Hdr).IPv4Prot)
 							{
+								case 0x01: L4Protocol = Protocols.ICMP; break;
+								case 0x02: L4Protocol = Protocols.IGMP; break;
+								case 0x03: L4Protocol = Protocols.GGP; break;
 								case 0x06: L4Protocol = Protocols.TCP; break;
 								case 0x11: L4Protocol = Protocols.UDP; break;
 								default: DoneParsing = true; break;
 							}
 						break;
 					case Protocols.IPv6:
+					default:
+						DoneParsing = true;
+						break;
+				}
+
+			if (!DoneParsing) switch (L4Protocol)
+				{
+					case Protocols.ICMP:
+						L4Hdr = new ICMPHeader(fs, ref RemainingLength, ref NotParsed);
+						if (NotParsed) { L4Hdr = null; DoneParsing = true; }      // NotParsed==true means the header was not read
+						DoneParsing = true;
+						break;
 					default:
 						DoneParsing = true;
 						break;
@@ -568,6 +672,8 @@ namespace pviewer5
 		public PktSetList setlist = new PktSetList();
 		public PktSet qfexcluded = new PktSet("excluded by quickfilter");
 
+		public static RoutedCommand tabulatecommand = new RoutedCommand();
+
 		public static DataGrid PacketDG;    // copy of packet data grid reference, static so that other classes can refer to it
 		public static Dictionary<Protocols, Dictionary<string, HeaderField>> HFDict = new Dictionary<Protocols, Dictionary<string, HeaderField>>();
 											// master dictionary of header field information
@@ -585,6 +691,12 @@ namespace pviewer5
 		public MainWindow()
 		{
 			InitializeComponent();
+
+			CommandBinding tabulatebinding;
+			tabulatebinding = new CommandBinding(tabulatecommand, Executedtabulate, CanExecutetabulate);
+			PacketDataGrid.CommandBindings.Add(tabulatebinding);
+			tabulatecommandmenuitem.CommandTarget = PacketDataGrid;   // added this so that menu command would not be disabled when datagrid first created; not sure exactly why this works, books/online articles refer to WPF not correctly determining the intended command target based on focus model (logical focus? keyboard focus?), so you have to set the command target explicitly
+
 			grid.DataContext = setlist.sets;
 			QFExclGrid.DataContext = qfexcluded;
 			PacketDG = PacketDataGrid;
@@ -685,6 +797,21 @@ namespace pviewer5
 		{
 			Visibility newvis = (bool)showipv4detailfields.IsChecked ? Visibility.Visible : Visibility.Hidden;
 			foreach (HeaderField h in HFDict[Protocols.IPv4].Values) if (!h.Basic) h.DGCol.Visibility = newvis;
+		}
+		private static void Executedtabulate(object sender, ExecutedRoutedEventArgs e)
+		{
+			ulong q;
+
+			DataGrid dg = (DataGrid)e.Source;
+			DataGridTextColumn col = (DataGridTextColumn)(dg.CurrentColumn);
+			if (col == null) return;
+//			string path = ((Binding)(col.Binding)).Path.Path;		// col.Binding is of type BindingBase - Path property does not exist in BindingBase, so had to cast to Binding - don't know if this will cause problems.....
+
+	//		foreach (PcapPkt p in dg.ItemsSource) q = (ulong)(col.GetCellContent(p).GetValue();
+		}
+		private static void CanExecutetabulate(object sender, CanExecuteRoutedEventArgs e)
+		{
+			e.CanExecute = true;
 		}
 
 	}
