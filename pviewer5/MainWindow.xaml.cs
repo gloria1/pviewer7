@@ -19,11 +19,61 @@ using System.IO;
 using Microsoft.Win32;
 
 
+
 namespace pviewer5
 {
-	public enum Protocols { Pcap, Ethernet, Wifi, IPv4, ARP, IPv6, TCP, UDP, ICMP, IGMP, GGP, Other, NA }
+	public enum Protocols  { Pcap, Ethernet, Wifi, IPv4, ARP, IPv6, TCP, UDP, ICMP, IGMP, GGP, DHCPv4, BOOTP, Other, NA, Ungrouped }
 
-	public class HeaderField				// HeaderField class - purpose is to contain all information that exists for a given header field
+    public class PcapFileHdr
+    {
+        public uint magicnumber;    // "magic number" - see http://wiki.wireshark.org/Development/LibpcapFileFormat
+        public uint versionmajor;
+        public uint versionminor;
+        public int gmttolocal;      // GMT to local correction
+        public uint sigfigs;        // accuracy of timestamps
+        public uint snaplen;        // max length of captured packets in bytes
+        public uint datalink;       // datalink type
+
+        public bool bigendian;      // true = a1 first, false = d4 first
+        public uint nanores;        // 0 = microsecond resolution, 1 = nanosecond resolution
+
+        private uint flip32(byte[] d, int i)
+        {
+            byte[] dflip = new byte[4];
+            dflip[0] = d[3 + i];
+            dflip[1] = d[2 + i];
+            dflip[2] = d[1 + i];
+            dflip[3] = d[0 + i];
+            return BitConverter.ToUInt32(dflip, 0);
+        }
+        private uint flip16(byte[] d, int i)
+        {
+            byte[] dflip = new byte[2];
+            dflip[0] = d[1 + i];
+            dflip[1] = d[0 + i];
+            return BitConverter.ToUInt16(dflip, 0);
+        }
+        public PcapFileHdr(FileStream fs)
+        {
+
+            byte[] d = new byte[24];
+
+            fs.Read(d, 0, 24);
+
+            bigendian = (d[0] == 0xa1 ? true : false);
+
+            magicnumber = (bigendian ? flip32(d, 0) : BitConverter.ToUInt32(d, 0));
+            versionmajor = (bigendian ? flip16(d, 4) : BitConverter.ToUInt16(d, 4));
+            versionminor = (bigendian ? flip16(d, 6) : BitConverter.ToUInt16(d, 6));
+            gmttolocal = (int)(bigendian ? flip32(d, 8) : BitConverter.ToUInt32(d, 8));
+            sigfigs = (bigendian ? flip32(d, 12) : BitConverter.ToUInt32(d, 12));
+            snaplen = (bigendian ? flip32(d, 16) : BitConverter.ToUInt32(d, 16));
+            datalink = (bigendian ? flip32(d, 20) : BitConverter.ToUInt32(d, 20));
+
+        }
+    }
+
+    public class HeaderField				// HeaderField class - purpose is to contain all information that exists for a given header field
 	{										// 	this includes:
 		public string Label;				//			settings that control how it is displayed
 		public Protocols Protocol;			//			a reference to the DataGridTextColumn that displays it
@@ -41,105 +91,63 @@ namespace pviewer5
 			DGCol.Binding = new Binding(bindingpath);
 			DGCol.Binding.StringFormat = "x";
 			DGCol.Visibility = Visibility.Hidden;
-			dg.Columns.Add(DGCol);
-		}
-	}
-
-	public class PcapFileHdr
-	{
-		public uint magicnumber;    // "magic number" - see http://wiki.wireshark.org/Development/LibpcapFileFormat
-		public uint versionmajor;
-		public uint versionminor;
-		public int gmttolocal;      // GMT to local correction
-		public uint sigfigs;        // accuracy of timestamps
-		public uint snaplen;        // max length of captured packets in bytes
-		public uint datalink;       // datalink type
-
-		public bool bigendian;      // true = a1 first, false = d4 first
-		private uint nanores;        // 0 = microsecond resolution, 1 = nanosecond resolution
-
-		private uint flip32(byte[] d, int i)
-		{
-			byte[] dflip = new byte[4];
-			dflip[0] = d[3 + i];
-			dflip[1] = d[2 + i];
-			dflip[2] = d[1 + i];
-			dflip[3] = d[0 + i];
-			return BitConverter.ToUInt32(dflip, 0);
-		}
-		private uint flip16(byte[] d, int i)
-		{
-			byte[] dflip = new byte[2];
-			dflip[0] = d[1 + i];
-			dflip[1] = d[0 + i];
-			return BitConverter.ToUInt16(dflip, 0);
-		}
-		public PcapFileHdr(FileStream fs)
-		{
-
-			byte[] d = new byte[24];
-
-			fs.Read(d, 0, 24);
-
-			bigendian = (d[0] == 0xa1 ? true : false);
-
-			magicnumber = (bigendian ? flip32(d, 0) : BitConverter.ToUInt32(d, 0));
-			versionmajor = (bigendian ? flip16(d, 4) : BitConverter.ToUInt16(d, 4));
-			versionminor = (bigendian ? flip16(d, 6) : BitConverter.ToUInt16(d, 6));
-			gmttolocal = (int)(bigendian ? flip32(d, 8) : BitConverter.ToUInt32(d, 8));
-			sigfigs = (bigendian ? flip32(d, 12) : BitConverter.ToUInt32(d, 12));
-			snaplen = (bigendian ? flip32(d, 16) : BitConverter.ToUInt32(d, 16));
-			datalink = (bigendian ? flip32(d, 20) : BitConverter.ToUInt32(d, 20));
-
+			if (dg != null) dg.Columns.Add(DGCol);
 		}
 	}
 
 	public class Header						// Base class for protocol headers of all kinds
 	{
-		public uint Layer;          // 0 for PCAP, otherwise it's the OSI layer (e.g., 2 for Ether, 3 for IP, etc)
+        public uint Layer;          // 0 for PCAP, otherwise it's the OSI layer (e.g., 2 for Ether, 3 for IP, etc)
 		public Protocols Protocol;
 	}
 
-	public class PcapPktHdr : Header
-	{
-		public uint datalink { get; set; }      // copy of datalink type from capture file
-		public uint timesecs { get; set; }      // stored in file as 32 bit integer (per inspection of file and per http://wiki.wireshark.org/Development/LibpcapFileFormat)
-		public uint timeusecs { get; set; }    // ditto
-		public uint caplen { get; set; }         // length captured
-		public uint len { get; set; }            // length on the wire
+    public class PktGroup                   // Base class for packet groups of all kinds
+    {
+        public Protocols Protocol;             // basis for grouping, or Ungrouped if this item is just a packet
+        public DateTime Firsttime, Lasttime;   // earliest and latest timestamp in this group
+        public bool Complete = false;          // flag to indicate that the group contains a complete sequence for that protocol, e.g., an ARP request and response pair
+                                                // this will be used by the grouping logic to skip consideration of this group for any additional packets
 
-		private uint flip32(byte[] d, int i)
-		{
-			byte[] dflip = new byte[4];
-			dflip[0] = d[3 + i];
-			dflip[1] = d[2 + i];
-			dflip[2] = d[1 + i];
-			dflip[3] = d[0 + i];
-			return BitConverter.ToUInt32(dflip, 0);
-		}
-		private uint flip16(byte[] d, int i)
-		{
-			byte[] dflip = new byte[2];
-			dflip[0] = d[1 + i];
-			dflip[1] = d[0 + i];
-			return BitConverter.ToUInt16(dflip, 0);
-		}
-		public PcapPktHdr(FileStream fs, PcapFileHdr fh)
-		{
-			Layer = 0;
-			Protocol = Protocols.Pcap;
+        public ObservableCollection<object> L = new ObservableCollection<object>();  // list items are either other packet groups or individual packets
 
-			byte[] d = new byte[16];
+    }
+    public class PktGroupGroup                 // Base class for groups of packet groups for a given protocol
+    {
+        public Protocols Protocol;             // basis for grouping
+        public string Name { get; set; }        // name for group to show on screen
+        public delegate bool GroupPacketDelegate(PcapPkt pkt);      // function to call to consider a packet for membeship in this protocol's list of groups
+        public ObservableCollection<PktGroup> Groups = new ObservableCollection<PktGroup>();
+    }
 
-			datalink = fh.datalink;
-			fs.Read(d, 0, 16);
+    public  class Protocol
+    {
+        public string Name;
+        public uint Layer;
 
-			timesecs = (fh.bigendian ? flip32(d, 0) : BitConverter.ToUInt32(d, 0));
-			timeusecs = (fh.bigendian ? flip32(d, 4) : BitConverter.ToUInt32(d, 4));
-			caplen = (fh.bigendian ? flip32(d, 8) : BitConverter.ToUInt32(d, 8));
-			len = (fh.bigendian ? flip32(d, 12) : BitConverter.ToUInt32(d, 12));
-		}
-	}
+        public class H
+        {
+    		public H(FileStream fs, ref uint RemainingLength, ref bool NotParsed);  // generic constructor for a packet header
+        }
+        public class G
+        {
+            public DateTime Firsttime, Lasttime;   // earliest and latest timestamp in this group
+            public bool Complete = false;          // flag to indicate that the group contains a complete sequence for that protocol, e.g., an ARP request and response pair
+                                                    // this will be used by the grouping logic to skip consideration of this group for any additional packets
+
+            public ObservableCollection<object> L = new ObservableCollection<object>();  // list items are either other packet groups or individual packets
+
+            public bool GroupPacket(PcapPkt pkt)     // returns true if assigned to a group, false if not
+         }
+    }
+
+    public class ARP : Protocol
+    {
+        public class H
+        {
+
+        }
+    }
+
 
 	public class EthernetHeader : Header
 	{
@@ -147,7 +155,7 @@ namespace pviewer5
 		public ulong DestMAC { get; set; }
 		public ulong SrcMAC { get; set; }
 		public uint TypeLen { get; set; }
-
+		
 		static EthernetHeader()          // static constructor, constructs header field dictionary and adds to master dictionary of header fields
 		{
 			Dictionary<string, HeaderField> HF = new Dictionary<string, HeaderField>();
@@ -178,13 +186,83 @@ namespace pviewer5
 			Protocol = Protocols.Ethernet;
 			if (RemainingLength < 0xe) { NotParsed = true; return; }
 			DestMAC = (ulong)fs.ReadByte() * 0x0010000000000 + (ulong)fs.ReadByte() * 0x000100000000 + (ulong)fs.ReadByte() * 0x000001000000 + (ulong)fs.ReadByte() * 0x000000010000 + (ulong)fs.ReadByte() * 0x000000000100 + (ulong)fs.ReadByte();
-			SrcMAC = (ulong)fs.ReadByte() * 0x0010000000000 + (ulong)fs.ReadByte() * 0x000100000000 + (ulong)fs.ReadByte() * 0x000001000000 + (ulong)fs.ReadByte() * 0x000000010000 + (ulong)fs.ReadByte() * 0x000000000100 + (ulong)fs.ReadByte();
+			SrcMAC =  (ulong)fs.ReadByte() * 0x0010000000000 + (ulong)fs.ReadByte() * 0x000100000000 + (ulong)fs.ReadByte() * 0x000001000000 + (ulong)fs.ReadByte() * 0x000000010000 + (ulong)fs.ReadByte() * 0x000000000100 + (ulong)fs.ReadByte();
 			TypeLen = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
 			// NEED TO HANDLE Q-TAGGED FRAMES
 			RemainingLength -= 0xe;
 		}
 	}
 
+    public class ARPGroup : PktGroup
+    {
+        public uint ARPHWType;      // these are the header fields that define an ARP group
+        public uint ARPProt;
+        public ulong ARPSenderHW;
+        public ulong ARPSenderProt;
+        public ulong ARPTargetProt;
+
+        public static ObservableCollection<PktGroup> Groups = new ObservableCollection<PktGroup>();    // list of packet groups assembled based on this protocol
+
+        public ARPGroup()
+        {
+            Protocol = Protocols.ARP;
+        }
+
+        public static bool GroupPacket(PcapPkt pkt)     // returns true if assigned to a group, false if not
+        {
+            // rules for membership in an ARP packet group:
+            //      the first packet found is included (it may be a reply, if the request occurred before the capture file)
+            //      if the packet is a gratuitous ARP, group is immediately marked complete
+            //      further packets will be included if they are a valid response to the first packet (i.e., sender == original target, and opcode == 2)
+            // ARP group header specification members:
+            //      HWType
+            //      Prot
+            //      SenderHW address
+            //      SenderProt address
+            //      TargetProt address
+
+            ARPGroup newgroup;
+            ARPHeader ph = (ARPHeader)(pkt.L3Hdr);
+
+            if (pkt.L3Hdr.Protocol != Protocols.ARP) return false;      // if packet does not have a header of this type, return false
+
+            if (ph.ARPOpn == 1)     // if this is a request or a gratuitous ARP, start a new group
+            {
+                newgroup = new ARPGroup();
+                newgroup.ARPHWType = ph.ARPHWType;
+                newgroup.ARPProt = ph.ARPProt;
+                newgroup.ARPSenderHW = ph.ARPSenderHW;
+                newgroup.ARPSenderProt = ph.ARPSenderProt;
+                newgroup.ARPTargetProt = ph.ARPTargetProt;
+                newgroup.Firsttime = newgroup.Lasttime = pkt.ph.time;
+                if (ph.ARPSenderProt == ph.ARPTargetProt) newgroup.Complete = true;   // if this is a gratuitous ARP, mark the group complete immediately
+
+                newgroup.L.Add(pkt);
+                Groups.Insert(0, newgroup);     // insert at begining of list, so that for future packets, search begins with most recent group
+                return true;
+            }
+
+            // else this is an ARP response
+
+            foreach (ARPGroup g in Groups)
+            {
+                if (g.Complete) continue;
+                if ((ph.ARPTargetHW == g.ARPSenderHW) && (ph.ARPTargetProt == g.ARPSenderProt) && (ph.ARPSenderProt == g.ARPTargetProt))   // if this packet is a proper response to the original request....
+                    if ((ph.ARPHWType == g.ARPHWType) && (ph.ARPProt == g.ARPProt) && (ph.ARPOpn == 2))       //  ... and if the hardware type and protocol fields match, and opcode == 2 
+                    {
+                        g.L.Add(pkt);                                                                   // then add packet to the group
+                        g.Firsttime = (g.Firsttime < pkt.ph.time) ? g.Firsttime : pkt.ph.time;          // adjust group timestamps
+                        g.Lasttime = (g.Lasttime < pkt.ph.time) ? pkt.ph.time : g.Lasttime;             // adjust group timestamps
+                        g.Complete = true;                                                              // for ARP, this completes the group
+                        return true;
+                    }
+            }
+            // if we got this far, packet is a response that does not belong to an existing group - we will treat these as orphan packets for now
+            // maybe change our mind later and create a new gruop that will contain only the response
+            return false;
+
+        }
+    }
 	public class ARPHeader : Header
 	{
 		public uint ARPHWType { get; set; }
@@ -197,7 +275,7 @@ namespace pviewer5
 		public ulong ARPTargetHW { get; set; }
 		public ulong ARPTargetProt { get; set; }
 
-		static ARPHeader()          // static constructor, constructs header field dictionary and adds to master dictionary of header fields
+  		static ARPHeader()          // static constructor, constructs header field dictionary and adds to master dictionary of header fields
 		{
 			Dictionary<string, HeaderField> HF = new Dictionary<string, HeaderField>();
 			string s;
@@ -214,6 +292,11 @@ namespace pviewer5
 
 			MainWindow.HFDict.Add(Protocols.ARP, HF);
 		}
+
+        public ARPHeader()         // empty dynamic constructor
+        {
+
+        }
 
 		public ARPHeader(FileStream fs, ref uint RemainingLength, ref bool NotParsed)
 		{
@@ -239,6 +322,7 @@ namespace pviewer5
 
 			RemainingLength -= 0x14;
 		}
+
 	}
 
 	public class IPv4Header : Header
@@ -295,7 +379,13 @@ namespace pviewer5
 			MainWindow.HFDictExcl.Add(Protocols.IPv4, HFExcl);
 		}
 
-		public IPv4Header(FileStream fs, ref uint RemainingLength, ref bool NotParsed)
+        public IPv4Header()
+        {
+
+        }
+
+        
+        public IPv4Header(FileStream fs, ref uint RemainingLength, ref bool NotParsed)
 		{
 			Layer = 3;
 			Protocol = Protocols.IPv4;
@@ -420,16 +510,297 @@ namespace pviewer5
 		}
 	}
 
+    public class UDPGroup : PktGroup
+    {
+        public ulong IPv4SrcIP;      // these are the header fields that define an UDP group
+        public uint UDPSrcPort;
+        public ulong IPv4DestIP;
+        public uint UDPDestPort;
 
-	public class PcapPkt
+        public static ObservableCollection<PktGroup> Groups = new ObservableCollection<PktGroup>();    // list of packet groups assembled based on this protocol
+
+        public UDPGroup()
+        {
+            Protocol = Protocols.UDP;
+        }
+
+        public static bool GroupPacket(PcapPkt pkt)     // returns true if assigned to a group, false if not
+        {
+            // rules for membership in an UDP packet group:
+            //      packet is an ipv4 packet (later handle ipv6 and other layer 3 protocols)
+            //      all packets with same pair of IP/Port in source and destination (either direction)
+
+            // UDP group header specification members:
+            //      src ip (in ip header)
+            //      src port (in udp header)
+            //      dest ip (in ip header)
+            //      dest port (in udp header)
+
+            UDPGroup newgroup;
+            IPv4Header phip = (IPv4Header)pkt.L3Hdr;
+            UDPHeader phudp = (UDPHeader)pkt.L4Hdr;
+
+            if (pkt.L4Hdr.Protocol != Protocols.UDP) return false;      // if packet does not have a header of this type, return false
+
+            // search existing UDP groups
+
+            foreach (UDPGroup g in Groups)
+            {
+                if (   ((phip.IPv4SrcIP == g.IPv4SrcIP)  && (phudp.UDPSrcPort == g.UDPSrcPort)  && (phip.IPv4DestIP == g.IPv4DestIP) && (phudp.UDPDestPort == g.UDPDestPort))   // if source==source and dest==dest
+                    || ((phip.IPv4SrcIP == g.IPv4DestIP) && (phudp.UDPSrcPort == g.UDPDestPort) && (phip.IPv4DestIP == g.IPv4SrcIP)  && (phudp.UDPDestPort == g.UDPSrcPort)))  // or source==dest and dest==source
+                {
+                    g.L.Add(pkt);                                                                   // then add packet to the group
+                    g.Firsttime = (g.Firsttime < pkt.ph.time) ? g.Firsttime : pkt.ph.time;    // adjust group timestamps
+                    g.Lasttime = (g.Lasttime < pkt.ph.time) ? pkt.ph.time : g.Lasttime;   // adjust group timestamps
+                    return true;
+                }
+            }
+
+            // if we got this far, start a new UDP group
+            newgroup = new UDPGroup();
+            newgroup.IPv4SrcIP = phip.IPv4SrcIP;
+            newgroup.IPv4DestIP = phip.IPv4DestIP;
+            newgroup.UDPSrcPort = phudp.UDPSrcPort;
+            newgroup.UDPDestPort = phudp.UDPDestPort;
+            newgroup.Firsttime = newgroup.Lasttime = pkt.ph.time;
+
+            newgroup.L.Add(pkt);
+            Groups.Insert(0, newgroup);     // insert at begining of list, so that for future packets, search begins with most recent group
+            return true;
+        }
+
+    }
+    public class UDPHeader : Header
+    {
+        public uint UDPSrcPort { get; set; }
+        public uint UDPDestPort { get; set; }
+        public uint UDPLen { get; set; }
+        public uint UDPChecksum { get; set; }
+
+        public static ObservableCollection<PktGroup> UDPGroups = new ObservableCollection<PktGroup>();    // list of packet groups assembled based on this protocol
+
+        static UDPHeader()          // static constructor, constructs header field dictionary and adds to master dictionary of header fields
+        {
+            Dictionary<string, HeaderField> HF = new Dictionary<string, HeaderField>();
+            string s;
+
+            s = "UDPSrcPort"; HF.Add(s, new HeaderField(s, Protocols.UDP, false, MainWindow.PacketDG, "L4Hdr." + s));
+            s = "UDPDestPort"; HF.Add(s, new HeaderField(s, Protocols.UDP, false, MainWindow.PacketDG, "L4Hdr." + s));
+            s = "UDPLen"; HF.Add(s, new HeaderField(s, Protocols.UDP, false, MainWindow.PacketDG, "L4Hdr." + s));
+            s = "UDPChecksum"; HF.Add(s, new HeaderField(s, Protocols.UDP, false, MainWindow.PacketDG, "L4Hdr." + s));
+
+            MainWindow.HFDict.Add(Protocols.UDP, HF);
+        }
+
+        public UDPHeader()         // empty dynamic constructor
+        {
+
+        }
+
+        public UDPHeader(FileStream fs, ref uint RemainingLength, ref bool NotParsed)
+        {
+            Layer = 4;
+            Protocol = Protocols.UDP;
+            if (RemainingLength < 0x8) { NotParsed = true; return; }
+            UDPSrcPort = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
+            UDPDestPort = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
+            UDPLen = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
+            UDPChecksum = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
+            RemainingLength -= 0x8;
+        }
+
+     }
+
+    public class DHCPv4Group : PktGroup
+    {
+        public uint DHCPv4XID;      // these are the header fields that define an DHCPv4 group
+
+        public static ObservableCollection<PktGroup> Groups = new ObservableCollection<PktGroup>();    // list of packet groups assembled based on this protocol
+
+        public DHCPv4Group()
+        {
+            Protocol = Protocols.DHCPv4;
+        }
+
+        public static bool GroupPacket(PcapPkt pkt)     // returns true if pkt assigned to a group, false if not
+        {
+            // rules for membership in an DHCPv4 packet group:
+            //      XID's match
+            // DHCPv4 group header specification members:
+            //      DHCPv4XID
+
+            DHCPv4Group newgroup;
+            DHCPv4Header ph = (DHCPv4Header)(pkt.L5Hdr);
+
+            if (pkt.L5Hdr.Protocol != Protocols.DHCPv4) return false;      // if packet does not have a header of this type, return false
+
+            // check for membership in existing groups
+            foreach (DHCPv4Group g in Groups)
+            {
+                if (g.Complete) continue;
+                if (ph.DHCPv4XID == g.DHCPv4XID)   // if this packet belongs to g
+                {
+                    g.L.Add(pkt);                                                                   // then add packet to the group
+                    g.Firsttime = (g.Firsttime < pkt.ph.time) ? g.Firsttime : pkt.ph.time;          // adjust group timestamps
+                    g.Lasttime = (g.Lasttime < pkt.ph.time) ? pkt.ph.time : g.Lasttime;             // adjust group timestamps
+                    // if (this completes group) g.Complete = true;                                 // for DHCPv4, need to study further for completion criteria, in the meantime, never set complete
+                    return true;
+                }
+            }
+            // else start a new group
+            newgroup = new DHCPv4Group();
+            newgroup.DHCPv4XID= ph.DHCPv4XID;
+            // if (...................) newgroup.Complete = true;   // for DHCPv4, need to study further for completion criteria, in the meantime, never set complete
+
+            newgroup.L.Add(pkt);
+            Groups.Insert(0, newgroup);     // insert at begining of list, so that for future packets, search begins with most recent group
+            return true;
+        }
+    }
+	public class DHCPv4Header : Header
 	{
-		public bool qfexcluded;
-	
+		public uint DHCPv4OpCode { get; set; }
+		public uint DHCPv4HWType { get; set; }
+		public uint DHCPv4HWAddrLen { get; set; }
+		public uint DHCPv4Hops { get; set; }
+		public uint DHCPv4XID { get; set; }
+		public uint DHCPv4Secs { get; set; }
+        public uint DHCPv4Flags { get; set; }
+        public ulong DHCPv4ClientIP { get; set; }
+        public ulong DHCPv4YourIP { get; set; }
+        public ulong DHCPv4ServerIP { get; set; }
+        public ulong DHCPv4GatewayIP { get; set; }
+        public ulong DHCPv4ClientHWAddr { get; set; }   // lower order 8 bytes of HW address
+        public ulong DHCPv4ClientHWAddrHigh { get; set; }  // higher order 8 bytes of HW address
+        public uint DHCPv4Cookie { get; set; }
+
+		public DHCPv4Header(FileStream fs, ref uint RemainingLength, ref bool NotParsed)
+		{
+			Layer = 5;
+			Protocol = Protocols.DHCPv4;
+			if (RemainingLength < 0xf0) { NotParsed = true; return; }
+
+            DHCPv4OpCode = (uint)fs.ReadByte();
+            DHCPv4HWType = (uint)fs.ReadByte();
+            DHCPv4HWAddrLen = (uint)fs.ReadByte();
+            DHCPv4Hops = (uint)fs.ReadByte();
+            DHCPv4XID = (uint)fs.ReadByte() * 0x000001000000 + (uint)fs.ReadByte() * 0x000000010000 + (uint)fs.ReadByte() * 0x000000000100 + (uint)fs.ReadByte();
+            DHCPv4Secs= (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
+			DHCPv4Flags = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
+            DHCPv4ClientIP = (ulong)fs.ReadByte() * 0x000001000000 + (ulong)fs.ReadByte() * 0x000000010000 + (ulong)fs.ReadByte() * 0x000000000100 + (ulong)fs.ReadByte();
+            DHCPv4YourIP= (ulong)fs.ReadByte() * 0x000001000000 + (ulong)fs.ReadByte() * 0x000000010000 + (ulong)fs.ReadByte() * 0x000000000100 + (ulong)fs.ReadByte();
+            DHCPv4ServerIP = (ulong)fs.ReadByte() * 0x000001000000 + (ulong)fs.ReadByte() * 0x000000010000 + (ulong)fs.ReadByte() * 0x000000000100 + (ulong)fs.ReadByte();
+            DHCPv4GatewayIP = (ulong)fs.ReadByte() * 0x000001000000 + (ulong)fs.ReadByte() * 0x000000010000 + (ulong)fs.ReadByte() * 0x000000000100 + (ulong)fs.ReadByte();
+            // read bytes of client hardware addrsess, handle variable length, handle fact that bytes are "left justified" within the 16 byte field
+            int i = 0; DHCPv4ClientHWAddrHigh = 0;
+            while (i < ((int)DHCPv4HWAddrLen - 8)) { DHCPv4ClientHWAddrHigh = DHCPv4ClientHWAddrHigh * 0x100 + (ulong)fs.ReadByte(); i++; }
+            i = 0; DHCPv4ClientHWAddr = 0;
+            while (i < (int)DHCPv4HWAddrLen) { DHCPv4ClientHWAddr = DHCPv4ClientHWAddr * 0x100 + (ulong)fs.ReadByte(); i++; }
+            fs.Seek(16 - DHCPv4HWAddrLen, SeekOrigin.Current);
+
+            fs.Seek(0xc0, SeekOrigin.Current);  // skip over the 192, or 0xc0, legacy BOOTP area
+
+            DHCPv4Cookie = (uint)fs.ReadByte() * 0x000001000000 + (uint)fs.ReadByte() * 0x000000010000 + (uint)fs.ReadByte() * 0x000000000100 + (uint)fs.ReadByte();
+            
+			RemainingLength -= 0xf0;
+		}
+
+	}
+
+/*    public class GenericHeader : Header       // generic logic for a protocol header class
+    {
+        public uint GenericOpCode { get; set; }
+        .... declare properties of the header
+
+        static GenericHeader()          // static constructor, constructs header field dictionary and adds to master dictionary of header fields
+               {
+                   Dictionary<string, HeaderField> HF = new Dictionary<string, HeaderField>();
+                   string s;
+
+                   s = "GenericOpCode"; HF.Add(s, new HeaderField(s, Protocols.Generic, false, MainWindow.PacketDG, "L3Hdr." + s));
+                   .... and so on, adding property fields to Headerfield dictionary, to support datagrid display
+ 
+                   MainWindow.HFDict.Add(Protocols.Generic, HF);
+               }
+  
+        public GenericHeader(FileStream fs, ref uint RemainingLength, ref bool NotParsed)
+        {
+            Layer = ;
+            Protocol = Protocols.;
+
+            if (RemainingLength < 0xf0) { NotParsed = true; return; }       // test whether there are enough bytes in file, if not then stop here
+
+            GenericOpCode = (uint)fs.ReadByte();
+            ..... continue reading header fields
+            ..... if an error occurs at some point, need to
+                            fs.Seek back to beginning of header
+                            set NotParsed to true
+                            return
+ 
+            RemainingLength -= 0xf0;            // if we reached this point, parsing succeeded, adjust RemainingLength
+        }
+
+    } */
+/*    public class GenericGroup : PktGroup      // generic logic for a protocol packet group
+        {
+            public uint GenericHWType;      // these are the header fields that define an Generic group
+
+            public static ObservableCollection<PktGroup> Groups = new ObservableCollection<PktGroup>();    // list of packet groups assembled based on this protocol
+
+            public GenericGroup()
+            {
+                Protocol = Protocols.Generic;
+            }
+
+            public static bool GroupPacket(PcapPkt pkt)     // returns true if pkt assigned to a group, false if not
+            {
+                // rules for membership in an Generic packet group:
+                // Generic group header specification members:
+
+                GenericGroup newgroup;
+                GenericHeader ph = (GenericHeader)(pkt.L5Hdr);
+
+                if (pkt.L5Hdr.Protocol != Protocols.Generic) return false;      // if packet does not have a header of this type, return false
+
+                // check for membership in existing groups
+                foreach (GenericGroup g in Groups)
+                {
+                    if (g.Complete) continue;
+                    if ()   // if this packet belongs to g
+                        g.L.Add(pkt);                                                                   // then add packet to the group
+                        g.Firsttime = (g.Firsttime < pkt.ph.time) ? g.Firsttime : pkt.ph.time;          // adjust group timestamps
+                        g.Lasttime = (g.Lasttime < pkt.ph.time) ? pkt.ph.time : g.Lasttime;             // adjust group timestamps
+                        if (this completes group) g.Complete = true;                                                              // for Generic, this completes the group
+                        return true;
+                    }
+                }
+                // else start a new group
+                {
+                    newgroup = new GenericGroup();
+                    newgroup.GenericHWType = ph.GenericHWType;
+                    if (...................) newgroup.Complete = true;   // if ......... mark the group complete immediately
+
+                    newgroup.L.Add(pkt);
+                    Groups.Insert(0, newgroup);     // insert at begining of list, so that for future packets, search begins with most recent group
+                    return true;
+                }
+
+               // if we got this far, packet does not belong to a well-defined group for this protocol
+                return false;
+
+            }
+        }
+    */
+
+    public class PcapPkt
+	{
+		public static uint RemainingLength;
+		public static bool NotParsed;
+		public static bool DoneParsing;
+
+		public bool qfexcluded;		// true is packed was excluded due to quickfilter - can drop once we transition to simply deleting quickfilter'ed packets
 		public PcapPktHdr ph { get; set; }
-		public uint RemainingLength;
-		public bool NotParsed;
-		public bool DoneParsing;
-		public Protocols L2Protocol = Protocols.NA, L3Protocol = Protocols.NA, L4Protocol = Protocols.NA, L5Protocol = Protocols.NA;
+        public Protocols L2Protocol = Protocols.NA, L3Protocol = Protocols.NA, L4Protocol = Protocols.NA, L5Protocol = Protocols.NA;
 		public Header L2Hdr { get; set; }
 		public Header L3Hdr { get; set; }
 		public Header L4Hdr { get; set; }
@@ -441,14 +812,15 @@ namespace pviewer5
 			qfexcluded = false;
 			ph = new PcapPktHdr(fs, fh);
 			RemainingLength = (uint)ph.caplen;
-			NotParsed = false;  // state indicator maintained by header constructors - if constructor is unable to fully parse the header
-			//  it will set NotParsed to true AND constructor will reset file position to start of header
-			DoneParsing = false;   // state indicator maintained in this constructor - set to true indicates there should be no further attempt to parse headers and all remaining packet data should just go into Data[]
+			NotParsed = false;		// state indicator maintained by header constructors - if constructor is unable to fully parse the header
+									//  it will set NotParsed to true AND constructor will reset file position to start of header
+			DoneParsing = false;	// state indicator maintained in this constructor - set to true indicates there should be no further attempt to parse headers and all remaining packet data should just go into Data[]
 
 			switch (ph.datalink)
 			{
 				case 1:         // ethernet
-					L2Hdr = new EthernetHeader(fs, ref RemainingLength, ref NotParsed);
+                    L2Protocol = Protocols.Ethernet;
+                    L2Hdr = new EthernetHeader(fs, ref RemainingLength, ref NotParsed);
 					if (NotParsed)
 					{
 						L2Hdr = null;      // NotParsed==true means the ethernet header was not read
@@ -456,7 +828,6 @@ namespace pviewer5
 					}
 					else
 					{
-						L2Protocol = Protocols.Ethernet;
 						if (QuickFilterTools.QFMAC.Exclude(((EthernetHeader)L2Hdr).DestMAC) || QuickFilterTools.QFMAC.Exclude(((EthernetHeader)L2Hdr).SrcMAC))
 						{
 							qfexcluded = true;
@@ -515,17 +886,59 @@ namespace pviewer5
 						if (NotParsed) { L4Hdr = null; DoneParsing = true; }      // NotParsed==true means the header was not read
 						DoneParsing = true;
 						break;
-					default:
+                    case Protocols.UDP:
+                        L4Hdr = new UDPHeader(fs, ref RemainingLength, ref NotParsed);
+                        if (NotParsed) { L4Hdr = null; DoneParsing = true; }      // NotParsed==true means the header was not read
+                        else
+                        {
+                            ulong src = ((UDPHeader)L4Hdr).UDPSrcPort;
+                            ulong dest = ((UDPHeader)L4Hdr).UDPDestPort;
+
+                            if (L3Protocol == Protocols.IPv4 && (src == 0x43 || src == 0x44 || dest == 0x43 || dest == 0x44))    // BOOTP or DHCPv4
+                            {
+                                ulong first4bytesofoptions;
+
+                                if (RemainingLength < 0xf0) break;  // not enough bytes to be a BOOTP/DHCP packet
+                                fs.Seek(0xec, SeekOrigin.Current);  // move ahead to where magic cookie would be
+                                first4bytesofoptions = (ulong)fs.ReadByte() * 0x000001000000 + (ulong)fs.ReadByte() * 0x000000010000 + (ulong)fs.ReadByte() * 0x000000000100 + (ulong)fs.ReadByte();
+                                fs.Seek(-0xf0, SeekOrigin.Current);  // rewind
+                                if (first4bytesofoptions == 0x63825363) L5Protocol = Protocols.DHCPv4;
+                                else L5Protocol = Protocols.BOOTP;
+
+    // detect/handle DHCPv6???  can DHCPv6 be done over IPv4???
+    // to implement: infer other protocols inside udp based on the UDP port
+    // in the meantime, just stop parsing at this point
+
+                            }
+                            else DoneParsing = true;
+                        }
+                        break;
+                    default:
 						DoneParsing = true;
 						break;
 				}
 
-			Data = new byte[RemainingLength];
+            if (!DoneParsing) switch (L5Protocol)
+                {
+                    case Protocols.DHCPv4:
+                        L5Hdr = new DHCPv4Header(fs, ref RemainingLength, ref NotParsed);
+                        DoneParsing=true;
+                        break;
+                    case Protocols.BOOTP:
+                        DoneParsing = true;
+                        break;
+
+                }
+
+            Data = new byte[RemainingLength];
 			fs.Read(Data, 0, (int)RemainingLength);
 		}
 
 	}
-	public class PktCrit : INotifyPropertyChanged
+
+    
+
+/*    public class PktCrit : INotifyPropertyChanged
 	{
 		private uint CritType;    // 0 = empty, i.e., all packets will match
 		// 1 = dest mac
@@ -648,8 +1061,9 @@ namespace pviewer5
 			return -1;                              // return -1 if packet did not meet criteria in any set
 		}
 	}
-
-	public class DisplaySettings : INotifyPropertyChanged
+*/
+    
+    public class DisplaySettings : INotifyPropertyChanged
 	{
 		private bool displayaliases = false;
 		private bool displayipv4inhex = true;
@@ -667,10 +1081,17 @@ namespace pviewer5
 
 	}
 
+
+
 	public partial class MainWindow : Window
 	{
-		public PktSetList setlist = new PktSetList();
-		public PktSet qfexcluded = new PktSet("excluded by quickfilter");
+        public ObservableCollection<PcapPkt> Pkts = new ObservableCollection<PcapPkt>();
+        public ObservableCollection<PcapPkt> QFExclPkts = new ObservableCollection<PcapPkt>();
+
+        public ObservableCollection<ObservableCollection<PktGroup>> groupsgroup = new ObservableCollection<ObservableCollection<PktGroup>>();
+
+//		public PktSetList setlist = new PktSetList();
+//		public PktSet qfexcluded = new PktSet("excluded by quickfilter");
 
 		public static RoutedCommand tabulatecommand = new RoutedCommand();
 
@@ -690,20 +1111,24 @@ namespace pviewer5
 
 		public MainWindow()
 		{
-			InitializeComponent();
+            groupsgroup.Add(new)
+            
+            
+            
+            InitializeComponent();
 
 			CommandBinding tabulatebinding;
 			tabulatebinding = new CommandBinding(tabulatecommand, Executedtabulate, CanExecutetabulate);
-			PacketDataGrid.CommandBindings.Add(tabulatebinding);
-			tabulatecommandmenuitem.CommandTarget = PacketDataGrid;   // added this so that menu command would not be disabled when datagrid first created; not sure exactly why this works, books/online articles refer to WPF not correctly determining the intended command target based on focus model (logical focus? keyboard focus?), so you have to set the command target explicitly
+			//PacketDataGrid.CommandBindings.Add(tabulatebinding);
+			//tabulatecommandmenuitem.CommandTarget = PacketDataGrid;   // added this so that menu command would not be disabled when datagrid first created; not sure exactly why this works, books/online articles refer to WPF not correctly determining the intended command target based on focus model (logical focus? keyboard focus?), so you have to set the command target explicitly
 
-			grid.DataContext = setlist.sets;
-			QFExclGrid.DataContext = qfexcluded;
-			PacketDG = PacketDataGrid;
-			ExclDG = QFExclGrid;
+			//grid.DataContext = setlist.sets;
+			//QFExclGrid.DataContext = qfexcluded;
+			//PacketDG = PacketDataGrid;
+			//ExclDG = QFExclGrid;
 
-			setlist.sets.Insert(0, new PktSet("ARP packets", new PktCrit(3, 0xffffffff, 0, 0x0806)));
-			setlist.sets.Insert(0, new PktSet("IPv6 packets", new PktCrit(3, 0xffffffff, 0, 0x86dd)));
+			//setlist.sets.Insert(0, new PktSet("ARP packets", new PktCrit(3, 0xffffffff, 0, 0x0806)));
+			//setlist.sets.Insert(0, new PktSet("IPv6 packets", new PktCrit(3, 0xffffffff, 0, 0x86dd)));
 
 		}
 
@@ -717,15 +1142,15 @@ namespace pviewer5
 //			PktSet p = setlist.sets[0];
 
 			dlg.Multiselect = false;
-			dlg.InitialDirectory = "C:\\capfiles\\";
+			dlg.InitialDirectory = "C:\\users\\csadmin\\skydrive\\capfiles\\";
 			result = dlg.ShowDialog();
 
 			if (result == true)
 			{
 				QuickFilterTools.QFMAC.ResetCounters();
 				QuickFilterTools.QFIPv4.ResetCounters();
-				foreach (PktSet set in setlist.sets) set.pkts.Clear();
-				qfexcluded.pkts.Clear();
+				//foreach (PktSet set in setlist.sets) set.pkts.Clear();
+				//qfexcluded.pkts.Clear();
 				filename.Content = dlg.FileName;
 				fs = new FileStream(dlg.FileName, FileMode.Open);
 				pfh = new PcapFileHdr(fs);
@@ -733,9 +1158,17 @@ namespace pviewer5
 				{
 					pkt = new PcapPkt(fs, pfh);
 // NEXT LINE IS TEMPORARY - ONCE QUICKFILTER IS TRUSTED, PACKETS THAT ARE EXCLUDED SHOULD SIMPLY BE DESTROYED
-					if (pkt.qfexcluded) qfexcluded.pkts.Add(pkt);
-					else setlist.PktSetListAdd(pkt);
+					if (pkt.qfexcluded) QFExclPkts.Add(pkt);
+					else Pkts.Add(pkt);
 				}
+
+                foreach (PcapPkt p in Pkts)
+                {
+                    if (p.L5Protocol == Protocols.DHCPv4) DHCPv4Group.GroupPacket(p);
+                    else if (p.L4Protocol == Protocols.UDP) UDPGroup.GroupPacket(p);
+                    else if (p.L3Protocol == Protocols.ARP) ARPGroup.GroupPacket(p);
+                }
+
 				fs.Close();
 			}
 		}

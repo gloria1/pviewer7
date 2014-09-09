@@ -10,6 +10,7 @@
             <Setter Property="Control.FontFamily" Value="Courier New"/>
             <Setter Property="Control.HorizontalAlignment" Value="Right"/>
         </Style>
+        <HierarchicalDataTemplate DataType="{x:Type local:ARPGroup}"
     </Window.Resources>
 
     <Grid Name="grid"
@@ -19,7 +20,6 @@
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -47,40 +47,10 @@
             <Button Content="IPv4 Aliases"
                     Click="inmbutton"/>
        </WrapPanel>
-        <GroupBox Header="Packet Sets"
-                  Name="packsetbox"
-                  Grid.Column="0"
-                  Grid.Row="1"
-                  Margin="5,5,5,5">
-            <ListBox ItemsSource="{Binding}"
-                     IsSynchronizedWithCurrentItem="True"
-                     MinHeight="40">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding Path=Info}"/>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-        </GroupBox>
-        <GroupBox Header="Criteria of Current Set"
-                  Name="currentcriteriabox"
-                  Grid.Column="1"  
-                  Grid.Row="1"
-                  Margin="5,5,5,5">
-            <ListBox ItemsSource="{Binding Path=/criteria}"
-                     IsSynchronizedWithCurrentItem="True"
-                     MinHeight="40">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding Path=CritInfo}"/>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-        </GroupBox>
         <WrapPanel Name="viewsettings"
                    Grid.Column="0"
                    Grid.ColumnSpan="2"
-                   Grid.Row="2"
+                   Grid.Row="1"
                    Margin="5,5,5,5">
             <CheckBox Name="displayaliascheckbox"
                       Content="Display Aliases"
@@ -112,8 +82,23 @@
                     Click="showipv4detailtoggle"
                       Margin="20,5"/>
         </WrapPanel>
-        <GroupBox Header="Packets in Current Set"
-                  Name="currentpacketdg"
+        <GroupBox Header="Packet Groups"
+                  Name="grouptreebox"
+                  Grid.Column="0"
+                  Grid.ColumnSpan="2"
+                  Grid.Row="2"
+                  Margin="5,5,5,5">
+            <TreeView Name="grouptree"
+                      ItemsSource="{Binding Path=PktGroup.GroupsGroup}">
+                
+            </TreeView>
+                      
+        </GroupBox>
+        
+        
+        
+        <GroupBox Header="Packets Excluded by QuickFilter"
+                  Name="qfexcldg"
                   Grid.Column="0"  
                   Grid.ColumnSpan="2"
                   Grid.Row="3"
@@ -121,6 +106,62 @@
             <!-- added Enable*Virtualization lines based on http://www.elegant-software.net/2014/05/performance-of-the-wpf-datagrid.html -->
             <!-- added VirtualizingPanel lines based on http://www.codewrecks.com/blog/index.php/2012/07/06/wpf-datagrid-poor-performance-on-sorting/ -->
             <DataGrid
+                Name="QFExclGrid"
+                EnableColumnVirtualization="True"
+                EnableRowVirtualization="True"
+                VirtualizingPanel.IsVirtualizing="True"
+                VirtualizingPanel.VirtualizationMode="Recycling"
+                AutoGenerateColumns="False"
+                ItemsSource="{Binding Path=pkts}"
+                CellStyle="{StaticResource DGCellStyle}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Datalink" Binding="{Binding Path=ph.datalink}"/>
+                    <DataGridTextColumn Header="Timesecs" Binding="{Binding Path=ph.timesecs}"/>
+                    <DataGridTextColumn Header="Timeusecs" Binding="{Binding Path=ph.timeusecs}"/>
+                    <DataGridTextColumn Header="Caplen" Binding="{Binding Path=ph.caplen}" />
+                    <DataGridTextColumn Header="Wirelen" Binding="{Binding Path=ph.len}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
+<!--        <GroupBox Header="Packet Sets"
+                  Name="packsetbox"
+                  Grid.Column="0"
+                  Grid.Row="1"
+                  Margin="5,5,5,5">
+            <ListBox ItemsSource="{Binding}"
+                     IsSynchronizedWithCurrentItem="True"
+                     MinHeight="40">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Path=Info}"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </GroupBox>
+        <GroupBox Header="Criteria of Current Set"
+                  Name="currentcriteriabox"
+                  Grid.Column="1"  
+                  Grid.Row="1"
+                  Margin="5,5,5,5">
+            <ListBox ItemsSource="{Binding Path=/criteria}"
+                     IsSynchronizedWithCurrentItem="True"
+                     MinHeight="40">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Path=CritInfo}"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </GroupBox>   -->
+<!--        <GroupBox Header="Packets in Current Set"
+                  Name="currentpacketdg"
+                  Grid.Column="0"  
+                  Grid.ColumnSpan="2"
+                  Grid.Row="3"
+                  Margin="5,5,5,5">
+-->            <!-- added Enable*Virtualization lines based on http://www.elegant-software.net/2014/05/performance-of-the-wpf-datagrid.html -->
+            <!-- added VirtualizingPanel lines based on http://www.codewrecks.com/blog/index.php/2012/07/06/wpf-datagrid-poor-performance-on-sorting/ -->
+<!--            <DataGrid
                 Name="PacketDataGrid"
                 EnableColumnVirtualization="True"
                 EnableRowVirtualization="True"
@@ -143,33 +184,7 @@
                 </DataGrid.ContextMenu>
 
             </DataGrid>
-        </GroupBox>
-        <GroupBox Header="Packets Excluded by QuickFilter"
-                  Name="qfexcldg"
-                  Grid.Column="0"  
-                  Grid.ColumnSpan="2"
-                  Grid.Row="4"
-                  Margin="5,5,5,5">
-            <!-- added Enable*Virtualization lines based on http://www.elegant-software.net/2014/05/performance-of-the-wpf-datagrid.html -->
-            <!-- added VirtualizingPanel lines based on http://www.codewrecks.com/blog/index.php/2012/07/06/wpf-datagrid-poor-performance-on-sorting/ -->
-            <DataGrid
-                Name="QFExclGrid"
-                EnableColumnVirtualization="True"
-                EnableRowVirtualization="True"
-                VirtualizingPanel.IsVirtualizing="True"
-                VirtualizingPanel.VirtualizationMode="Recycling"
-                AutoGenerateColumns="False"
-                ItemsSource="{Binding Path=pkts}"
-                CellStyle="{StaticResource DGCellStyle}">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Datalink" Binding="{Binding Path=ph.datalink}"/>
-                    <DataGridTextColumn Header="Timesecs" Binding="{Binding Path=ph.timesecs}"/>
-                    <DataGridTextColumn Header="Timeusecs" Binding="{Binding Path=ph.timeusecs}"/>
-                    <DataGridTextColumn Header="Caplen" Binding="{Binding Path=ph.caplen}" />
-                    <DataGridTextColumn Header="Wirelen" Binding="{Binding Path=ph.len}"/>
-                </DataGrid.Columns>
-            </DataGrid>
-        </GroupBox>
+        </GroupBox>    -->
     </Grid>
 
 
