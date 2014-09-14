@@ -10,7 +10,18 @@
             <Setter Property="Control.FontFamily" Value="Courier New"/>
             <Setter Property="Control.HorizontalAlignment" Value="Right"/>
         </Style>
-        <HierarchicalDataTemplate DataType="{x:Type local:ARPGroup}"
+        <DataTemplate DataType="{x:Type local:H}">
+            <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
+        </DataTemplate>
+        <HierarchicalDataTemplate DataType="{x:Type local:G}"
+                                  ItemsSource="{Binding Path=L}">
+            <TextBlock Text="{Binding Path=groupdisplayinfo}"/>
+        </HierarchicalDataTemplate>
+        <HierarchicalDataTemplate DataType="{x:Type local:Packet}"
+                                  ItemsSource="{Binding Path=phlist}">
+            <TextBlock Text="{Binding Path=packetdisplayinfo}"/>
+        </HierarchicalDataTemplate>
+
     </Window.Resources>
 
     <Grid Name="grid"
@@ -44,7 +55,7 @@
                     Click="qfbutton"/>
             <Button Content="MAC Aliases"
                     Click="mnmbutton"/>
-            <Button Content="IPv4 Aliases"
+            <Button Content="IP4 Aliases"
                     Click="inmbutton"/>
        </WrapPanel>
         <WrapPanel Name="viewsettings"
@@ -56,9 +67,9 @@
                       Content="Display Aliases"
                       Click="displayaliastoggle"
                       Margin="20,5"/>
-            <CheckBox Name="displayipv4inhexcheckbox"
-                      Content="Display IPv4 in Hex"
-                    Click="displayipv4inhextoggle"
+            <CheckBox Name="displayIP4inhexcheckbox"
+                      Content="Display IP4 in Hex"
+                    Click="displayIP4inhextoggle"
                       IsChecked="True"
                       Margin="20,5"/>
             <CheckBox Name="showetherfields"
@@ -73,13 +84,13 @@
                       Content="Show ARP Detail Fields"
                     Click="showarpdetailtoggle"
                       Margin="20,5"/>
-            <CheckBox Name="showipv4basicfields"
-                      Content="Show IPv4 Basic Fields"
-                    Click="showipv4basictoggle"
+            <CheckBox Name="showIP4basicfields"
+                      Content="Show IP4 Basic Fields"
+                    Click="showIP4basictoggle"
                       Margin="20,5"/>
-            <CheckBox Name="showipv4detailfields"
-                      Content="Show IPv4 Detail Fields"
-                    Click="showipv4detailtoggle"
+            <CheckBox Name="showIP4detailfields"
+                      Content="Show IP4 Detail Fields"
+                    Click="showIP4detailtoggle"
                       Margin="20,5"/>
         </WrapPanel>
         <GroupBox Header="Packet Groups"
@@ -89,10 +100,8 @@
                   Grid.Row="2"
                   Margin="5,5,5,5">
             <TreeView Name="grouptree"
-                      ItemsSource="{Binding Path=PktGroup.GroupsGroup}">
-                
+                      ItemsSource="{Binding Path=maingrouplist}">
             </TreeView>
-                      
         </GroupBox>
         
         

@@ -69,37 +69,37 @@ namespace pviewer5
 
 		// the "official" quickfilters
 		public static QuickFilter QFMAC = new QuickFilter();
-		public static QuickFilter QFIPv4 = new QuickFilter();
+		public static QuickFilter QFIP4 = new QuickFilter();
 	}
 
 
 	public partial class QuickFilterDialog : Window
 	{
 		public static RoutedCommand qfmacaddrow = new RoutedCommand();
-		public static RoutedCommand qfipv4addrow = new RoutedCommand();
+		public static RoutedCommand qfIP4addrow = new RoutedCommand();
 		public QuickFilterTools.QuickFilter qfmaclocal { get; set; }
-		public QuickFilterTools.QuickFilter qfipv4local { get; set; }
+		public QuickFilterTools.QuickFilter qfIP4local { get; set; }
 		
 		public QuickFilterDialog()
 		{
 			CommandBinding qfmacaddrowbinding;
-			CommandBinding qfipv4addrowbinding;
+			CommandBinding qfIP4addrowbinding;
 
 			// make local copy of quickfilter; changes will not be committed to official copies until validated and user chooses to accept them
 			qfmaclocal = new QuickFilterTools.QuickFilter();
 			foreach (QuickFilterTools.QFItem q in QuickFilterTools.QFMAC) qfmaclocal.Add(q);
-			qfipv4local = new QuickFilterTools.QuickFilter();
-			foreach (QuickFilterTools.QFItem q in QuickFilterTools.QFIPv4) qfipv4local.Add(q);
+			qfIP4local = new QuickFilterTools.QuickFilter();
+			foreach (QuickFilterTools.QFItem q in QuickFilterTools.QFIP4) qfIP4local.Add(q);
 
 			InitializeComponent();
 			QFMACDG.DataContext = this;
 			qfmacaddrowbinding = new CommandBinding(qfmacaddrow, Executedmacaddrow, CanExecutemacaddrow);
 			QFMACDG.CommandBindings.Add(qfmacaddrowbinding);
 			qfmacaddrowmenuitem.CommandTarget = QFMACDG;   // added this so that menu command would not be disabled when datagrid first created; not sure exactly why this works, books/online articles refer to WPF not correctly determining the intended command target based on focus model (logical focus? keyboard focus?), so you have to set the command target explicitly
-			QFIPv4DG.DataContext = this;
-			qfipv4addrowbinding = new CommandBinding(qfipv4addrow, Executedipv4addrow, CanExecuteipv4addrow);
-			QFIPv4DG.CommandBindings.Add(qfipv4addrowbinding);
-			qfipv4addrowmenuitem.CommandTarget = QFIPv4DG;   // added this so that menu command would not be disabled when datagrid first created; not sure exactly why this works, books/online articles refer to WPF not correctly determining the intended command target based on focus model (logical focus? keyboard focus?), so you have to set the command target explicitly
+			QFIP4DG.DataContext = this;
+			qfIP4addrowbinding = new CommandBinding(qfIP4addrow, ExecutedIP4addrow, CanExecuteIP4addrow);
+			QFIP4DG.CommandBindings.Add(qfIP4addrowbinding);
+			qfIP4addrowmenuitem.CommandTarget = QFIP4DG;   // added this so that menu command would not be disabled when datagrid first created; not sure exactly why this works, books/online articles refer to WPF not correctly determining the intended command target based on focus model (logical focus? keyboard focus?), so you have to set the command target explicitly
 
 		}
 
@@ -121,7 +121,7 @@ namespace pviewer5
 		}
 		private void QFDAccept(object sender, RoutedEventArgs e)
 		{
-			if (!(IsValid(QFMACDG) && IsValid(QFIPv4DG)))
+			if (!(IsValid(QFMACDG) && IsValid(QFIP4DG)))
 			{
 				MessageBox.Show("Resolve Validation Errors");
 				return;
@@ -130,8 +130,8 @@ namespace pviewer5
 			{
 				QuickFilterTools.QFMAC.Clear();
 				foreach (QuickFilterTools.QFItem q in qfmaclocal) QuickFilterTools.QFMAC.Add(q);
-				QuickFilterTools.QFIPv4.Clear();
-				foreach (QuickFilterTools.QFItem q in qfipv4local) QuickFilterTools.QFIPv4.Add(q);
+				QuickFilterTools.QFIP4.Clear();
+				foreach (QuickFilterTools.QFItem q in qfIP4local) QuickFilterTools.QFIP4.Add(q);
 				DialogResult = true;
 				// no need to call Close, since changing DialogResult to non-null automatically closes window
 				//Close();
@@ -153,7 +153,7 @@ namespace pviewer5
 			IFormatter formatter = new BinaryFormatter();
 
 			// first need to transfer datagrid table to official map
-			if (!(IsValid(QFMACDG) && IsValid(QFIPv4DG)))
+			if (!(IsValid(QFMACDG) && IsValid(QFIP4DG)))
 			{
 				MessageBox.Show("Resolve Validation Errors.\nTable not saved.");
 				return;
@@ -168,7 +168,7 @@ namespace pviewer5
 				{
 					fs = new FileStream(dlg.FileName, FileMode.OpenOrCreate);
 					formatter.Serialize(fs, qfmaclocal);
-					formatter.Serialize(fs, qfipv4local);
+					formatter.Serialize(fs, qfIP4local);
 					fs.Close();
 				}
 			}
@@ -190,11 +190,11 @@ namespace pviewer5
 				try
 				{
 					qfmaclocal = ((QuickFilterTools.QuickFilter)formatter.Deserialize(fs));
-					qfipv4local = ((QuickFilterTools.QuickFilter)formatter.Deserialize(fs));
+					qfIP4local = ((QuickFilterTools.QuickFilter)formatter.Deserialize(fs));
 					// next command re-sets ItemsSource, window on screen does not update to show new contents of qflocal, don't know why
 					// there is probably some mechanism to get the display to update without re-setting the ItemsSource, but this seems to work
 					QFMACDG.ItemsSource = qfmaclocal;
-					QFIPv4DG.ItemsSource = qfipv4local;
+					QFIP4DG.ItemsSource = qfIP4local;
 				}
 				catch
 				{
@@ -223,11 +223,11 @@ namespace pviewer5
 				try
 				{
 					foreach(QuickFilterTools.QFItem i in ((QuickFilterTools.QuickFilter)formatter.Deserialize(fs))) qfmaclocal.Add(i);
-					foreach (QuickFilterTools.QFItem i in ((QuickFilterTools.QuickFilter)formatter.Deserialize(fs))) qfipv4local.Add(i);
+					foreach (QuickFilterTools.QFItem i in ((QuickFilterTools.QuickFilter)formatter.Deserialize(fs))) qfIP4local.Add(i);
 					// next command re-sets ItemsSource, window on screen does not update to show new contents of dgtable, don't know why
 					// there is probably some mechanism to get the display to update without re-setting the ItemsSource, but this seems to work
 					QFMACDG.ItemsSource = qfmaclocal;
-					QFMACDG.ItemsSource = qfipv4local;
+					QFMACDG.ItemsSource = qfIP4local;
 				}
 				catch
 				{
@@ -255,18 +255,18 @@ namespace pviewer5
 		{
 			e.CanExecute = true;
 		}
-		private static void Executedipv4addrow(object sender, ExecutedRoutedEventArgs e)
+		private static void ExecutedIP4addrow(object sender, ExecutedRoutedEventArgs e)
 		{
 			QuickFilterTools.QuickFilter q;
 			DataGrid dg = (DataGrid)e.Source;
 			QuickFilterDialog qd = (QuickFilterDialog)dg.DataContext;
 
-			qd.qfipv4local.Add(new QuickFilterTools.QFItem());
+			qd.qfIP4local.Add(new QuickFilterTools.QFItem());
 		}
-		private static void PreviewExecutedipv4addrow(object sender, ExecutedRoutedEventArgs e)
+		private static void PreviewExecutedIP4addrow(object sender, ExecutedRoutedEventArgs e)
 		{
 		}
-		private static void CanExecuteipv4addrow(object sender, CanExecuteRoutedEventArgs e)
+		private static void CanExecuteIP4addrow(object sender, CanExecuteRoutedEventArgs e)
 		{
 			e.CanExecute = true;
 		}

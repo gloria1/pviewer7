@@ -26,19 +26,19 @@ namespace pviewer5
 {
 
 
-	public class IPv4Tools
+	public class IP4Tools
 	{
 		[Serializable]
-		public class ipv4namemapclass : Dictionary<ulong, string>
+		public class IP4namemapclass : Dictionary<ulong, string>
 		{
 			// need the following constructor (from ISerializable, which is inherited by Dictionary)
-			protected ipv4namemapclass(SerializationInfo info, StreamingContext ctx) : base(info, ctx) { }
+			protected IP4namemapclass(SerializationInfo info, StreamingContext ctx) : base(info, ctx) { }
 			// need to explicitly declare an empty constructor, because without this, new tries to use the above constructor
-			public ipv4namemapclass() { }
+			public IP4namemapclass() { }
 
-			public ipv4nametableclass maptotable()	// transfers ipv4namemap dictionary to a table to support a datagrid
+			public IP4nametableclass maptotable()	// transfers IP4namemap dictionary to a table to support a datagrid
 			{
-				ipv4nametableclass table = new ipv4nametableclass();
+				IP4nametableclass table = new IP4nametableclass();
 
 				foreach (ulong k in this.Keys) table.Add(new inmtableitem(k, this[k]));
 				return table;
@@ -46,16 +46,16 @@ namespace pviewer5
 		}
 
 		[Serializable]
-		public class ipv4nametableclass : ObservableCollection<inmtableitem>, INotifyPropertyChanged
+		public class IP4nametableclass : ObservableCollection<inmtableitem>, INotifyPropertyChanged
 		{
-			public ipv4namemapclass tabletomap()	// transfers ipv4name table from a datagrid to a ipv4namemap dictionary
+			public IP4namemapclass tabletomap()	// transfers IP4name table from a datagrid to a IP4namemap dictionary
 			{
-				ipv4namemapclass map = new ipv4namemapclass();
+				IP4namemapclass map = new IP4namemapclass();
 
-				// need to catch exceptions in case table has duplicate ipv4 entries - if this is the case, just return null
+				// need to catch exceptions in case table has duplicate IP4 entries - if this is the case, just return null
 				try
 				{
-					foreach (inmtableitem i in this) map.Add(i.ipv4, i.alias);
+					foreach (inmtableitem i in this) map.Add(i.IP4, i.alias);
 				}
 				catch
 				{
@@ -68,30 +68,30 @@ namespace pviewer5
 
 		public class inmtableitem
 		{
-			public ulong ipv4 { get; set; }
+			public ulong IP4 { get; set; }
 			public string alias { get; set; }
 
 			public inmtableitem(ulong u, string s)
 			{
-				this.ipv4 = u;
+				this.IP4 = u;
 				this.alias = s;
 			}
 		}
 
-		public static ipv4namemapclass map = new ipv4namemapclass() 
+		public static IP4namemapclass map = new IP4namemapclass() 
 		{
 				{0x000000000000, "ALL ZEROES"},
 		};
 
 
-		public static ulong? StringToIPv4(string s)
+		public static ulong? StringToIP4(string s)
 		{
 			// returns null if string cannot be parsed
 
-			bool hex = MainWindow.ds.DisplayIPv4InHex;
-			string regipv4 = (hex ? "^([a-fA-F0-9]{0,2}.){0,3}[a-fA-F0-9]{0,2}$" : "^([0-9]{0,3}.){0,3}[0-9]{0,3}$");
+			bool hex = MainWindow.ds.DisplayIP4InHex;
+			string regIP4 = (hex ? "^([a-fA-F0-9]{0,2}.){0,3}[a-fA-F0-9]{0,2}$" : "^([0-9]{0,3}.){0,3}[0-9]{0,3}$");
 			NumberStyles style = (hex ? NumberStyles.HexNumber : NumberStyles.Integer);
-			string[] ipv4bits = new string[4];
+			string[] IP4bits = new string[4];
 
 			try
 			{
@@ -99,24 +99,24 @@ namespace pviewer5
 			}
 			catch (FormatException ex)
 			{
-				if (Regex.IsMatch(s, regipv4))
+				if (Regex.IsMatch(s, regIP4))
 				{
-					ipv4bits = Regex.Split(s, "\\.");
+					IP4bits = Regex.Split(s, "\\.");
 					// resize array to 4 - we want to tolerate missing dots, i.e., user entering less than 4 segments,
 					// split will produce array with number of elements equal to nmber of dots + 1
-					Array.Resize<string>(ref ipv4bits, 4);
+					Array.Resize<string>(ref IP4bits, 4);
 
-					for (int i = 0; i < 4; i++) { ipv4bits[i] = "0" + ipv4bits[i]; }
-					return  ulong.Parse(ipv4bits[0], style) * 0x0000000001000000 +
-							ulong.Parse(ipv4bits[1], style) * 0x0000000000010000 +
-							ulong.Parse(ipv4bits[2], style) * 0x0000000000000100 +
-							ulong.Parse(ipv4bits[3], style) * 0x0000000000000001;
+					for (int i = 0; i < 4; i++) { IP4bits[i] = "0" + IP4bits[i]; }
+					return  ulong.Parse(IP4bits[0], style) * 0x0000000001000000 +
+							ulong.Parse(IP4bits[1], style) * 0x0000000000010000 +
+							ulong.Parse(IP4bits[2], style) * 0x0000000000000100 +
+							ulong.Parse(IP4bits[3], style) * 0x0000000000000001;
 				}
 			}
 
 			return null;
 		}
-		public static string IPv4ToString(ulong value)
+		public static string IP4ToString(ulong value)
 		{
 			ulong[] b = new ulong[4];
 			string s;
@@ -126,112 +126,112 @@ namespace pviewer5
 			b[2] = ((value & 0xff00) / 0x100);
 			b[3] = ((value & 0xff) / 0x1);
 
-			if (MainWindow.ds.DisplayIPv4InHex) s = String.Format("{0:x2}.{1:x2}.{2:x2}.{3:x2}", b[0], b[1], b[2], b[3]);
+			if (MainWindow.ds.DisplayIP4InHex) s = String.Format("{0:x2}.{1:x2}.{2:x2}.{3:x2}", b[0], b[1], b[2], b[3]);
 			else                                s = String.Format("{0}.{1}.{2}.{3}", b[0], b[1], b[2], b[3]);
 
 			return s;
 		}
 	}
 
-	public class ValidateIPv4Number : ValidationRule
+	public class ValidateIP4Number : ValidationRule
 	{
-		// validates that string is valid as either raw hex number or ipv4-formatted hex number (using StringToIPv4 function)
+		// validates that string is valid as either raw hex number or IP4-formatted hex number (using StringToIP4 function)
 		public override ValidationResult Validate(object value, System.Globalization.CultureInfo cultureInfo)
 		{
 			ulong? v = 0;
 
-			// try to parse as a raw ipv4 address
-			v = IPv4Tools.StringToIPv4((string)value);
-			if (v != null) return new ValidationResult(true, "Valid IPv4 Address");
-			else return new ValidationResult(false, "Not a valid IPv4 address");
+			// try to parse as a raw IP4 address
+			v = IP4Tools.StringToIP4((string)value);
+			if (v != null) return new ValidationResult(true, "Valid IP4 Address");
+			else return new ValidationResult(false, "Not a valid IP4 address");
 		}
 	}
 
-	public class ValidateIPv4NumberOrAlias : ValidationRule
+	public class ValidateIP4NumberOrAlias : ValidationRule
 	{
-		// validates that string is valid as either raw hex number or ipv4-formatted hex number (using StringToIPv4 function)
+		// validates that string is valid as either raw hex number or IP4-formatted hex number (using StringToIP4 function)
 		//      or that string is a valid entry in alias registry
 
 		public override ValidationResult Validate(object value, System.Globalization.CultureInfo cultureInfo)
 		{
 			ulong? v = 0;
 
-			// first try to parse as a raw ipv4 address
-			v = IPv4Tools.StringToIPv4((string)value);
-			if (v != null) return new ValidationResult(true, "Valid IPv4 Address");
-			// if that failed, see if string exists in ipv4namemap
-			foreach (ulong u in IPv4Tools.map.Keys)
-				if ((string)value == IPv4Tools.map[u])
-					return new ValidationResult(true, "Valid IPv4 Address");
-			return new ValidationResult(false, "Not a valid IPv4 address");
+			// first try to parse as a raw IP4 address
+			v = IP4Tools.StringToIP4((string)value);
+			if (v != null) return new ValidationResult(true, "Valid IP4 Address");
+			// if that failed, see if string exists in IP4namemap
+			foreach (ulong u in IP4Tools.map.Keys)
+				if ((string)value == IP4Tools.map[u])
+					return new ValidationResult(true, "Valid IP4 Address");
+			return new ValidationResult(false, "Not a valid IP4 address");
 		}
 	}
 
-	public class IPv4ConverterNumberOnly : IValueConverter
+	public class IP4ConverterNumberOnly : IValueConverter
 	{
-		// converts number to/from display format ipv4 address, without checking the ipv4 alias dictionary
+		// converts number to/from display format IP4 address, without checking the IP4 alias dictionary
 
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			return IPv4Tools.IPv4ToString((ulong)value);
+			return IP4Tools.IP4ToString((ulong)value);
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			ulong? v = 0;
 
-			// first try to parse as a raw ipv4 address
-			v = IPv4Tools.StringToIPv4((string)value);
+			// first try to parse as a raw IP4 address
+			v = IP4Tools.StringToIP4((string)value);
 			if (v != null) return v;
 
-			// we should never get to this point, since validation step will not pass unless value is either valid raw ipv4 
+			// we should never get to this point, since validation step will not pass unless value is either valid raw IP4 
 			// however, just in case put up a messagebox and return 0
-			MessageBox.Show("ConvertBack could not process a raw ipv4 address.  Why did this pass validation????");
+			MessageBox.Show("ConvertBack could not process a raw IP4 address.  Why did this pass validation????");
 			return 0;
 		}
 	}
 
-	public class IPv4ConverterNumberOrAlias : IValueConverter
+	public class IP4ConverterNumberOrAlias : IValueConverter
 	{
-		// converts number to/from display format ipv4 address, including translating aliases
+		// converts number to/from display format IP4 address, including translating aliases
 
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (MainWindow.ds.DisplayAliases && IPv4Tools.map.ContainsKey((ulong)value)) return IPv4Tools.map[(ulong)value];
-			else return IPv4Tools.IPv4ToString((ulong)value);
+			if (MainWindow.ds.DisplayAliases && IP4Tools.map.ContainsKey((ulong)value)) return IP4Tools.map[(ulong)value];
+			else return IP4Tools.IP4ToString((ulong)value);
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			ulong? v = 0;
 
-			// first try to parse as a raw ipv4 address
-			v = IPv4Tools.StringToIPv4((string)value);
+			// first try to parse as a raw IP4 address
+			v = IP4Tools.StringToIP4((string)value);
 			if (v != null) return v;
 
-			// if that failed, see if string exists in ipv4namemap
-			foreach (ulong u in IPv4Tools.map.Keys)
-				if ((string)value == IPv4Tools.map[u])
+			// if that failed, see if string exists in IP4namemap
+			foreach (ulong u in IP4Tools.map.Keys)
+				if ((string)value == IP4Tools.map[u])
 					return u;
 
-			// we should never get to this point, since validation step will not pass unless value is either valid raw ipv4 or existing entry in ipv4namemap
+			// we should never get to this point, since validation step will not pass unless value is either valid raw IP4 or existing entry in IP4namemap
 			// however, just in case put up a messagebox and return 0
-			MessageBox.Show("ConvertBack could not process as either raw ipv4 address or entry in ipv4namemap.  Why did this pass validation????");
+			MessageBox.Show("ConvertBack could not process as either raw IP4 address or entry in IP4namemap.  Why did this pass validation????");
 			return 0;
 		}
 	}
 
-	public partial class IPv4NameMapDialog : Window
+	public partial class IP4NameMapDialog : Window
 	{
 		public static RoutedCommand inmaddrow = new RoutedCommand();
 
-		public IPv4Tools.ipv4nametableclass dgtable { get; set; }
+		public IP4Tools.IP4nametableclass dgtable { get; set; }
 
-		public IPv4NameMapDialog()
+		public IP4NameMapDialog()
 		{
 			CommandBinding inmaddrowbinding;
 
-			dgtable = IPv4Tools.map.maptotable();
+			dgtable = IP4Tools.map.maptotable();
 
 			InitializeComponent();
 			INMDG.DataContext = this;
@@ -267,7 +267,7 @@ namespace pviewer5
 
 		private void inmAccept(object sender, RoutedEventArgs e)
 		{
-			IPv4Tools.ipv4namemapclass map = new IPv4Tools.ipv4namemapclass();
+			IP4Tools.IP4namemapclass map = new IP4Tools.IP4namemapclass();
 
 			if (!IsValid(inmgrid))
 			{
@@ -277,14 +277,14 @@ namespace pviewer5
 			else
 			{
 				map = dgtable.tabletomap();
-				if (map == null)		// if error transferring table due to duplicate ipv4s, inform user and return to dialog		
+				if (map == null)		// if error transferring table due to duplicate IP4s, inform user and return to dialog		
 				{
-					MessageBox.Show("Duplicate IPv4 addresses not allowed");
+					MessageBox.Show("Duplicate IP4 addresses not allowed");
 					return;
 				}
 				else        // else transfer local map to official map and close dialog
 				{
-					IPv4Tools.map = map;
+					IP4Tools.map = map;
 					DialogResult = true;
 					// no need to call Close, since changing DialogResult to non-null automatically closes window
 					//Close();
@@ -308,7 +308,7 @@ namespace pviewer5
 			SaveFileDialog dlg = new SaveFileDialog();
 			FileStream fs;
 			IFormatter formatter = new BinaryFormatter();
-			IPv4Tools.ipv4namemapclass map = new IPv4Tools.ipv4namemapclass();
+			IP4Tools.IP4namemapclass map = new IP4Tools.IP4namemapclass();
 
 			// first need to transfer datagrid table to official map
 			if (!IsValid(inmgrid))
@@ -319,15 +319,15 @@ namespace pviewer5
 			else
 			{
 				map = dgtable.tabletomap();
-				if (map == null)		// if error transferring table due to duplicate ipv4s, inform user and return to dialog		
+				if (map == null)		// if error transferring table due to duplicate IP4s, inform user and return to dialog		
 				{
-					MessageBox.Show("Duplicate IPv4 addresses not allowed.\nTable not saved.");
+					MessageBox.Show("Duplicate IP4 addresses not allowed.\nTable not saved.");
 					return;
 				}
 				else
 				{
 					dlg.InitialDirectory = "c:\\pviewer\\";
-					dlg.DefaultExt = ".ipv4namemap";
+					dlg.DefaultExt = ".IP4namemap";
 					dlg.OverwritePrompt = true;
 
 					if (dlg.ShowDialog() == true)
@@ -347,7 +347,7 @@ namespace pviewer5
 			IFormatter formatter = new BinaryFormatter();
 
 			dlg.InitialDirectory = "c:\\pviewer\\";
-			dlg.DefaultExt = ".ipv4namemap";
+			dlg.DefaultExt = ".IP4namemap";
 			dlg.Multiselect = false;
 
 			if (dlg.ShowDialog() == true)
@@ -356,7 +356,7 @@ namespace pviewer5
 
 				try
 				{
-					dgtable = ((IPv4Tools.ipv4namemapclass)formatter.Deserialize(fs)).maptotable();
+					dgtable = ((IP4Tools.IP4namemapclass)formatter.Deserialize(fs)).maptotable();
 					// next command re-sets ItemsSource, window on screen does not update to show new contents of dgtable, don't know why
 					// there is probably some mechanism to get the display to update without re-setting the ItemsSource, but this seems to work
 					INMDG.ItemsSource = dgtable;
@@ -378,7 +378,7 @@ namespace pviewer5
 			IFormatter formatter = new BinaryFormatter();
 
 			dlg.InitialDirectory = "c:\\pviewer\\";
-			dlg.DefaultExt = ".ipv4namemap";
+			dlg.DefaultExt = ".IP4namemap";
 			dlg.Multiselect = false;
 
 			if (dlg.ShowDialog() == true)
@@ -387,7 +387,7 @@ namespace pviewer5
 
 				try
 				{
-					foreach (IPv4Tools.inmtableitem i in ((IPv4Tools.ipv4namemapclass)formatter.Deserialize(fs)).maptotable()) dgtable.Add(i);
+					foreach (IP4Tools.inmtableitem i in ((IP4Tools.IP4namemapclass)formatter.Deserialize(fs)).maptotable()) dgtable.Add(i);
 					// next command re-sets ItemsSource, window on screen does not update to show new contents of dgtable, don't know why
 					// there is probably some mechanism to get the display to update without re-setting the ItemsSource, but this seems to work
 					INMDG.ItemsSource = dgtable;
@@ -404,12 +404,12 @@ namespace pviewer5
 		}
 		private static void Executedaddrow(object sender, ExecutedRoutedEventArgs e)
 		{
-			IPv4Tools.ipv4nametableclass q;
+			IP4Tools.IP4nametableclass q;
 			DataGrid dg = (DataGrid)e.Source;
 
-			q = (IPv4Tools.ipv4nametableclass)(dg.ItemsSource);
+			q = (IP4Tools.IP4nametableclass)(dg.ItemsSource);
 
-			q.Add(new IPv4Tools.inmtableitem(0, ""));
+			q.Add(new IP4Tools.inmtableitem(0, ""));
 		}
 
 		private static void PreviewExecutedaddrow(object sender, ExecutedRoutedEventArgs e)

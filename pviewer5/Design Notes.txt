@@ -3,7 +3,7 @@
 
 next:
 	add display mechanics for groups
-	add handling for ipv4 fragments		
+	add handling for IP4 fragments		
 	collect list of unhandled cases
 
 
@@ -83,7 +83,7 @@ workflow, ui and backing data
 	3) doing the "group into convos" operation creates a list of convos *within each packet set*
 		3.1) testing for convo membership is a method within each headerfield class
 		3.2) (can make this an option later, initially we can just always group on all protocols that support it) user specifies which protocols to do convo testing for
-		3.3) apply convo testing for lower level protocols first - so, say, ipv4 gets defragged first, then tcp fragments get combined
+		3.3) apply convo testing for lower level protocols first - so, say, IP4 gets defragged first, then tcp fragments get combined
 			3.3.1) so that means each there will be a separate pass through the packets for each layer
 				3.3.1.1) 
 			3.3.2) 
@@ -128,7 +128,7 @@ tool to summarize column of packet data grid with counts (sort by count, or by i
 	can reflection use the path string to access the properties of pkts?  (probably yes, but is it fast enough - see p. 781 of c# in a nutshell)
 
 
-aggregate ipv4 fragments
+aggregate IP4 fragments
 	handle dumps that do not include all fragments
 
 add support for more protocols
@@ -162,7 +162,7 @@ remove (or comment out) facility to view packets excluded via quickfilter
 	logic in file read method that puts an "excluded" packet into separate packet set
 
 
-handle ipv4 "options" field
+handle IP4 "options" field
 
 
 quickfilters

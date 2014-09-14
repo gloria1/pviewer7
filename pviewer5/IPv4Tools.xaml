@@ -3,12 +3,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:pviewer5"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" 
-        x:Class="pviewer5.IPv4NameMapDialog"
-        Title="IPv4NameMapDialog"
+        x:Class="pviewer5.IP4NameMapDialog"
+        Title="IP4NameMapDialog"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False" Height="468.667" Width="451">
     <Window.Resources>
-        <local:IPv4ConverterNumberOnly x:Key="ipv4converternumberonly"/>
+        <local:IP4ConverterNumberOnly x:Key="IP4converternumberonly"/>
     </Window.Resources>
     <Grid x:Name="inmgrid"
 		Margin="20,29,20,11.333"
@@ -20,7 +20,7 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <GroupBox Header="Map of IPv4 Addresses To Aliases"
+        <GroupBox Header="Map of IP4 Addresses To Aliases"
 			Grid.Column="0"
 			Grid.Row="0"
 			Margin="5,5,5,5">
@@ -38,11 +38,11 @@
 				ItemStringFormat="x"
 				CanUserAddRows="False">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="IPv4 Address">
+                    <DataGridTextColumn Header="IP4 Address">
                         <DataGridTextColumn.Binding>
-                            <Binding Path="ipv4" Converter="{StaticResource ipv4converternumberonly}" >
+                            <Binding Path="IP4" Converter="{StaticResource IP4converternumberonly}" >
                                 <Binding.ValidationRules>
-                                    <local:ValidateIPv4Number/>
+                                    <local:ValidateIP4Number/>
                                 </Binding.ValidationRules>
                             </Binding>
                         </DataGridTextColumn.Binding>
@@ -51,7 +51,7 @@
                 </DataGrid.Columns>
                 <DataGrid.ContextMenu>
                     <ContextMenu>
-                        <MenuItem x:Name="inmaddrowmenuitem" Header="Add Row" Command="{x:Static local:IPv4NameMapDialog.inmaddrow}"/>
+                        <MenuItem x:Name="inmaddrowmenuitem" Header="Add Row" Command="{x:Static local:IP4NameMapDialog.inmaddrow}"/>
                         <MenuItem x:Name="inmdelrowmenuitem" Header="Delete Row"/>
                     </ContextMenu>
                 </DataGrid.ContextMenu>
