@@ -22,214 +22,220 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 
 
+
 namespace pviewer5
 {
 
 
-	public class MACTools
-	{
-		[Serializable]
-		public class macnamemapclass : Dictionary<ulong, string>
-		{
-			// need the following constructor (from ISerializable, which is inherited by Dictionary)
-			protected macnamemapclass(SerializationInfo info, StreamingContext ctx) : base(info, ctx) {}
-			// need to explicitly declare an empty constructor, because without this, new tries to use the above constructor
-			public macnamemapclass() { }
+    public class MACTools
+    {
 
-			public macnametableclass maptotable()	// transfers macnamemap dictionary to a table to support a datagrid
-			{
-				macnametableclass table = new macnametableclass();
+        public static bool DisplayAliases = true;
 
-				foreach (ulong k in this.Keys) table.Add(new mnmtableitem(k, this[k]));
-				return table;
-			}
-		}
-
-		//[Serializable]
-		public class macnametableclass : ObservableCollection<mnmtableitem> //, INotifyPropertyChanged
-		{
-			public macnamemapclass tabletomap()	// transfers macname table from a datagrid to a macnamemap dictionary
-			{
-				macnamemapclass map = new macnamemapclass();
-
-				// need to catch exceptions in case table has duplicate mac entries - if this is the case, just return null
-				try
-				{
-					foreach (mnmtableitem i in this) map.Add(i.mac, i.alias);
-				}
-				catch
-				{
-					return null;
-				}
-				return map;
-			}
-		}
-
-		public class mnmtableitem
-		{
-			public ulong mac { get; set; }
-			public string alias { get; set; }
-			
-			public mnmtableitem(ulong u, string s)
-				{
-					this.mac = u;
-					this.alias = s;
-				}
-		}
-
-		// the "official" mac name map which will be used in the value converter
-		public static macnamemapclass map = new macnamemapclass() 
-		{
-				{0x000000000000, "ALL ZEROES"},
-				{0x2818785702e3, "spr wifi"},
-				{0x00249b097799, "spr ether on usb"},
-				{0x281878b6c14e, "spr ether on dock"},
-				{0xc86000c667df, "win8fs 2"},
-				{0xc86000c65634, "win8fs 4"},
-				{0x5404a62bbb5c, "cnvssd7 3"},
-				{0x000e0cc442ff, "svr 2"},
-				{0xb0c74536471a, "buffalo ether"},
-				{0xb0c745364710, "buffalo 24g"},
-				{0xb0c745364715, "buffalo 5g"}
-		};
-
-		public static ulong? StringToMAC(string s)
-		{
-			// returns null if string cannot be parsed
+        // the "official" mac name map which will be used in the value converter
+        public static macnamemapclass map = new macnamemapclass() 
+		    {
+				    {0x000000000000, "ALL ZEROES"},
+				    {0x2818785702e3, "spr wifi"},
+				    {0x00249b097799, "spr ether on usb"},
+				    {0x281878b6c14e, "spr ether on dock"},
+				    {0xc86000c667df, "win8fs 2"},
+				    {0xc86000c65634, "win8fs 4"},
+				    {0x5404a62bbb5c, "cnvssd7 3"},
+				    {0x000e0cc442ff, "svr 2"},
+				    {0xb0c74536471a, "buffalo ether"},
+				    {0xb0c745364710, "buffalo 24g"},
+				    {0xb0c745364715, "buffalo 5g"}
+		    };
 
 
-			string regmac = "^([a-fA-F0-9]{0,2}[-:]){0,5}[a-fA-F0-9]{0,2}$";
-			string[] macbits = new string[6];
+        [Serializable]
+        public class macnamemapclass : Dictionary<ulong, string>
+        {
+            // need the following constructor (from ISerializable, which is inherited by Dictionary)
+            protected macnamemapclass(SerializationInfo info, StreamingContext ctx) : base(info, ctx) { }
+            // need to explicitly declare an empty constructor, because without this, new tries to use the above constructor
+            public macnamemapclass() { }
 
-			try
-			{
-				return ulong.Parse(s, NumberStyles.HexNumber);
-			}
-			catch (FormatException ex)
-			{
-				if (Regex.IsMatch(s, regmac))
-				{
-					macbits = Regex.Split(s, "[:-]");
-					// resize array to 6 - we want to tolerate missing colons, i.e., user entering less than 6 segments,
-					// split will produce array with number of elements equal to nmber of colons + 1
-					Array.Resize<string>(ref macbits,6);
-		
-					for (int i=0;i<6;i++) {macbits[i] = "0" + macbits[i]; }
-					return  ulong.Parse(macbits[0], NumberStyles.HexNumber) * 0x0000010000000000 +
-							ulong.Parse(macbits[1], NumberStyles.HexNumber) * 0x0000000100000000 +
-							ulong.Parse(macbits[2], NumberStyles.HexNumber) * 0x0000000001000000 +
-							ulong.Parse(macbits[3], NumberStyles.HexNumber) * 0x0000000000010000 +
-							ulong.Parse(macbits[4], NumberStyles.HexNumber) * 0x0000000000000100 +
-							ulong.Parse(macbits[5], NumberStyles.HexNumber) * 0x0000000000000001;
-				}
-			}
+            public macnametableclass maptotable()	// transfers macnamemap dictionary to a table to support a datagrid
+            {
+                macnametableclass table = new macnametableclass();
 
-			return null;
-		}
-		public static string MACToString(ulong value)
-		{
-			ulong[] b = new ulong[6];
-			string s;
+                foreach (ulong k in this.Keys) table.Add(new mnmtableitem(k, this[k]));
+                return table;
+            }
+        }
 
-			b[0] = ((value & 0xff0000000000) / 0x10000000000);
-			b[1] = ((value & 0xff00000000) / 0x100000000);
-			b[2] = ((value & 0xff000000) / 0x1000000);
-			b[3] = ((value & 0xff0000) / 0x10000);
-			b[4] = ((value & 0xff00) / 0x100);
-			b[5] = ((value & 0xff) / 0x1);
+        //[Serializable]
+        public class macnametableclass : ObservableCollection<mnmtableitem> //, INotifyPropertyChanged
+        {
+            public macnamemapclass tabletomap()	// transfers macname table from a datagrid to a macnamemap dictionary
+            {
+                macnamemapclass map = new macnamemapclass();
 
-			s = String.Format("{0:x2}:{1:x2}:{2:x2}:{3:x2}:{4:x2}:{5:x2}", b[0], b[1], b[2], b[3], b[4], b[5]);
-			return s;
-		}
-	}
+                // need to catch exceptions in case table has duplicate mac entries - if this is the case, just return null
+                try
+                {
+                    foreach (mnmtableitem i in this) map.Add(i.mac, i.alias);
+                }
+                catch
+                {
+                    return null;
+                }
+                return map;
+            }
+        }
 
-	public class ValidateMACNumber : ValidationRule
-	{
-		// validates that string is valid as either raw hex number or mac-formatted hex number (using StringToMAC function)
-		public override ValidationResult Validate(object value, System.Globalization.CultureInfo cultureInfo)
-		{
-			ulong? v = 0;
+        public class mnmtableitem
+        {
+            public ulong mac { get; set; }
+            public string alias { get; set; }
 
-			// try to parse as a raw mac address
-			v = MACTools.StringToMAC((string)value);
-			if (v != null) return new ValidationResult(true, "Valid MAC Address");
-			else return new ValidationResult(false, "Not a valid MAC address");
-		}
-	}
+            public mnmtableitem(ulong u, string s)
+            {
+                this.mac = u;
+                this.alias = s;
+            }
+        }
 
-	public class ValidateMACNumberOrAlias : ValidationRule
-	{
-		// validates that string is valid as either raw hex number or mac-formatted hex number (using StringToMAC function)
-		//      or that string is a valid entry in alias registry
+        public static ulong? StringToMAC(string s)
+        {
+            // returns null if string cannot be parsed
 
-		public override ValidationResult Validate(object value, System.Globalization.CultureInfo cultureInfo)
-		{
-			ulong? v = 0;
 
-			// first try to parse as a raw mac address
-			v = MACTools.StringToMAC((string)value);
-			if (v != null) return new ValidationResult(true, "Valid MAC Address");
-			// if that failed, see if string exists in macnamemap
-			foreach (ulong u in MACTools.map.Keys)
-				if ((string)value == MACTools.map[u])
-					return new ValidationResult(true, "Valid MAC Address");
-			return new ValidationResult(false, "Not a valid MAC address");
-		}
-	}
+            string regmac = "^([a-fA-F0-9]{0,2}[-:]){0,5}[a-fA-F0-9]{0,2}$";
+            string[] macbits = new string[6];
 
-	public class MACConverterNumberOnly : IValueConverter
-	{
-		// converts number to/from display format mac address, without checking the mac alias dictionary
+            try
+            {
+                return ulong.Parse(s, NumberStyles.HexNumber);
+            }
+            catch (FormatException ex)
+            {
+                if (Regex.IsMatch(s, regmac))
+                {
+                    macbits = Regex.Split(s, "[:-]");
+                    // resize array to 6 - we want to tolerate missing colons, i.e., user entering less than 6 segments,
+                    // split will produce array with number of elements equal to nmber of colons + 1
+                    Array.Resize<string>(ref macbits, 6);
 
-		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			return MACTools.MACToString((ulong)value);
-		}
+                    for (int i = 0; i < 6; i++) { macbits[i] = "0" + macbits[i]; }
+                    return ulong.Parse(macbits[0], NumberStyles.HexNumber) * 0x0000010000000000 +
+                            ulong.Parse(macbits[1], NumberStyles.HexNumber) * 0x0000000100000000 +
+                            ulong.Parse(macbits[2], NumberStyles.HexNumber) * 0x0000000001000000 +
+                            ulong.Parse(macbits[3], NumberStyles.HexNumber) * 0x0000000000010000 +
+                            ulong.Parse(macbits[4], NumberStyles.HexNumber) * 0x0000000000000100 +
+                            ulong.Parse(macbits[5], NumberStyles.HexNumber) * 0x0000000000000001;
+                }
+            }
 
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			ulong? v = 0;
+            return null;
+        }
+        public static string MACToString(ulong value)
+        {
+            ulong[] b = new ulong[6];
+            string s;
 
-			// first try to parse as a raw mac address
-			v = MACTools.StringToMAC((string)value);
-			if (v != null) return v;
+            b[0] = ((value & 0xff0000000000) / 0x10000000000);
+            b[1] = ((value & 0xff00000000) / 0x100000000);
+            b[2] = ((value & 0xff000000) / 0x1000000);
+            b[3] = ((value & 0xff0000) / 0x10000);
+            b[4] = ((value & 0xff00) / 0x100);
+            b[5] = ((value & 0xff) / 0x1);
 
-			// we should never get to this point, since validation step will not pass unless value is either valid raw mac 
-			// however, just in case put up a messagebox and return 0
-			MessageBox.Show("ConvertBack could not process a raw mac address.  Why did this pass validation????");
-			return 0;
-		}
-	}
+            s = String.Format("{0:x2}:{1:x2}:{2:x2}:{3:x2}:{4:x2}:{5:x2}", b[0], b[1], b[2], b[3], b[4], b[5]);
+            return s;
+        }
+    }
 
-	public class MACConverterNumberOrAlias : IValueConverter
-	{
-		// converts number to/from display format mac address, including translating aliases
+    public class ValidateMACNumber : ValidationRule
+    {
+        // validates that string is valid as either raw hex number or mac-formatted hex number (using StringToMAC function)
+        public override ValidationResult Validate(object value, System.Globalization.CultureInfo cultureInfo)
+        {
+            ulong? v = 0;
 
-		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			if (MainWindow.ds.DisplayAliases && MACTools.map.ContainsKey((ulong)value)) return MACTools.map[(ulong)value];
-			else return MACTools.MACToString((ulong)value);
-		}
+            // try to parse as a raw mac address
+            v = MACTools.StringToMAC((string)value);
+            if (v != null) return new ValidationResult(true, "Valid MAC Address");
+            else return new ValidationResult(false, "Not a valid MAC address");
+        }
+    }
 
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			ulong? v = 0;
+    public class ValidateMACNumberOrAlias : ValidationRule
+    {
+        // validates that string is valid as either raw hex number or mac-formatted hex number (using StringToMAC function)
+        //      or that string is a valid entry in alias registry
 
-			// first try to parse as a raw mac address
-			v = MACTools.StringToMAC((string)value);
-			if (v != null) return v;
+        public override ValidationResult Validate(object value, System.Globalization.CultureInfo cultureInfo)
+        {
+            ulong? v = 0;
 
-			// if that failed, see if string exists in macnamemap
-			foreach (ulong u in MACTools.map.Keys)
-				if ((string)value == MACTools.map[u])
-					return u;
+            // first try to parse as a raw mac address
+            v = MACTools.StringToMAC((string)value);
+            if (v != null) return new ValidationResult(true, "Valid MAC Address");
+            // if that failed, see if string exists in macnamemap
+            foreach (ulong u in MACTools.map.Keys)
+                if ((string)value == MACTools.map[u])
+                    return new ValidationResult(true, "Valid MAC Address");
+            return new ValidationResult(false, "Not a valid MAC address");
+        }
+    }
 
-			// we should never get to this point, since validation step will not pass unless value is either valid raw mac or existing entry in macnamemap
-			// however, just in case put up a messagebox and return 0
-			MessageBox.Show("ConvertBack could not process as either raw mac address or entry in macnamemap.  Why did this pass validation????");
-			return 0;
-		}
-	}
+    public class MACConverterNumberOnly : IValueConverter
+    {
+        // converts number to/from display format mac address, without checking the mac alias dictionary
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return MACTools.MACToString((ulong)value);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            ulong? v = 0;
+
+            // first try to parse as a raw mac address
+            v = MACTools.StringToMAC((string)value);
+            if (v != null) return v;
+
+            // we should never get to this point, since validation step will not pass unless value is either valid raw mac 
+            // however, just in case put up a messagebox and return 0
+            MessageBox.Show("ConvertBack could not process a raw mac address.  Why did this pass validation????");
+            return 0;
+        }
+    }
+
+    public class MACConverterNumberOrAlias : IValueConverter
+    {
+        // converts number to/from display format mac address, including translating aliases
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (MACTools.DisplayAliases && MACTools.map.ContainsKey((ulong)value)) return MACTools.map[(ulong)value];
+            else return MACTools.MACToString((ulong)value);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            ulong? v = 0;
+
+            // first try to parse as a raw mac address
+            v = MACTools.StringToMAC((string)value);
+            if (v != null) return v;
+
+            // if that failed, see if string exists in macnamemap
+            foreach (ulong u in MACTools.map.Keys)
+                if ((string)value == MACTools.map[u])
+                    return u;
+
+            // we should never get to this point, since validation step will not pass unless value is either valid raw mac or existing entry in macnamemap
+            // however, just in case put up a messagebox and return 0
+            MessageBox.Show("ConvertBack could not process as either raw mac address or entry in macnamemap.  Why did this pass validation????");
+            return 0;
+        }
+    }
+
 
 	public partial class MACNameMapDialog : Window
 	{

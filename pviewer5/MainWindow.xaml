@@ -10,16 +10,28 @@
             <Setter Property="Control.FontFamily" Value="Courier New"/>
             <Setter Property="Control.HorizontalAlignment" Value="Right"/>
         </Style>
-        <DataTemplate DataType="{x:Type local:H}">
+        <DataTemplate DataType="{x:Type local:DNSRR}">
             <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
         </DataTemplate>
-        <HierarchicalDataTemplate DataType="{x:Type local:G}"
-                                  ItemsSource="{Binding Path=L}">
-            <TextBlock Text="{Binding Path=groupdisplayinfo}"/>
+        <HierarchicalDataTemplate DataType="{x:Type local:DNSRRList}"
+                                  ItemsSource="{Binding Path=Items}">
+            <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
+        </HierarchicalDataTemplate>
+        <HierarchicalDataTemplate DataType="{x:Type local:H}"
+                                  ItemsSource="{Binding Path=RRs}">
+            <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
         </HierarchicalDataTemplate>
         <HierarchicalDataTemplate DataType="{x:Type local:Packet}"
                                   ItemsSource="{Binding Path=phlist}">
             <TextBlock Text="{Binding Path=packetdisplayinfo}"/>
+        </HierarchicalDataTemplate>
+        <HierarchicalDataTemplate DataType="{x:Type local:G}"
+                                  ItemsSource="{Binding Path=L}">
+            <TextBlock Text="{Binding Path=groupdisplayinfo}"/>
+        </HierarchicalDataTemplate>
+        <HierarchicalDataTemplate DataType="{x:Type local:GList}"
+                                  ItemsSource="{Binding Path=groups}">
+            <TextBlock Text="{Binding Path=glistdisplayinfo}"/>
         </HierarchicalDataTemplate>
 
     </Window.Resources>
@@ -100,7 +112,9 @@
                   Grid.Row="2"
                   Margin="5,5,5,5">
             <TreeView Name="grouptree"
-                      ItemsSource="{Binding Path=maingrouplist}">
+                        VirtualizingPanel.IsVirtualizing="True"
+                        VirtualizingPanel.VirtualizationMode="Recycling"
+                      ItemsSource="{Binding Path=grouplistlist}">
             </TreeView>
         </GroupBox>
         
@@ -121,14 +135,11 @@
                 VirtualizingPanel.IsVirtualizing="True"
                 VirtualizingPanel.VirtualizationMode="Recycling"
                 AutoGenerateColumns="False"
-                ItemsSource="{Binding Path=pkts}"
+                ItemsSource="{Binding Path=exclpkts}"
                 CellStyle="{StaticResource DGCellStyle}">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Datalink" Binding="{Binding Path=ph.datalink}"/>
-                    <DataGridTextColumn Header="Timesecs" Binding="{Binding Path=ph.timesecs}"/>
-                    <DataGridTextColumn Header="Timeusecs" Binding="{Binding Path=ph.timeusecs}"/>
-                    <DataGridTextColumn Header="Caplen" Binding="{Binding Path=ph.caplen}" />
-                    <DataGridTextColumn Header="Wirelen" Binding="{Binding Path=ph.len}"/>
+                    <DataGridTextColumn Header="Datalink" Binding="{Binding Path=phlist[0].DataLink}"/>
+                    <DataGridTextColumn Header="Time" Binding="{Binding Path=phlist[0].Time}"/>
                 </DataGrid.Columns>
             </DataGrid>
         </GroupBox>

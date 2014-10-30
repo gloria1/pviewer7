@@ -21,59 +21,63 @@ using System.Text.RegularExpressions;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 
+
 namespace pviewer5
 {
 
-	public class QuickFilterTools
-	{
-		[Serializable]
-		public class QuickFilter : ObservableCollection<QFItem>
-		{
-			public bool Exclude(ulong value)
-			{
-				bool exclude = false;
 
-				foreach (QFItem i in this)
-					if (i.active)
-						if ((value & i.mask) == i.value)
-						{
-							i.nummatched++;
-							if (i.inclusion == QFIncl.Include) return false;	// if matched an inclusion criteria, immediately return false
-							else exclude = true;								// else set the "Exclude" flag to true
-						}
-				return exclude;				// if we passed through whole foreach loop, then no inclusion criteria were met
-											// so return value of exclude flag, which will be true if any exclusion criterion was met
-			}
+    public class QuickFilterTools
+    {
+        // list of items in the QFIncl enumeration, to support the ItemsSource of the gui textbox
+        public static List<QFIncl> QFInclItems = new List<QFIncl>() { QFIncl.Include, QFIncl.Exclude };
 
-			public void ResetCounters()
-			{
-				foreach (QFItem i in this) i.nummatched = 0;
-			}
-		
-		}
+        // the "official" quickfilters
+        public static QuickFilter QFMAC = new QuickFilter();
+        public static QuickFilter QFIP4 = new QuickFilter();
 
-		[Serializable]
-		public class QFItem
-		{
-			public QFIncl inclusion {get; set;}
-			public ulong mask {get; set;}
-			public ulong value {get; set;}
-			public bool active {get; set;}
-			public ulong nummatched {get; set;}
-		}
+        [Serializable]
+        public class QuickFilter : ObservableCollection<QFItem>
+        {
+            public bool Exclude(ulong value)
+            {
+                bool exclude = false;
 
-		public enum QFIncl { Include, Exclude }   // Include means if this criterion is matched, include the packet
+                foreach (QFItem i in this)
+                    if (i.active)
+                        if ((value & i.mask) == i.value)
+                        {
+                            i.nummatched++;
+                            if (i.inclusion == QFIncl.Include) return false;	// if matched an inclusion criteria, immediately return false
+                            else exclude = true;								// else set the "Exclude" flag to true
+                        }
+                return exclude;				// if we passed through whole foreach loop, then no inclusion criteria were met
+                // so return value of exclude flag, which will be true if any exclusion criterion was met
+            }
 
-		// list of items in the QFIncl enumeration, to support the ItemsSource of the gui textbox
-		public static List<QFIncl> QFInclItems = new List<QFIncl>() { QFIncl.Include, QFIncl.Exclude };
+            public void ResetCounters()
+            {
+                foreach (QFItem i in this) i.nummatched = 0;
+            }
 
-		// the "official" quickfilters
-		public static QuickFilter QFMAC = new QuickFilter();
-		public static QuickFilter QFIP4 = new QuickFilter();
-	}
+        }
 
+        [Serializable]
+        public class QFItem
+        {
+            public QFIncl inclusion { get; set; }
+            public ulong mask { get; set; }
+            public ulong value { get; set; }
+            public bool active { get; set; }
+            public ulong nummatched { get; set; }
+        }
 
-	public partial class QuickFilterDialog : Window
+        public enum QFIncl { Include, Exclude }   // Include means if this criterion is matched, include the packet
+
+    }
+
+    
+    
+    public partial class QuickFilterDialog : Window
 	{
 		public static RoutedCommand qfmacaddrow = new RoutedCommand();
 		public static RoutedCommand qfIP4addrow = new RoutedCommand();

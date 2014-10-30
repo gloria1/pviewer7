@@ -1,9 +1,59 @@
 ﻿
 
+make header fields not be properties (save overhead?)
+
+perf analysis - is grouping logic still the hot spot?
+	can just test by commenting out various groupings
+
+
+augment headerdisplayinfo properties to highlight exceptional cases (errors, malformed data, truncated, incomplete groups, etc)
+highlight message types, codes, options etc that we have not handled (yet)
+
+additional cases to handle
+
+	dns over tcp (see rfc 5966)
+	dns malformed message types
+		names too long (>255 per rfc 1035, or is there a higher limit now?)
+		compressed name length fields with first two bits 10 or 01 (reserved per rfc 1035 section 4.1.4)
+	dns query types not supported
+	dns RR types not supported
+
+	tcp incomplete sequences (missing start, missing end, missing in middle)
+	http incomplete sequences (tcp incomplete, no dns source)
+			
+
+
+
+
+	add handling for IP4 fragments		
+
+	handle IP4 "options" field
+
+	look for comments in code
+
+
+
+
 
 next:
-	add display mechanics for groups
-	add handling for IP4 fragments		
+	pviewer
+		add tcp
+		add http/https
+		group tcp, http
+
+
+
+
+
+	ipdnsmapper as separate solution
+		prompt to open existing file at startup
+		save file to disk after each pass through source packet files
+		rename packet files after processing, not move them
+		display - tree, sorted by ip4 (use a "view" to sort?)
+		display - button to open separate dialog to search for a domain name
+						- accept wildcards (regular expressions?)
+						- return list of ips
+		put dn lookup on separate thread
 	collect list of unhandled cases
 
 
