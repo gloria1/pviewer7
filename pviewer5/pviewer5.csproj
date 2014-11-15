@@ -68,6 +68,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Protocols HTTP.cs" />
     <Compile Include="Protocols ARP.cs" />
     <Compile Include="Protocols DHCP.cs" />
     <Compile Include="Protocols DNS.cs" />

@@ -56,6 +56,7 @@ namespace pviewer5
         public uint UrgentPtr { get; set; } // offset from sequence number indicating last urgent data byte
         public TCPOption[] Options { get; set; }
 
+        public Packet NextPktInStream = null;
 
         // define a property that will be used by the xaml data templates for the one-line display of this header in the tree
         public override string headerdisplayinfo
@@ -180,13 +181,49 @@ namespace pviewer5
         }
     }
 
+
+
+    // tcp group extensions
+    //      method(s) to get data from the TCP stream by just indexing into the stream, without regard to packet boundaries
+    //          each packet should have a pointer to the packet with the next bytes in its stream
+    //          each group should have a flag indicating whether it has been sequenced yet
+    //          method to retrieve n bytes starting at relative sequence r from direction d
+    //              method arguments are
+    //                  reference to byte array of size n where data shold be copied
+    //                  pointer to packet to start at (can be null)
+    //                      pointer is suggestion - if null or it turns out to be wrong, start search at first packet
+    //              method returns pointer to packet with next byte after last one copied into array (to be used as suggestion for next call)
+    
+    //      profiling information
+    //          each group should have a flag indicating whether it has been profiled yet
+    //          do not profile until one of the profile properties is accessed
+    //          profile items:
+    //              flag no missing bytes in sequence numbering
+    //              flag proper setup
+    //              flag proper teardown
+    //              nunber of duplicate packets present
+    //              number of packets data received out of order
+    //              number of keep alives used
+    //              duratin of keep alives
+    //              number of retransmissions
+    //              other characteristics that may signal problems
+    // 
+
+
     public class TCPG : G
     {
         // define properties of a specific group here
-        public uint SrcIP4;      // these are the header fields that define an TCP group
-        public uint SrcPort;
-        public uint DestIP4;
-        public uint DestPort;
+        public uint S1IP4;      // these are the header fields that define an TCP group
+        public uint S1Port;     // S1 indicates the sender of the first packet observed
+        public uint S2IP4;      // S2 indicates the destination of the first packet observed, i.e., the sender in the other direction
+        public uint S2Port;
+
+        bool sequenced = false; // set to true once the the streams have been sequenced, which is not done until the first call to retrieve bytes from the stream
+        Packet s1head = null;  // packet containing first byte of stream 1, which is bytes sent by S1IP4:S1Port
+        Packet s2head = null;  // packet containing first byte of stream 2
+        
+        [Flags]
+        enum TCPGFlags { MissingBytes = 1, }
 
         // define a property that will be used by the xaml data templates for the one-line display of this header in the tree
         public override string groupdisplayinfo
