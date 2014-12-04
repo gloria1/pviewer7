@@ -53,6 +53,9 @@ namespace pviewer5
         public List<H> phlist { get; set; }
         public ulong DataLen;
 
+        // convenience fields to contain copies of commonly needed values,
+        // so that other functions do not need to search through header list to find them
+        public H groupprotoheader { get; set; }     // packet group logic will set this to point to the header of the protocol relevant to that group type
         public ulong SrcMAC = 0;
         public ulong DestMAC = 0;
         public uint SrcIP4 = 0;
@@ -74,7 +77,7 @@ namespace pviewer5
             DataLen = (ulong)(fs.Length - fs.Position);    // need to parse headers to determine lengths of data array for packet
 
             // instantiate pcap header - that constructor will start cascade of constructors for inner headers
-            pch = new PcapH(fs, pfh, this, ref DataLen);    // Pcap constuctors will set DataLen initially, subeequent constructors will reduce it for bytes they consume
+            pch = new PcapH(fs, pfh, this, ref DataLen);    // header constuctors will reduce DataLen for the bytes they consume, so that when this returns, DataLen will be only the bytes from the packet that have not been processed into the header list
 
             Data = new byte[DataLen];
             fs.Read(Data, 0, (int)DataLen);
@@ -169,6 +172,8 @@ namespace pviewer5
 			FileStream fs;
 			Packet pkt;
 
+            byte[] b = new byte[1000];
+
 			dlg.Multiselect = false;
 			dlg.InitialDirectory = PcapFileUtil.LastDirectory;
             dlg.FileName = PcapFileUtil.LastFile;
@@ -200,6 +205,9 @@ namespace pviewer5
                 foreach (Packet p in pkts)
                     foreach (GList gl in grouplistlist)
                         if (gl.GroupPacket(p)) break;
+
+                foreach (TCPG tg in ((TCPGList)(grouplistlist[2])).groups)
+                    tg.OPL1.CopyBytes(1000, b);
                 
                 CollectionViewSource.GetDefaultView(grouptree.ItemsSource).Refresh();
 

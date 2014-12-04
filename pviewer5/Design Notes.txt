@@ -21,7 +21,7 @@ additional cases to handle
 	tcp incomplete sequences (missing start, missing end, missing in middle)
 	http incomplete sequences (tcp incomplete, no dns source)
 			
-
+	tcp - variable length head and tail byte arrays
 
 
 

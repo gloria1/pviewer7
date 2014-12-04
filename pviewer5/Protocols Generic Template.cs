@@ -122,6 +122,7 @@ namespace pviewer5
                 {
                     PcapH ph = pkt.phlist[0] as PcapH;
                     g.L.Add(pkt);
+                    pkt.groupprotoheader = protoheader;
                     g.FirstTime = (g.FirstTime < ph.Time) ? g.FirstTime : ph.Time;          // adjust group timestamps
                     g.LastTime = (g.LastTime < ph.Time) ? ph.Time : g.LastTime;             // adjust group timestamps
                     return true;

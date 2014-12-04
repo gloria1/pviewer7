@@ -56,7 +56,7 @@ namespace pviewer5
         public uint UrgentPtr { get; set; } // offset from sequence number indicating last urgent data byte
         public TCPOption[] Options { get; set; }
 
-        public Packet NextPktInStream = null;
+        public Packet NextPktInStream = null;   // pointer to packet containing next bytes in stream
 
         // define a property that will be used by the xaml data templates for the one-line display of this header in the tree
         public override string headerdisplayinfo
@@ -213,17 +213,192 @@ namespace pviewer5
     public class TCPG : G
     {
         // define properties of a specific group here
-        public uint S1IP4;      // these are the header fields that define an TCP group
+        public uint S1IP4;      // these are the header fields that define a TCP group
         public uint S1Port;     // S1 indicates the sender of the first packet observed
         public uint S2IP4;      // S2 indicates the destination of the first packet observed, i.e., the sender in the other direction
         public uint S2Port;
 
-        bool sequenced = false; // set to true once the the streams have been sequenced, which is not done until the first call to retrieve bytes from the stream
-        Packet s1head = null;  // packet containing first byte of stream 1, which is bytes sent by S1IP4:S1Port
-        Packet s2head = null;  // packet containing first byte of stream 2
+        public enum TCPGState { NotSequencedYet, NormalStart, SequenceFailed };
+                    // NotsequencedYet is initial state, and means we have not yet seen first 3 packets
+                    // NormalStart means we found first 3 packets have normal 3 step handshake
+                    // SequenceFailed means we have seen at least 3 packets and they are not the normal 3 step handshake
+        public TCPGState State;
+
+        public OPL OPL1;   // ordered packet list 1 - by definition, this is the stream of packets from the sender of the first SYN packet, i.e., the initiator of the TCP conversation
+        public OPL OPL2;
+
+        public int NextPacketToAddToOPLs = 0;     // index into TCPG.L
         
-        [Flags]
-        enum TCPGFlags { MissingBytes = 1, }
+
+        public class OPL   // OPL = ordered packet list - will be list of pointers to packets for one stream of the TCP session, in sequence number order
+        {
+            public TCPG mygroup;           // reference to TCP group that owns this OPL
+            public bool initialized;        // set false at construction, only true if OPL gets initialized with a properly sequenced stream
+            public ulong FirstAbsSeq;     // absolute sequence number of start of stream
+            public ulong MaxAbsSeq;      // highest absolute sequence number observed
+            public ulong CurrRelSeq;    // next byte to be copied 
+            public uint CurrOPLI;      // index of item containing byte at CurrRelSeq
+            public class item
+            {
+                public Packet pkt;     // reference to packet containing this chunk of the stream
+                public ulong AbsSeqOfFirstByteInPacket;
+            }
+
+            public List<item> OL;
+
+            public OPL(TCPG g)
+            {
+                mygroup = g;
+                initialized = false;
+                CurrRelSeq = 0;
+                CurrOPLI = 0;
+                OL = new List<item>();
+            }
+
+            public bool CopyBytes(ulong n, byte[] dest)
+            {
+                ulong NewCurrRelSeq = CurrRelSeq;   // local version of current location state
+                uint NewCurrOPLI = CurrOPLI;       // the "official" versions are not updated unless all n bytes are successfully copied
+                ulong bytescopied = 0;
+                item i;
+                ulong b;
+                ulong offsetinpacket;
+                ulong bytestocopythispacket;
+                
+                if (mygroup.State != TCPGState.NormalStart) return false;
+                if (!initialized)
+                    if (!mygroup.InitOPLs()) return false;      // if InitOPLs returns false, something else is wrong, so return false
+
+                while (bytescopied < n)
+                {
+                    // if in the middle of a packet, copy more bytes from this packet
+                    if (NewCurrOPLI < OL.Count)     // if cursor not at end of packet list
+                    {
+                        i = OL[(int)NewCurrOPLI];
+                        offsetinpacket = NewCurrRelSeq - i.AbsSeqOfFirstByteInPacket - FirstAbsSeq;
+
+                        if ((offsetinpacket >= 0) && (offsetinpacket < i.pkt.DataLen))     // and if next sequence number to copy falls within this packet
+                        {
+                            bytestocopythispacket = n - bytescopied;
+                            if (bytestocopythispacket > i.pkt.DataLen - offsetinpacket)
+                            {
+                                bytestocopythispacket = i.pkt.DataLen - offsetinpacket;
+                                NewCurrOPLI++;      // if this copy will reach end of packet, increment the OL index
+                            }
+                            for (b = 0; b < bytestocopythispacket; b++) dest[bytescopied + b] = i.pkt.Data[offsetinpacket + b];
+                            NewCurrRelSeq += bytestocopythispacket; // increment 
+                        }
+                        else
+                        {
+                            MessageBox.Show("seq of next byte to read does not fall in this packet");
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        // else go to next packet
+                        // if no more packets, get another one (return false if no more, or if cannot find next packet in sequence
+                        while (NewCurrOPLI == OL.Count) if (!mygroup.AddPktToOPLs()) return false;  // if AddPktToOPLs returns false, there are no more packets, so this function should return false
+                        while ((OL[(int)NewCurrOPLI].AbsSeqOfFirstByteInPacket - FirstAbsSeq) != NewCurrRelSeq)
+                        {
+                            if (!mygroup.AddPktToOPLs()) return false;     // if sequence number of next packet in list is not equal to the desired next sequence number, there must be a missing packet
+                            // so we keep reading more packets until we find the next sequence number, or if we run out of packets return false
+                        }
+                    }
+                
+                }
+                // if we got this far, the full n bytes have been copied, so update the "official" state
+                CurrRelSeq = NewCurrRelSeq;
+                CurrOPLI = NewCurrOPLI;
+                return true;
+            }
+
+            public bool SetCurrPos(long n)
+            {
+                // fill in with logic to update state using same logic as CopyBytes above
+                // after CopyBytes has been debugged
+                // in the meantime, always return false as stub
+                return false;
+            }
+                
+        }
+
+        public bool InitOPLs()
+        {
+            // check whether first 3 packets are normal handshake
+            if (State != TCPGState.NormalStart) return false;
+            
+            // if so, set up OPL's
+            OPL1.FirstAbsSeq = ((TCPH)(L[0].groupprotoheader)).SeqNo;
+            OPL2.FirstAbsSeq = ((TCPH)(L[1].groupprotoheader)).SeqNo;
+
+            return true;
+        }
+
+        
+        
+        public bool AddPktToOPLs()
+        {
+            OPL opl;
+            TCPH newth, oplth;
+            int opli;       // index into opl.OL where new packet is being considered for insertion
+            OPL.item curritem, newitem;
+            ulong curritemdatalen;
+
+            // note the next two sequence numbers are "TCP sequence numbers", i.e., raw sequence numbers from TCP protocol, not converted for rollover and not converted to relative terms
+            ulong nextabsseq;   // the next absolute sequence number expected after current OPL item
+            ulong newseq;   // absolute sequence number of packet to be added
+
+            bool maxseqhi, newseqhi;
+
+
+		    //return false if no more packets
+            if (this.NextPacketToAddToOPLs == L.Count) return false;
+
+            newitem = new OPL.item();    
+            newitem.pkt = L[this.NextPacketToAddToOPLs++];
+            newth = (TCPH)(newitem.pkt.groupprotoheader);
+            newseq = newth.SeqNo;
+
+            // determine which OPL to add next packet to
+            if (newth.SrcPort == S1Port) opl = OPL1; else opl = OPL2;
+
+            opli = opl.OL.Count();
+
+            if (opli == 0)      // if list is empty, just add the new packet
+            {
+                newitem.AbsSeqOfFirstByteInPacket = newseq;
+                opl.OL.Add(newitem);
+                return true;
+            }
+
+            // adjust newseq if has rolled over zero in  32 bit space
+            newseq += opl.MaxAbsSeq & 0xffffffff00000000;
+            maxseqhi = (opl.MaxAbsSeq & 0xffffffff) > 0x80000000;
+            newseqhi = (newseq & 0xffffffff) > 0x80000000;
+            if (maxseqhi && !newseqhi) newseq += 0x100000000;
+            if (!maxseqhi && newseqhi) newseq -= 0x100000000;
+            newitem.AbsSeqOfFirstByteInPacket = newseq;
+            
+            while (true)
+            {
+                curritem = opl.OL[opli - 1];
+                oplth = (TCPH)curritem.pkt.groupprotoheader;
+                curritemdatalen = curritem.pkt.DataLen;
+                nextabsseq = oplth.SeqNo + curritemdatalen;
+
+                if (newseq >= nextabsseq) break;
+                opli--;     // if new packet does not fit here, back up the cursor to prior packet in opl
+                if (opli < 0)   MessageBox.Show("TCP stream sequencing algorithm fail - we should never reach this state");
+            }
+
+            opl.OL.Insert(opli, newitem);
+
+
+            return true;
+        }
+
+
 
         // define a property that will be used by the xaml data templates for the one-line display of this header in the tree
         public override string groupdisplayinfo
@@ -233,29 +408,37 @@ namespace pviewer5
                 MACConverterNumberOrAlias mc = new MACConverterNumberOrAlias();
                 IP4ConverterNumberOrAlias ic = new IP4ConverterNumberOrAlias();
                 return "TCP Group"
-                            + ", Source IP4 " + ic.Convert(SrcIP4, null, null, null)
-                            + String.Format(", Source Port {0:X4}", SrcPort)
-                            + ", Dest IP4 " + ic.Convert(DestIP4, null, null, null)
-                            + String.Format(", Dest Port {0:X4}", DestPort)
-                            + String.Format(", Packets in Group = {0:X2}", L.Count());
+                            + ", Stream1 IP4 " + ic.Convert(S1IP4, null, null, null)
+                            + String.Format(", Stream1 Port {0:X4}", S1Port)
+                            + ", Stream2 IP4 " + ic.Convert(S2IP4, null, null, null)
+                            + String.Format(", Stream2 Port {0:X4}", S2Port)
+                            + String.Format(", Packets in Group = {0:X2}", L.Count())
+                            + State;
             }
         }
 
-        public TCPG(Packet pkt) : base(pkt)
+        public TCPG(Packet pkt, H h) : base(pkt)
         {
 
             // note: base class constructor is called first (due to : base(pkt) above)
 
+            TCPH th = (TCPH)h;
 
             // set group properties here
 
-            SrcIP4 = pkt.SrcIP4;
-            SrcPort = pkt.SrcPort;
-            DestIP4 = pkt.DestIP4;
-            DestPort = pkt.DestPort;
+            S1IP4 = pkt.SrcIP4;
+            S1Port = pkt.SrcPort;
+            S2IP4 = pkt.DestIP4;
+            S2Port = pkt.DestPort;
+
+            // SET ADDITIONAL GROUP PROPERTIES AS NECESSARY
+            OPL1 = new OPL(this);
+            OPL2 = new OPL(this);
+            State = TCPGState.NotSequencedYet;
+
         }
 
-        public override bool Belongs(Packet pkt, H h)        // returns true if pkt belongs to group
+        public override bool Belongs(Packet pkt, H h)        // returns true if pkt belongs to group, also tests for normal start sequence of TCP group
         {
             // h argument is for utility - GList.GroupPacket function will pass in a reference to the packet header matching the protocol specified in the GList - this save this function from having to search for the protocol header in pkt.phlist each time it is called
 
@@ -266,9 +449,42 @@ namespace pviewer5
             // can assume GList.CanBelong has returned true
 
             // also set Complete = true if this packet completes group
+            
+            if (((pkt.SrcIP4 == S1IP4) && (pkt.SrcPort == S1Port) && (pkt.DestIP4 == S2IP4) && (pkt.DestPort == S2Port))   // if source==source and dest==dest
+                || ((pkt.SrcIP4 == S2IP4) && (pkt.SrcPort == S2Port) && (pkt.DestIP4 == S1IP4) && (pkt.DestPort == S1Port)))  // or source==dest and dest==source
+            {
 
-            return (((pkt.SrcIP4 == SrcIP4) && (pkt.SrcPort == SrcPort) && (pkt.DestIP4 == DestIP4) && (pkt.DestPort == DestPort))   // if source==source and dest==dest
-                || ((pkt.SrcIP4 == DestIP4) && (pkt.SrcPort == DestPort) && (pkt.DestIP4 == SrcIP4) && (pkt.DestPort == SrcPort)));  // or source==dest and dest==source
+                if (State == TCPGState.NotSequencedYet)
+                {
+                    if (L.Count == 2)   // if this is the third packet, test for normal start sequence
+                                        // if the first three packets match the "normal" sequence, set State = NormalStart
+                                        // otherwise set State = SequenceFailed
+                                        // in no case do we leave State as NotSequencedYet
+                    {
+                        TCPH th = (TCPH)(L[0].groupprotoheader);
+                        if ((th.Flags & 0x12)==0x02)    // if SYN set and ACK not set in first packet
+                        {
+                            th = (TCPH)(L[1].groupprotoheader);
+                            if (th.SrcPort == S2Port)       // and if second packet is from stream 2
+                            {
+                                if ((th.Flags & 0x12) == 0x12)    // and if SYN set and ACK set in second packet
+                                {
+                                    if (pkt.SrcPort == S1Port)      // and if this (the third) packet is from stream 1
+                                    {
+                                        if ((th.Flags & 0x12)==0x10)    // and if SYN not set and ACK set in third packet
+                                        {
+                                            State = TCPGState.NormalStart;  // then we have a normal start sequence
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (State != TCPGState.NormalStart) State = TCPGState.SequenceFailed;
+                    }                        
+                }
+                return true;
+            }
+            else return false;
         }
 
     }
@@ -297,7 +513,7 @@ namespace pviewer5
         {
             // h argument is for utility - GList.GroupPacket function will pass in a reference to the packet header matching the protocol specified in the GList - this saves this function from having to search for the protocol header in pkt.phlist each time it is called
 
-            if (h != null) return new TCPG(pkt);     // if pkt has a TCP header it can start a TCP group
+            if (h != null) return new TCPG(pkt, h);     // if pkt has a TCP header it can start a TCP group
             else return null;       // return null if cannot start a group with this packet
         }
     }
