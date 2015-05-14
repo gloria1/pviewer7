@@ -114,7 +114,9 @@ namespace pviewer5
                     break;
                 }
             if (!CanBelong(pkt, protoheader)) return false;   // if packet cannot belong to group of this type, don't bother to iterate through group list
-            
+                   
+            pkt.groupprotoheader = protoheader;
+             
             foreach (G g in groups)
             {
                 if (g.Complete) continue;
@@ -122,7 +124,6 @@ namespace pviewer5
                 {
                     PcapH ph = pkt.phlist[0] as PcapH;
                     g.L.Add(pkt);
-                    pkt.groupprotoheader = protoheader;
                     g.FirstTime = (g.FirstTime < ph.Time) ? g.FirstTime : ph.Time;          // adjust group timestamps
                     g.LastTime = (g.LastTime < ph.Time) ? ph.Time : g.LastTime;             // adjust group timestamps
                     return true;

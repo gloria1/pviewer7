@@ -13,11 +13,14 @@
         <DataTemplate DataType="{x:Type local:DNSRR}">
             <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
         </DataTemplate>
+        <DataTemplate DataType="{x:Type local:H}">
+            <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
+        </DataTemplate>
         <HierarchicalDataTemplate DataType="{x:Type local:DNSRRList}"
                                   ItemsSource="{Binding Path=Items}">
             <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
         </HierarchicalDataTemplate>
-        <HierarchicalDataTemplate DataType="{x:Type local:H}"
+        <HierarchicalDataTemplate DataType="{x:Type local:DNSH}"
                                   ItemsSource="{Binding Path=RRs}">
             <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
         </HierarchicalDataTemplate>

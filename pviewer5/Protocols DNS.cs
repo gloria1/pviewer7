@@ -54,6 +54,8 @@ namespace pviewer5
                 string d = "";
                 uint t;
 
+                if (dnsdata[pos] == 0) return "<root>"; // if NAME just points to a terminator, it is the root
+
                 while (dnsdata[pos] != 0)
                 {
                     t = dnsdata[pos];
@@ -125,9 +127,9 @@ namespace pviewer5
                     break;
                 case 6:         // SOA - start of zone of authority
                     RDATA1 = pos;        // MNAME - name server that was the original or primary source of data for this zone
-                    while (dnsdata[pos] > 0) pos++;
+                    while (dnsdata[pos] > 0) pos++; pos++;
                     RDATA2 = pos;        // RNAME - mailbox of person responsible for this zone
-                    while (dnsdata[pos] > 0) pos++;
+                    while (dnsdata[pos] > 0) pos++; pos++;
                     RDATA3 = (uint)dnsdata[pos] * 0x1000000 + (uint)dnsdata[pos + 1] * 0x10000 + (uint)dnsdata[pos + 2] * 0x100 + (uint)dnsdata[pos + 3]; pos += 4;  // SERIAL - version number of the original copy of the zone
                     RDATA4 = (uint)dnsdata[pos] * 0x1000000 + (uint)dnsdata[pos + 1] * 0x10000 + (uint)dnsdata[pos + 2] * 0x100 + (uint)dnsdata[pos + 3]; pos += 4;  // REFRESH - time (seconds) before zone should be refreshed
                     RDATA5 = (uint)dnsdata[pos] * 0x1000000 + (uint)dnsdata[pos + 1] * 0x10000 + (uint)dnsdata[pos + 2] * 0x100 + (uint)dnsdata[pos + 3]; pos += 4;  // RETRY - time (seconds) before a failed refresh should be retried
@@ -295,7 +297,7 @@ namespace pviewer5
             RRs.Add(new DNSRRList());
             for (int i = 0; i < NSCOUNT; i++) RRs[2].Items.Add(new DNSRR(dnsdata, ref pos, false));
             RRs.Add(new DNSRRList());
-            for (int i = 0; i < NSCOUNT; i++) RRs[3].Items.Add(new DNSRR(dnsdata, ref pos, false));
+            for (int i = 0; i < ARCOUNT; i++) RRs[3].Items.Add(new DNSRR(dnsdata, ref pos, false));
 
             if (pos != Len) MessageBox.Show("Did Not Read DNS record properly?  pos != Len");
 

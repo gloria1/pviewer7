@@ -1,4 +1,7 @@
-﻿
+﻿next:
+	pviewer
+		add http/https
+		group tcp, http
 
 make header fields not be properties (save overhead?)
 
@@ -35,14 +38,25 @@ additional cases to handle
 
 
 
-next:
-	pviewer
-		add tcp
-		add http/https
-		group tcp, http
 
 
-
+    // tcp group extensions
+    //      profiling information
+    //          each group should have a flag indicating whether it has been profiled yet
+    //          do not profile until one of the profile properties is accessed
+    //          profile items:
+    //              flag no missing bytes in sequence numbering
+    //              flag proper setup
+    //              flag proper teardown
+    //              flag RST termination - termination with a single RST is not strictly kosher but typical of browser behavior, per some web page
+    //              flag RST followed by other traffic - this could be more problemmatic
+    //              nunber of duplicate packets present
+    //              number of packets data received out of order
+    //              number of keep alives used
+    //              duratin of keep alives
+    //              number of retransmissions
+    //              other characteristics that may signal problems
+    // 
 
 
 	ipdnsmapper as separate solution
@@ -159,9 +173,6 @@ workflow, ui and backing data
 
 
 
-
-
-try vs pro free trial - performance profiling tools, what else???
 
 git - how to roll back????
     - how to open a branch to an earlier version so i can just look at how it used to work

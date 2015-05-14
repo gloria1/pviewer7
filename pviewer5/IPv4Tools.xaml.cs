@@ -32,10 +32,10 @@ namespace pviewer5
 
         public static IP4namemapclass map = new IP4namemapclass() 
 		{
-				{0x000000000000, "ALL ZEROES"},
+				{0x00000000, "ALL ZEROES"},
 		};
         [Serializable]
-        public class IP4namemapclass : Dictionary<ulong, string>
+        public class IP4namemapclass : Dictionary<uint, string>
         {
             // need the following constructor (from ISerializable, which is inherited by Dictionary)
             protected IP4namemapclass(SerializationInfo info, StreamingContext ctx) : base(info, ctx) { }
@@ -46,7 +46,7 @@ namespace pviewer5
             {
                 IP4nametableclass table = new IP4nametableclass();
 
-                foreach (ulong k in this.Keys) table.Add(new inmtableitem(k, this[k]));
+                foreach (uint k in this.Keys) table.Add(new inmtableitem(k, this[k]));
                 return table;
             }
         }
@@ -74,10 +74,10 @@ namespace pviewer5
 
         public class inmtableitem
         {
-            public ulong IP4 { get; set; }
+            public uint IP4 { get; set; }
             public string alias { get; set; }
 
-            public inmtableitem(ulong u, string s)
+            public inmtableitem(uint u, string s)
             {
                 this.IP4 = u;
                 this.alias = s;
@@ -86,7 +86,7 @@ namespace pviewer5
 
 
 
-        public static ulong? StringToIP4(string s)
+        public static uint? StringToIP4(string s)
         {
             // returns null if string cannot be parsed
 
@@ -97,7 +97,7 @@ namespace pviewer5
 
             try
             {
-                return ulong.Parse(s, style);
+                return uint.Parse(s, style);
             }
             catch (FormatException ex)
             {
@@ -109,18 +109,18 @@ namespace pviewer5
                     Array.Resize<string>(ref IP4bits, 4);
 
                     for (int i = 0; i < 4; i++) { IP4bits[i] = "0" + IP4bits[i]; }
-                    return ulong.Parse(IP4bits[0], style) * 0x0000000001000000 +
-                            ulong.Parse(IP4bits[1], style) * 0x0000000000010000 +
-                            ulong.Parse(IP4bits[2], style) * 0x0000000000000100 +
-                            ulong.Parse(IP4bits[3], style) * 0x0000000000000001;
+                    return uint.Parse(IP4bits[0], style) * 0x0000000001000000 +
+                            uint.Parse(IP4bits[1], style) * 0x0000000000010000 +
+                            uint.Parse(IP4bits[2], style) * 0x0000000000000100 +
+                            uint.Parse(IP4bits[3], style) * 0x0000000000000001;
                 }
             }
 
             return null;
         }
-        public static string IP4ToString(ulong value)
+        public static string IP4ToString(uint value)
         {
-            ulong[] b = new ulong[4];
+            uint[] b = new uint[4];
             string s;
 
             b[0] = ((value & 0xff000000) / 0x1000000);
@@ -140,7 +140,7 @@ namespace pviewer5
         // validates that string is valid as either raw hex number or IP4-formatted hex number (using StringToIP4 function)
         public override ValidationResult Validate(object value, System.Globalization.CultureInfo cultureInfo)
         {
-            ulong? v = 0;
+            uint? v = 0;
 
             // try to parse as a raw IP4 address
             v = IP4Tools.StringToIP4((string)value);
@@ -156,13 +156,13 @@ namespace pviewer5
 
         public override ValidationResult Validate(object value, System.Globalization.CultureInfo cultureInfo)
         {
-            ulong? v = 0;
+            uint? v = 0;
 
             // first try to parse as a raw IP4 address
             v = IP4Tools.StringToIP4((string)value);
             if (v != null) return new ValidationResult(true, "Valid IP4 Address");
             // if that failed, see if string exists in IP4namemap
-            foreach (ulong u in IP4Tools.map.Keys)
+            foreach (uint u in IP4Tools.map.Keys)
                 if ((string)value == IP4Tools.map[u])
                     return new ValidationResult(true, "Valid IP4 Address");
             return new ValidationResult(false, "Not a valid IP4 address");
@@ -175,7 +175,7 @@ namespace pviewer5
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return IP4Tools.IP4ToString((ulong)value);
+            return IP4Tools.IP4ToString((uint)value);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -199,20 +199,21 @@ namespace pviewer5
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (IP4Tools.DisplayIP4Aliases && IP4Tools.map.ContainsKey((ulong)value)) return IP4Tools.map[(ulong)value];
-            else return IP4Tools.IP4ToString((ulong)value);
+            if (IP4Tools.DisplayIP4Aliases && IP4Tools.map.ContainsKey((uint)value))
+                return IP4Tools.map[(uint)value];
+            else return IP4Tools.IP4ToString((uint)value);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            ulong? v = 0;
+            uint? v = 0;
 
             // first try to parse as a raw IP4 address
             v = IP4Tools.StringToIP4((string)value);
             if (v != null) return v;
 
             // if that failed, see if string exists in IP4namemap
-            foreach (ulong u in IP4Tools.map.Keys)
+            foreach (uint u in IP4Tools.map.Keys)
                 if ((string)value == IP4Tools.map[u])
                     return u;
 

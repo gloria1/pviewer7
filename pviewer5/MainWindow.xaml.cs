@@ -207,8 +207,10 @@ namespace pviewer5
                         if (gl.GroupPacket(p)) break;
 
                 foreach (TCPG tg in ((TCPGList)(grouplistlist[2])).groups)
+                {
                     tg.OPL1.CopyBytes(1000, b);
-                
+                    tg.OPL2.CopyBytes(1000, b);
+                }
                 CollectionViewSource.GetDefaultView(grouptree.ItemsSource).Refresh();
 
                 fs.Close();
