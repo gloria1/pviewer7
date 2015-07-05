@@ -63,7 +63,7 @@ namespace pviewer5
         {
             get
             {
-                return String.Format("TCP Source Port {0:X4}, Dest Port {1:X4}", SrcPort, DestPort);
+                return String.Format("TCP Source Port {0}, Dest Port {1}", SrcPort, DestPort);
             }
         }
 
@@ -400,10 +400,10 @@ namespace pviewer5
                 IP4ConverterNumberOrAlias ic = new IP4ConverterNumberOrAlias();
                 r = "TCP Group"
                             + ", Stream1 IP4 " + ic.Convert(S1IP4, null, null, null);
-                r += String.Format(", Stream1 Port {0:X4}", S1Port);
+                r += String.Format(", Stream1 Port {0}", S1Port);
                 r += ", Stream2 IP4 " + ic.Convert(S2IP4, null, null, null);
-                r += String.Format(", Stream2 Port {0:X4}", S2Port);
-                r += String.Format(", Packets in Group = {0:X2}", L.Count())
+                r += String.Format(", Stream2 Port {0}", S2Port);
+                r += String.Format(", Packets in Group = {0}", L.Count())
                              + State;
 
                 return r;

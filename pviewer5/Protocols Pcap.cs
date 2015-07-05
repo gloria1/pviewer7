@@ -121,7 +121,7 @@ namespace pviewer5
                         case 0x03:          // "Simple packet block"
                         case 0x04:          // name resolution block
                         case 0x05:          // interface statistics block
-                            MessageBox.Show(String.Format("PCAP-NG file type, unhandled block type {0:X8} found", blocktype));
+                            MessageBox.Show(String.Format("PCAP-NG file type, unhandled block type 5, Interface Statistics Block, found"));
                             return;
                         case 0x06:          // "enhanced packet block"
                             return;         // done - exit the function

@@ -49,8 +49,15 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+        <TextBlock
+            Grid.Row="4">
+           simple text<LineBreak/>
+            second line of
+            <Bold>bold stuff </Bold> simple text
+        </TextBlock>
         <WrapPanel Name="filebar"
                    Grid.Column="0"
                    Grid.Row="0"

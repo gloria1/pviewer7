@@ -1,7 +1,50 @@
 ﻿next:
-	pviewer
-		add http/https
-		group tcp, http
+
+	review existing application, inventory the
+		gui objects - windows, menus, etc
+		data objects
+		methods
+
+
+
+	hex/ascii packet view
+		separate window, linked to main window
+		opens when main window opens, blank if it has no packet object
+		when user navigates onto an individual packet in main window, a copy is sent to packet window, and it displays (copy, not reference, in case that packet gets filtered out later)
+		stays open, updates when change to different packet in main window
+		can make copy, which becomes another window, that will not be linked to main window any more
+		mousewheel zoom
+		color code portions of packet by iterating over headers - each header should have function that returns length of that header for this packet, and a sting with a quickie legend 
+		check boxes for each protocol - unchecked protocols not shown, settings persist when change packet
+
+	tcp stream view
+		right click on tcp group opens separate window with stream view
+		buttons to toggle stream 1 and stream 2
+		button to toggle plain text view vs. hex dump view
+		text box to indicate number of bytes to process from each stream (default 1000)
+		window header to indicate
+			src and dest ip4 and port
+			total numbers of packest and bytes
+
+	add http/https
+	group tcp, http, https
+
+
+	enhance filtering logic
+		first finish up mac and ip4 based filtering, just to cut down size of files we work on
+		then add excl/incl lists for other protocols
+			arp
+			icmp
+			dns
+			udp
+			tcp
+			http/https
+		make the list be representalbe as a simple text file, so they can be exhanged with the linux c-based packet capture tool
+
+
+
+
+
 
 make header fields not be properties (save overhead?)
 

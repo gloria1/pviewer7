@@ -28,7 +28,7 @@ namespace pviewer5
         public Protocols headerprot;
         public virtual string headerdisplayinfo { get { return "Generic header"; } }
 
-        public H()          // need a parameter-less constructor for sublcasses to inhereit from ?????
+        public H()          // need a parameter-less constructor for sublcasses to inherit from ?????
         { }
         public H(FileStream fs, PcapFile pcf, Packet pkt, ref ulong RemainingLength)
         {
@@ -58,7 +58,7 @@ namespace pviewer5
         {
             if (pkt.phlist[0].GetType() != typeof(PcapH))
             {
-                // put up a message box telling user pacekt does not have a pcap header
+                // put up a message box telling user packet does not have a pcap header
                 MessageBox.Show("Packet does not have a Pcap header???");
                 return;
             }
@@ -75,7 +75,7 @@ namespace pviewer5
 
             // also set Complete to true if this packet completes group
 
-            // test pkt.Prots flags to quickly determine if thsi group's protocol is present
+            // test pkt.Prots flags to quickly determine if this group's protocol is present
 
             return true;
         }

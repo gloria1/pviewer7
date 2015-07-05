@@ -86,11 +86,35 @@ namespace pviewer5
             }
         }
 
+        public void Advanceposovername(byte[] d, ref uint pos)
+        {
+            while (true)        // this loop moves pos forward to byte after name field; names end with either a label of zero length or a pointer to elsewhere in the dns message
+            {
+                if ((d[pos] & 0xc0) == 0xc0)  // if this is a pointer, 
+                {
+                    pos += 2;   // adjust pos to byte after pointer,
+                    break;      // and break out of loop
+                }
+                else                // else this is a regular label entry
+                {
+                    if (d[pos] == 0)  // if the label length is zero,
+                    {
+                        pos++;              // move pos to after the zero length label
+                        break;              // and exit the loop
+                    }
+                    else pos += (uint)(d[pos] + 1);     // else this is a regular label so adjust pos to byte after this label
+                }
+            }
+
+        }
+
         public DNSRR(byte[] d, ref uint pos, bool isquestion)    // if isquestion==true, process as a question entry (having only NAME, TYPE and CLASS fields)
         {
             dnsdata = d;
             NAME = pos;
-            while (true)        // this loop moves pos forward to byte after name field; names end with either a label of zero length or a pointer to elsewhere in the dns message
+
+            Advanceposovername(dnsdata, ref pos);
+/*            while (true)        // this loop moves pos forward to byte after name field; names end with either a label of zero length or a pointer to elsewhere in the dns message
             {
                 if ((dnsdata[pos] & 0xc0) == 0xc0)  // if this is a pointer, 
                 {
@@ -107,6 +131,7 @@ namespace pviewer5
                     else pos += (uint)(dnsdata[pos] + 1);     // else this is a regular label so adjust pos to byte after this label
                 }
             }
+ * */
             TYPE = (uint)dnsdata[pos] * 0x100 + (uint)dnsdata[pos + 1]; pos += 2;
             CLASS = (uint)dnsdata[pos] * 0x100 + (uint)dnsdata[pos + 1]; pos += 2;
 
@@ -127,9 +152,9 @@ namespace pviewer5
                     break;
                 case 6:         // SOA - start of zone of authority
                     RDATA1 = pos;        // MNAME - name server that was the original or primary source of data for this zone
-                    while (dnsdata[pos] > 0) pos++; pos++;
+                    Advanceposovername(dnsdata, ref pos);
                     RDATA2 = pos;        // RNAME - mailbox of person responsible for this zone
-                    while (dnsdata[pos] > 0) pos++; pos++;
+                    Advanceposovername(dnsdata, ref pos);
                     RDATA3 = (uint)dnsdata[pos] * 0x1000000 + (uint)dnsdata[pos + 1] * 0x10000 + (uint)dnsdata[pos + 2] * 0x100 + (uint)dnsdata[pos + 3]; pos += 4;  // SERIAL - version number of the original copy of the zone
                     RDATA4 = (uint)dnsdata[pos] * 0x1000000 + (uint)dnsdata[pos + 1] * 0x10000 + (uint)dnsdata[pos + 2] * 0x100 + (uint)dnsdata[pos + 3]; pos += 4;  // REFRESH - time (seconds) before zone should be refreshed
                     RDATA5 = (uint)dnsdata[pos] * 0x1000000 + (uint)dnsdata[pos + 1] * 0x10000 + (uint)dnsdata[pos + 2] * 0x100 + (uint)dnsdata[pos + 3]; pos += 4;  // RETRY - time (seconds) before a failed refresh should be retried
@@ -266,7 +291,7 @@ namespace pviewer5
             TC = ((uint)dnsdata[2] & 0x02) / 0x02;
             RD = ((uint)dnsdata[2] & 0x01);
             RA = ((uint)dnsdata[3] & 0x80) / 0x80;
-            Z = ((uint)dnsdata[3] & 0xe0) / 0x10;
+            Z = ((uint)dnsdata[3] & 0x70) / 0x10;
             RCode = ((uint)dnsdata[3] & 0x000f);
 
             QDCOUNT = (uint)dnsdata[4] * 0x100 + (uint)dnsdata[5];
