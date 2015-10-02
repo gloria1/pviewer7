@@ -346,23 +346,21 @@ namespace pviewer5
 
         public override string headerdisplayinfo { get { return "Pcap header"; } }
 
-        public PcapH(FileStream fs, PcapFile pcf, Packet pkt, ref ulong RemainingLength)
+        public PcapH(FileStream fs, PcapFile pcf, Packet pkt, uint i)
         {
             uint timesecs, timeusecs;
             uint timehigh, timelow;
             ulong time;
             PcapFile.InterfaceDescription thisif;
+            uint pcaphdrlen;
             byte[] d = new byte[0x1c];
 
             if (pcf.Type == PcapFile.PcapFileTypes.PcapOld)   // if this is a plain pcap packet (not pcap ng)
             {
                 headerprot = Protocols.PcapOld;
 
-                if (RemainingLength < 0x10) return;     // if not enough bytes, return without parsing header
-
                 DataLink = pcf.FileHdrOld.DataLink;
                 fs.Read(d, 0, 0x10);
-                RemainingLength -= 0x10;
 
                 // timestamp is stored in file as 2 32 bit integers (per inspection of file and per http://wiki.wireshark.org/Development/LibpcapFileFormat)
                 // first is time in seconds since 1/1/1970 00:00:00, GMT time zone
@@ -373,6 +371,12 @@ namespace pviewer5
 
                 CapLen = (pcf.FileHdrOld.Bigendian ? PcapFile.flip32(d, 8) : BitConverter.ToUInt32(d, 8));
                 Len = (pcf.FileHdrOld.Bigendian ? PcapFile.flip32(d, 12) : BitConverter.ToUInt32(d, 12));
+
+                pcaphdrlen = 0x10;
+                payloadindex = 0x10;
+                payloadlen = (int)CapLen - 0x10;
+
+                fs.Seek(-0x10, SeekOrigin.Current); // rewind so code below can read whole packet into pkt.PData
             }
             else
             {
@@ -380,12 +384,9 @@ namespace pviewer5
                 // currently only handling "enhanced packet block" type packets
                 headerprot = Protocols.PcapNG;
 
-                if (RemainingLength < 0x1c) return;     // if not enough bytes, return without parsing header
-
                 pcf.FileHdrNG.ReadBlocksUntilPacket(fs);    // read any non-packet blocks
 
                 fs.Read(d, 0, 0x1c);
-                RemainingLength -= 0x1c;
 
                 NGBlockLen = (pcf.FileHdrNG.CurrentSection.bigendian ? PcapFile.flip32(d, 4) : BitConverter.ToUInt32(d, 4));
 
@@ -404,16 +405,25 @@ namespace pviewer5
                 Time = Time.Add(ts);
                 CapLen = (pcf.FileHdrNG.CurrentSection.bigendian ? PcapFile.flip32(d, 0x14) : BitConverter.ToUInt32(d, 0x14));
                 Len = (pcf.FileHdrNG.CurrentSection.bigendian ? PcapFile.flip32(d, 0x18) : BitConverter.ToUInt32(d, 0x18));
+
+                pcaphdrlen = 0x1c;
+                payloadindex = 0x1c;
+                payloadlen = (int)CapLen - 0x1c;
+
+                fs.Seek(-0x1c, SeekOrigin.Current); // rewind so code below can read whole packet into pkt.PData
             }
 
-            RemainingLength = CapLen;
+            pkt.PData = new byte[pcaphdrlen + CapLen];
+            pkt.Len = pcaphdrlen + CapLen;
+            fs.Read(pkt.PData, 0, (int)(pcaphdrlen + CapLen));
+
             pkt.phlist.Add(this);
             pkt.Prots |= headerprot;
 
             switch (DataLink)
             {
                 case 1:     // ethernet
-                    new EthernetH(fs, pcf, pkt, ref RemainingLength);
+                    new EthernetH(fs, pcf, pkt, payloadindex);
                     break;
                 default:
                     break;

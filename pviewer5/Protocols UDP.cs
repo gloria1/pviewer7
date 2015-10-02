@@ -37,26 +37,33 @@ namespace pviewer5
             }
         }
 
-        public UDPH(FileStream fs, PcapFile pfh, Packet pkt, ref ulong RemainingLength)
+        public UDPH(FileStream fs, PcapFile pfh, Packet pkt, uint i)
         {
+
+            if ((pkt.Len - i) < 0x8) return;
+            SrcPort = (uint)pkt.PData[i++] * 0x100 + (uint)pkt.PData[i++];
+            DestPort = (uint)pkt.PData[i++] * 0x100 + (uint)pkt.PData[i++];
+            Len = (uint)pkt.PData[i++] * 0x100 + (uint)pkt.PData[i++];
+            Checksum = (uint)pkt.PData[i++] * 0x100 + (uint)pkt.PData[i++];
+
+            // set generic header properties
             headerprot = Protocols.UDP;
+            payloadindex = i;
+            payloadlen = (int)Len - 8;
 
-            if (RemainingLength < 0x8) return;
-            SrcPort = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-            DestPort = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-            Len = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-            Checksum = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-            RemainingLength -= 0x8;
-
-            pkt.phlist.Add(this);
+            // set packet-level convenience properties
             pkt.Prots |= Protocols.UDP;
+            pkt.udphdr = this;
             pkt.SrcPort = SrcPort;
             pkt.DestPort = DestPort;
 
+            // add to packet header list
+            pkt.phlist.Add(this);
+
             if ((SrcPort == 0x43) || (SrcPort == 0x44) || (DestPort == 0x43) || (DestPort == 0x44))     // DHCP v4
-                new DHCP4H(fs, pfh, pkt, ref RemainingLength);
+                new DHCP4H(fs, pfh, pkt, i);
             else if ((SrcPort == 0x35) || (DestPort == 0x35))                                           // DNS
-                new DNSH(fs, pfh, pkt, ref RemainingLength);
+                new DNSH(fs, pfh, pkt, i);
 
         }
     }

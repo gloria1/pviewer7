@@ -25,19 +25,28 @@ namespace pviewer5
 
     public class H
     {
-        public Protocols headerprot;
+        // generic fields common to all headers
+        public Protocols headerprot;    // protocol of this header, from Protocols enum
+        public uint payloadindex;     // index into Packet.PData (relative to start of PData) of this header's payload
+        public int payloadlen = -1;     // this will be set to the length of any payload encapsulated by this header's protocol
+                                        // default value of -1 indicates that this header's protocol doesn't know anything about the size of its payload
+
+        
         public virtual string headerdisplayinfo { get { return "Generic header"; } }
 
         public H()          // need a parameter-less constructor for sublcasses to inherit from ?????
         { }
-        public H(FileStream fs, PcapFile pcf, Packet pkt, ref ulong RemainingLength)
+        public H(FileStream fs, PcapFile pcf, Packet pkt, uint i)      // i is index into pkt.PData of start of this header
         {
-            // if header cannot be read properly, reset file position to start of header, reset RemainingLength, and return
-            // do not add header to packet's header list, and do not call downstream header constructors
+            // if header cannot be read properly, 
+            // do not add header to packet's header list, and do not call downstream header constructors, just return
+
+            // first read protocol-specific properties
 
             // if header is parsed correctly,
+            //  set the generic header properties
+            //  set the packet-level convenience properties (e.g., pkt.ip4hdr)
             //  add it to pkt's header list
-            //  update Prots flags in packet
             //  determine next layer hheader (if any) and call its constructor
 
         }
@@ -176,37 +185,37 @@ namespace pviewer5
             }
         }
 
-        public ExampleH(FileStream fs, PcapFile pfh, Packet pkt, ref ulong RemainingLength)
+        public ExampleH(FileStream fs, PcapFile pfh, Packet pkt, uint i)
         {
 
             // CONSTRUCTOR SHOULD ALSO INCLUDE PARAMETERS FOR ANY FIELDS THAT ARE NEEDED FROM ENCAPSULATING HEADERS
             // SO THAT THIS PROTOCOL'S FUNCTIONS NEVER HAVE TO SEARCH THE PHLIST FOR OTHER PROTOCOL'S HEADERS
 
 
-            // set protocol
+            // if header cannot be read properly, 
+            // do not add header to packet's header list, and do not call downstream header constructors, just return
+
+            // first read protocol-specific properties
+
+            // if header is parsed correctly,
+            //  set the generic header properties
             headerprot = Protocols.Generic;
+            payloadindex = i;
+            payloadlen = (int)(pkt.Len - i);
 
-            // if not enough data remaining, return without reading anything 
-            // note that we have not added the header to the packet's header list yet, so we are not leaving an invalid header in the packet
-            if (RemainingLength < 0x8) return;
-
-            // read in the header data
-            Prot = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-
-            // adjust RemainingLength as needed
-            RemainingLength -= 0x8;
-
-            // add header to packet's header list
-            pkt.phlist.Add(this);
-            // set flag for presence of this protocol in the packet
+            //  set the packet-level convenience properties (e.g., pkt.ip4hdr)
             pkt.Prots |= Protocols.Generic;
+
+            //  add it to pkt's header list
+
+            pkt.phlist.Add(this);
 
 
             // determine which header constructor to call next, if any, and call it
             switch (Prot)
             {
                 case 0x01: // ICMP
-                    new ICMPH(fs, pfh, pkt, ref RemainingLength);
+                    new ICMPH(fs, pfh, pkt, i);
                     break;
 
                 default:

@@ -25,7 +25,8 @@
             <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
         </HierarchicalDataTemplate>
         <HierarchicalDataTemplate DataType="{x:Type local:Packet}"
-                                  ItemsSource="{Binding Path=phlist}">
+                                  ItemsSource="{Binding Path=phlist}"
+                                  >
             <TextBlock Text="{Binding Path=packetdisplayinfo}"/>
         </HierarchicalDataTemplate>
         <HierarchicalDataTemplate DataType="{x:Type local:G}"
@@ -52,12 +53,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <TextBlock
-            Grid.Row="4">
-           simple text<LineBreak/>
-            second line of
-            <Bold>bold stuff </Bold> simple text
-        </TextBlock>
+ 
         <WrapPanel Name="filebar"
                    Grid.Column="0"
                    Grid.Row="0"
@@ -91,28 +87,7 @@
                       Margin="20,5"/>
             <CheckBox Name="displayIP4inhexcheckbox"
                       Content="Display IP4 in Hex"
-                    Click="displayIP4inhextoggle"
-                      IsChecked="True"
-                      Margin="20,5"/>
-            <CheckBox Name="showetherfields"
-                      Content="Show Ethernet"
-                    Click="showethertoggle"
-                      Margin="20,5"/>
-            <CheckBox Name="showarpbasicfields"
-                      Content="Show ARP Basic Fields"
-                    Click="showarpbasictoggle"
-                      Margin="20,5"/>
-            <CheckBox Name="showarpdetailfields"
-                      Content="Show ARP Detail Fields"
-                    Click="showarpdetailtoggle"
-                      Margin="20,5"/>
-            <CheckBox Name="showIP4basicfields"
-                      Content="Show IP4 Basic Fields"
-                    Click="showIP4basictoggle"
-                      Margin="20,5"/>
-            <CheckBox Name="showIP4detailfields"
-                      Content="Show IP4 Detail Fields"
-                    Click="showIP4detailtoggle"
+                      Click="displayIP4inhextoggle"
                       Margin="20,5"/>
         </WrapPanel>
         <GroupBox Header="Packet Groups"
@@ -124,7 +99,8 @@
             <TreeView Name="grouptree"
                         VirtualizingPanel.IsVirtualizing="True"
                         VirtualizingPanel.VirtualizationMode="Recycling"
-                      ItemsSource="{Binding Path=grouplistlist}">
+                      ItemsSource="{Binding Path=grouplistlist}"
+                      SelectedItemChanged="grouptree_SelectedItemChanged">
             </TreeView>
         </GroupBox>
         

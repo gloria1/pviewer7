@@ -56,32 +56,36 @@ namespace pviewer5
         }
 
 
-        public ARPH(FileStream fs, PcapFile pfh, Packet pkt, ref ulong RemainingLength)
+        public ARPH(FileStream fs, PcapFile pfh, Packet pkt, uint i)
         {
-            headerprot = Protocols.ARP;
 
-            if (RemainingLength < 0x8) return;
-            HWType = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-            Prot = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-            HWAddrLen = (uint)fs.ReadByte();
-            ProtAddrLen = (uint)fs.ReadByte();
-            Opn = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-            RemainingLength -= 0x8;
+            if ((pkt.Len - i) < 0x8) return;
+            HWType = (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
+            Prot = (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
+            HWAddrLen = (uint)pkt.PData[i++] ;
+            ProtAddrLen = (uint)pkt.PData[i++] ;
+            Opn = (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
 
-            if (RemainingLength < (2 * HWAddrLen + 2 * ProtAddrLen)) { fs.Seek(-0x8, SeekOrigin.Current); /*need to "unread" the first 8 bytes since this will not be a valid header*/ RemainingLength += 0x8; return; }
+            if ((pkt.Len - i) < (2 * HWAddrLen + 2 * ProtAddrLen)) return;
 
             // HANDLE OTHER ADDR LEN VARIATIONS
-            if ((HWAddrLen != 6) || (ProtAddrLen != 4)) { fs.Seek(-0x8, SeekOrigin.Current); /*need to "unread" the first 8 bytes since this will not be a valid header*/ RemainingLength += 0x8; return; }
+            if ((HWAddrLen != 6) || (ProtAddrLen != 4)) return;
 
-            SenderHW = (ulong)fs.ReadByte() * 0x0010000000000 + (ulong)fs.ReadByte() * 0x000100000000 + (ulong)fs.ReadByte() * 0x000001000000 + (ulong)fs.ReadByte() * 0x000000010000 + (ulong)fs.ReadByte() * 0x000000000100 + (ulong)fs.ReadByte();
-            SenderProt = (uint)fs.ReadByte() * 0x000001000000 + (uint)fs.ReadByte() * 0x000000010000 + (uint)fs.ReadByte() * 0x000000000100 + (uint)fs.ReadByte();
-            TargetHW = (ulong)fs.ReadByte() * 0x0010000000000 + (ulong)fs.ReadByte() * 0x000100000000 + (ulong)fs.ReadByte() * 0x000001000000 + (ulong)fs.ReadByte() * 0x000000010000 + (ulong)fs.ReadByte() * 0x000000000100 + (ulong)fs.ReadByte();
-            TargetProt = (uint)fs.ReadByte() * 0x000001000000 + (uint)fs.ReadByte() * 0x000000010000 + (uint)fs.ReadByte() * 0x000000000100 + (uint)fs.ReadByte();
+            SenderHW = (ulong)pkt.PData[i++]  * 0x0010000000000 + (ulong)pkt.PData[i++]  * 0x000100000000 + (ulong)pkt.PData[i++]  * 0x000001000000 + (ulong)pkt.PData[i++]  * 0x000000010000 + (ulong)pkt.PData[i++]  * 0x000000000100 + (ulong)pkt.PData[i++] ;
+            SenderProt = (uint)pkt.PData[i++]  * 0x000001000000 + (uint)pkt.PData[i++]  * 0x000000010000 + (uint)pkt.PData[i++]  * 0x000000000100 + (uint)pkt.PData[i++] ;
+            TargetHW = (ulong)pkt.PData[i++]  * 0x0010000000000 + (ulong)pkt.PData[i++]  * 0x000100000000 + (ulong)pkt.PData[i++]  * 0x000001000000 + (ulong)pkt.PData[i++]  * 0x000000010000 + (ulong)pkt.PData[i++]  * 0x000000000100 + (ulong)pkt.PData[i++] ;
+            TargetProt = (uint)pkt.PData[i++]  * 0x000001000000 + (uint)pkt.PData[i++]  * 0x000000010000 + (uint)pkt.PData[i++]  * 0x000000000100 + (uint)pkt.PData[i++] ;
 
-            RemainingLength -= 0x14;
+            // set generic header properties
+            headerprot = Protocols.ARP;
+            payloadindex = i;
+            payloadlen = (int)(pkt.Len - i);
 
-            pkt.phlist.Add(this);
+            // set packet-level convenience properties
             pkt.Prots |= Protocols.ARP;
+
+            // add to packet header list
+            pkt.phlist.Add(this);
         }
     }
 

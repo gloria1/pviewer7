@@ -56,7 +56,7 @@ namespace pviewer5
         public uint UrgentPtr { get; set; } // offset from sequence number indicating last urgent data byte
         public TCPOption[] Options { get; set; }
 
-        public Packet NextPktInStream = null;   // pointer to packet containing next bytes in stream
+        public uint TCPPayloadLen { get; set; }
 
         // define a property that will be used by the xaml data templates for the one-line display of this header in the tree
         public override string headerdisplayinfo
@@ -67,89 +67,93 @@ namespace pviewer5
             }
         }
 
-        public TCPH(FileStream fs, PcapFile pfh, Packet pkt, ref ulong RemainingLength)
+        public TCPH(FileStream fs, PcapFile pfh, Packet pkt, uint i)
         {
             uint temp;
             uint optionbytes;
+            H containingheader = pkt.phlist[pkt.phlist.Count()-1];
             TCPOption thisoption;
             List<TCPOption> options = new List<TCPOption>();
 
-            // set protocol
-            headerprot = Protocols.TCP;
+
+            // if containing protocol does not know it's payload length, return with no result - need to add code to handle this case
+            // TCP needs to be told the length of its payload by the outer protocol
+            // it may not be all of the remaining bytes in the packet, at least due to cases where the ethernet frame includes padding bytes that are captured by wireshark/pcap
+            if (containingheader.payloadlen == -1) { MessageBox.Show("Trying to parse TCP header where containing protocol did not set payloadlen - need to add code to handle this"); return; }
 
             // if not enough data remaining, return without reading anything 
             // note that we have not added the header to the packet's header list yet, so we are not leaving an invalid header in the packet
-            if (RemainingLength < 0x14) return;
+            if ((pkt.Len - i) < 0x14) return;
 
             // read in the fixed header data
-            SrcPort = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-            DestPort = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-            SeqNo = (uint)fs.ReadByte() * 0x1000000 + (uint)fs.ReadByte() * 0x10000 + (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-            AckNo = (uint)fs.ReadByte() * 0x1000000 + (uint)fs.ReadByte() * 0x10000 + (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-            temp = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
+            SrcPort = (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
+            DestPort = (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
+            SeqNo = (uint)pkt.PData[i++]  * 0x1000000 + (uint)pkt.PData[i++]  * 0x10000 + (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
+            AckNo = (uint)pkt.PData[i++]  * 0x1000000 + (uint)pkt.PData[i++]  * 0x10000 + (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
+            temp = (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
             DataOffset = temp / 0x1000;
             Flags = temp & 0xfff;
-            WindowSize = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-            Checksum = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-            UrgentPtr = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
+            WindowSize = (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
+            Checksum = (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
+            UrgentPtr = (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
 
             optionbytes = (DataOffset * 4) - 0x14;     // number of bytes of options plus any padding to get TCP header to 32 bit boundary
-            if (RemainingLength < (optionbytes + 0x14)) { fs.Seek(-0x14, SeekOrigin.Current); return; }    // if not enough bytes to fill options fields, rewind and return
+            if ((pkt.Len - i) < (optionbytes + 0x14)) return;     // if not enough bytes to fill options fields, return without adding header to packet
 
-            for (uint i = 0; i < optionbytes; )
+            for (uint ob = 0; ob < optionbytes; )
             {
                 thisoption = new TCPOption();
-                thisoption.Kind = (uint)fs.ReadByte(); i++;
+                thisoption.Kind = (uint)pkt.PData[i++] ; i++;
                 switch (thisoption.Kind)
                 {
                     case 0:         // end of options list
                         thisoption.Length = 1;
-                        fs.Seek((long)(optionbytes - i), SeekOrigin.Current);    // read any remaining padding bytes
-                        i = optionbytes;
+                        i += optionbytes - i;    // skip any remaining padding bytes
+                        ob = optionbytes;
                         break;
                     case 1:         // NOP, just eat the byte
                         thisoption.Length = 1;
                         break;
                     case 2:         // maximum segment size, len is 4, segment size is 32 bits
-                        thisoption.Length = (uint)fs.ReadByte();
-                        thisoption.Data = new uint[1]; thisoption.Data[0] = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-                        i += 3;
+                        thisoption.Length = (uint)pkt.PData[i++] ;
+                        thisoption.Data = new uint[1]; thisoption.Data[0] = (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
+                        ob += 3;
                         break;
                     case 3:         // window scale
-                        thisoption.Length = (uint)fs.ReadByte();
-                        thisoption.Data = new uint[1]; thisoption.Data[0] = (uint)fs.ReadByte();
-                        i += 2;
+                        thisoption.Length = (uint)pkt.PData[i++] ;
+                        thisoption.Data = new uint[1]; thisoption.Data[0] = (uint)pkt.PData[i++] ;
+                        ob += 2;
                         break;
                     case 4:         // selective acknowledgement permitted
-                        thisoption.Length = (uint)fs.ReadByte();
-                        i++;
+                        thisoption.Length = (uint)pkt.PData[i++] ;
+                        ob++;
                         thisoption.Data = null;
                         break;
                     case 5:         // selective acknowledgement
-                        thisoption.Length = (uint)fs.ReadByte();
+                        thisoption.Length = (uint)pkt.PData[i++] ;
                         if (thisoption.Length > 0x22) MessageBox.Show("TCP packet with bad Selective Acknowlegement option");
                         thisoption.Data = new uint[(thisoption.Length - 2) / 4];
-                        for (int ii = 0; ii < (thisoption.Length - 2) / 4; ii++) thisoption.Data[ii] = (uint)fs.ReadByte() * 0x1000000 + (uint)fs.ReadByte() * 0x10000 + (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-                        i += thisoption.Length - 1;
+                        for (int ii = 0; ii < (thisoption.Length - 2) / 4; ii++) thisoption.Data[ii] = (uint)pkt.PData[i++]  * 0x1000000 + (uint)pkt.PData[i++]  * 0x10000 + (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
+                        ob += thisoption.Length - 1;
                         break;
                     case 8:         // timestamp and echo of previous timestamp
-                        thisoption.Length = (uint)fs.ReadByte();
+                        thisoption.Length = (uint)pkt.PData[i++] ;
                         thisoption.Data = new uint[2];
-                        thisoption.Data[0] = (uint)fs.ReadByte() * 0x1000000 + (uint)fs.ReadByte() * 0x10000 + (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-                        thisoption.Data[1] = (uint)fs.ReadByte() * 0x1000000 + (uint)fs.ReadByte() * 0x10000 + (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-                        i += 9;
+                        thisoption.Data[0] = (uint)pkt.PData[i++]  * 0x1000000 + (uint)pkt.PData[i++]  * 0x10000 + (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
+                        thisoption.Data[1] = (uint)pkt.PData[i++]  * 0x1000000 + (uint)pkt.PData[i++]  * 0x10000 + (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
+                        ob += 9;
                         break;
                     case 0x0e:         // TCP alternate checksum request
-                        thisoption.Length = (uint)fs.ReadByte();
+                        thisoption.Length = (uint)pkt.PData[i++] ;
                         thisoption.Data = new uint[1];
-                        thisoption.Data[0] = (uint)fs.ReadByte();
-                        i += 2;
+                        thisoption.Data[0] = (uint)pkt.PData[i++] ;
+                        ob += 2;
                         break;
                     case 0x0f:         // TCP alternate checksum data
-                        thisoption.Length = (uint)fs.ReadByte();
+                        thisoption.Length = (uint)pkt.PData[i++] ;
                         thisoption.Data = new uint[thisoption.Length];
-                        for (int ii = 0; ii < thisoption.Length; ii++) thisoption.Data[ii] = (uint)fs.ReadByte();   // just naively read each byte into a uint - this option is considered "historic" and probably will never be encountered
-                        i += thisoption.Length - 1;
+                        for (int ii = 0; ii < thisoption.Length; ii++) thisoption.Data[ii] = (uint)pkt.PData[i++] ;   // just naively read each byte into a uint - this option is considered "historic" and probably will never be encountered
+                        ob += thisoption.Length - 1;
                         break;
                     default:
                         MessageBox.Show("Unknown TCP header option type");
@@ -159,15 +163,21 @@ namespace pviewer5
             }
             Options = new TCPOption[options.Count];
             // copy options into TCPH.Options
-            for (int i = 0; i < options.Count; i++) Options[i] = options[i];
+            for (int ii = 0; ii < options.Count; ii++) Options[ii] = options[ii];
 
-            RemainingLength -= optionbytes + 0x14;
+            // set generic header properties
+            headerprot = Protocols.TCP;
+            payloadindex = i;
+            payloadlen = containingheader.payloadlen - 0x14 - (int)optionbytes;
 
-            // add header to packet's header list
-            pkt.phlist.Add(this);
+            // set packet-level convenience properties
+            pkt.tcphdr = this;
             pkt.Prots |= Protocols.TCP;
             pkt.SrcPort = SrcPort;
             pkt.DestPort = DestPort;
+
+            // add header to packet's header list
+            pkt.phlist.Add(this);
 
             // determine which header constructor to call next, if any, and call it
             switch (1)
@@ -266,7 +276,7 @@ namespace pviewer5
 
                     i = OL[inext];
                     offsetinpacket = seqnext - i.RelSeqOfFirstByteInPacket;
-                    bytestocopythispacket = i.pkt.DataLen - offsetinpacket;
+                    bytestocopythispacket = (uint)i.pkt.tcphdr.payloadlen - offsetinpacket;
                     if (bytestocopythispacket < 0)
                     {
                         MessageBox.Show("next seq no to read is outside packet - this should never happen");
@@ -275,10 +285,10 @@ namespace pviewer5
                     if ((n - bytescopied) < bytestocopythispacket) bytestocopythispacket = n - bytescopied;
                     for (ulong b = 0; b < bytestocopythispacket; b++)
                     {
-                        dest[bytescopied++] = i.pkt.Data[offsetinpacket++];
+                        dest[bytescopied++] = i.pkt.PData[i.pkt.tcphdr.payloadindex + offsetinpacket++];
                         seqnext++;
                     }
-                    if (offsetinpacket == i.pkt.DataLen) inext++;
+                    if ((int)offsetinpacket == i.pkt.tcphdr.payloadlen) inext++;
                 }
                 return bytescopied; 
             }
@@ -354,7 +364,7 @@ namespace pviewer5
                 {
                     curritem = OL[opli - 1];
                     oplth = (TCPH)curritem.pkt.groupprotoheader;
-                    curritemdatalen = curritem.pkt.DataLen;
+                    curritemdatalen = oplth.TCPPayloadLen;
                     nextabsseq = oplth.SeqNo + curritemdatalen;
 
                     if (newseq >= nextabsseq) break;
@@ -364,7 +374,7 @@ namespace pviewer5
 
                 OL.Insert(opli, newitem);
                 if (opli == iseq)               // if new item is going in at spot where next sequenced packe tneeds to be...
-                    if ((curritem.RelSeqOfFirstByteInPacket + curritem.pkt.DataLen) == newitem.RelSeqOfFirstByteInPacket)   // and new items rel seq no is the next one in the sequence
+                    if ((curritem.RelSeqOfFirstByteInPacket + oplth.TCPPayloadLen) == newitem.RelSeqOfFirstByteInPacket)   // and new items rel seq no is the next one in the sequence
                         iseq++;             // then increment iseq
 
                 return true;
@@ -382,6 +392,9 @@ namespace pviewer5
             // if so, set up OPL's
             OPL1.FirstAbsSeq = OPL1.MaxAbsSeq = ((TCPH)(L[0].groupprotoheader)).SeqNo+1;    // State == NormalStart implies first two packets are SYN's
             OPL2.FirstAbsSeq = OPL2.MaxAbsSeq = ((TCPH)(L[1].groupprotoheader)).SeqNo+1;    // first sequence number of data is SYN seq no + 1
+
+            OPL1.initialized = true;
+            OPL2.initialized = true;
 
             return true;
         }

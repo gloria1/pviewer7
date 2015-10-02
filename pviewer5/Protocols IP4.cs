@@ -38,7 +38,6 @@ namespace pviewer5
         public uint SrcIP4 { get; set; }
         public uint DestIP4 { get; set; }
         public uint OptionLen { get; set; }
-        public byte[] Options { get; set; }
 
         public override string headerdisplayinfo
         {
@@ -53,47 +52,46 @@ namespace pviewer5
         }
 
 
-        public IP4H(FileStream fs, PcapFile pfh, Packet pkt, ref ulong RemainingLength)
+        public IP4H(FileStream fs, PcapFile pfh, Packet pkt, uint i)
         {
-            headerprot = Protocols.IP4;
-
-            if (RemainingLength < 0x1) return;
-            HdrLen = (uint)fs.ReadByte();
+            if ((pkt.Len - i) < 0x1) return;
+            HdrLen = (uint)pkt.PData[i++] ;
             Ver = (HdrLen & 0xf0) / 16; // note we keep this value in number of 32 bit words
-            HdrLen &= 0x0f;   // mask out the high 4 bits that contain the header length
-            if (RemainingLength < (4 * HdrLen))  //need to "unread" the first 1 bytes since this will not be a valid header
-            { fs.Seek(-0x1, SeekOrigin.Current); return; }
+            HdrLen &= 0x0f;   // mask out the high 4 bits that contain the version
+            if ((pkt.Len - i) < (4 * HdrLen)) return; // if not enough bytes, this is not a valid header
 
-            TOS = (uint)fs.ReadByte();
-            Len = (uint)fs.ReadByte() * 0x0100 + (uint)fs.ReadByte();
-            Ident = (uint)fs.ReadByte() * 0x0100 + (uint)fs.ReadByte();
-            FragOffset = (uint)fs.ReadByte() * 0x0100 + (uint)fs.ReadByte();
+            TOS = (uint)pkt.PData[i++] ;
+            Len = (uint)pkt.PData[i++]  * 0x0100 + (uint)pkt.PData[i++] ;
+            Ident = (uint)pkt.PData[i++]  * 0x0100 + (uint)pkt.PData[i++] ;
+            FragOffset = (uint)pkt.PData[i++]  * 0x0100 + (uint)pkt.PData[i++] ;
             DontFrag = (FragOffset & 0x4000) / 0x4000;
             MoreFrags = (FragOffset & 0x2000) / 0x2000;
             FragOffset &= 0x1fff;
-            TTL = (uint)fs.ReadByte();
-            Prot = (uint)fs.ReadByte();
-            Checksum = (uint)fs.ReadByte() * 0x0100 + (uint)fs.ReadByte();
-            SrcIP4 = (uint)fs.ReadByte() * 0x01000000 + (uint)fs.ReadByte() * 0x00010000 + (uint)fs.ReadByte() * 0x0100 + (uint)fs.ReadByte();
-            DestIP4 = (uint)fs.ReadByte() * 0x01000000 + (uint)fs.ReadByte() * 0x00010000 + (uint)fs.ReadByte() * 0x0100 + (uint)fs.ReadByte();
+            TTL = (uint)pkt.PData[i++] ;
+            Prot = (uint)pkt.PData[i++] ;
+            Checksum = (uint)pkt.PData[i++]  * 0x0100 + (uint)pkt.PData[i++] ;
+            SrcIP4 = (uint)pkt.PData[i++]  * 0x01000000 + (uint)pkt.PData[i++]  * 0x00010000 + (uint)pkt.PData[i++]  * 0x0100 + (uint)pkt.PData[i++] ;
+            DestIP4 = (uint)pkt.PData[i++]  * 0x01000000 + (uint)pkt.PData[i++]  * 0x00010000 + (uint)pkt.PData[i++]  * 0x0100 + (uint)pkt.PData[i++] ;
 
             OptionLen = (HdrLen * 4) - 0x14;
-            if (OptionLen > 0)
-            {
-                Options = new byte[OptionLen];
-                fs.Read(Options, 0, (int)OptionLen);
-            }
+            i += OptionLen;
 
             // HANDLE OPTIONS
 
-            RemainingLength -= HdrLen * 4;
+            // set generic header properties
+            payloadlen = (int)(Len - HdrLen * 4);
+            payloadindex = i;
+            headerprot = Protocols.IP4;
 
-            pkt.phlist.Add(this);
+            // set packet level convenience properties
             pkt.Prots |= Protocols.IP4;
-
             pkt.SrcIP4 = SrcIP4;
             pkt.DestIP4 = DestIP4;
+            pkt.ip4hdr = this;
 
+            // add to header list
+            pkt.phlist.Add(this);
+            
             if (QuickFilterTools.QFIP4.Exclude(DestIP4) || QuickFilterTools.QFIP4.Exclude(SrcIP4))
             {
                 pkt.qfexcluded = true;
@@ -103,17 +101,17 @@ namespace pviewer5
             switch (Prot)
             {
                 case 0x01: //L4Protocol = Protocols.ICMP;
-                    new ICMPH(fs, pfh, pkt, ref RemainingLength);
+                    new ICMPH(fs, pfh, pkt, i);
                     break;
                 case 0x02: // L4Protocol = Protocols.IGMP;
                     break;
                 case 0x03: // L4Protocol = Protocols.GGP;
                     break;
                 case 0x06: //L4Protocol = Protocols.TCP;
-                    new TCPH(fs, pfh, pkt, ref RemainingLength);
+                    new TCPH(fs, pfh, pkt, i);
                     break;
                 case 0x11: // L4Protocol = Protocols.UDP;
-                    new UDPH(fs, pfh, pkt, ref RemainingLength);
+                    new UDPH(fs, pfh, pkt, i);
                     break;
 
                 default:

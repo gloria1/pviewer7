@@ -30,22 +30,26 @@ namespace pviewer5
         public override string headerdisplayinfo { get { return "Ethernet header"; } }
 
 
-        public EthernetH(FileStream fs, PcapFile pfh, Packet pkt, ref ulong RemainingLength)
+        public EthernetH(FileStream fs, PcapFile pfh, Packet pkt, uint i)
         {
-            headerprot = Protocols.Ethernet;
+            if ((pkt.Len - i) < 0xe) return;
+            DestMAC = (ulong)pkt.PData[i++] * 0x0010000000000 + (ulong)pkt.PData[i++] * 0x000100000000 + (ulong)pkt.PData[i++] * 0x000001000000 + (ulong)pkt.PData[i++]  * 0x000000010000 + (ulong)pkt.PData[i++]  * 0x000000000100 + (ulong)pkt.PData[i++] ;
+            SrcMAC = (ulong)pkt.PData[i++]  * 0x0010000000000 + (ulong)pkt.PData[i++]  * 0x000100000000 + (ulong)pkt.PData[i++]  * 0x000001000000 + (ulong)pkt.PData[i++]  * 0x000000010000 + (ulong)pkt.PData[i++]  * 0x000000000100 + (ulong)pkt.PData[i++] ;
+            TypeLen = (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
 
-            if (RemainingLength < 0xe) return;
-            DestMAC = (ulong)fs.ReadByte() * 0x0010000000000 + (ulong)fs.ReadByte() * 0x000100000000 + (ulong)fs.ReadByte() * 0x000001000000 + (ulong)fs.ReadByte() * 0x000000010000 + (ulong)fs.ReadByte() * 0x000000000100 + (ulong)fs.ReadByte();
-            SrcMAC = (ulong)fs.ReadByte() * 0x0010000000000 + (ulong)fs.ReadByte() * 0x000100000000 + (ulong)fs.ReadByte() * 0x000001000000 + (ulong)fs.ReadByte() * 0x000000010000 + (ulong)fs.ReadByte() * 0x000000000100 + (ulong)fs.ReadByte();
-            TypeLen = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
             // NEED TO HANDLE Q-TAGGED FRAMES
-            RemainingLength -= 0xe;
+            
+            // set generic header properties
+            headerprot = Protocols.Ethernet;
+            payloadindex = i;
+            payloadlen = (int)(pkt.Len - i);
 
-            pkt.phlist.Add(this);
+            // set packet-level convenience properties
             pkt.Prots |= Protocols.Ethernet;
-
             pkt.SrcMAC = SrcMAC;
             pkt.DestMAC = DestMAC;
+
+            pkt.phlist.Add(this);
 
             if (QuickFilterTools.QFMAC.Exclude(DestMAC) || QuickFilterTools.QFMAC.Exclude(SrcMAC))
             {
@@ -56,10 +60,10 @@ namespace pviewer5
             switch (TypeLen)
             {
                 case 0x800: //L3Protocol = Protocols.IP4;
-                    new IP4H(fs, pfh, pkt, ref RemainingLength);
+                    new IP4H(fs, pfh, pkt, payloadindex);
                     break;
                 case 0x806:
-                    new ARPH(fs, pfh, pkt, ref RemainingLength);
+                    new ARPH(fs, pfh, pkt, payloadindex);
                     break;
                 case 0x8dd: // L3Protocol = Protocols.IPv6;
                     break;

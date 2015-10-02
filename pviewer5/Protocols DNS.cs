@@ -31,21 +31,21 @@ namespace pviewer5
 
     public class DNSRR
     {
-        public byte[] dnsdata;          // reference to the dns record's dnsdata array, so NAMEString can access it
-        public uint NAME { get; set; }    // index into dnsdata of beginning of NAME
+        public Packet mypkt;            // reference to packet that contains this RR, so we can access the name string data
+        public uint NAME { get; set; }    // index into pkt.PData of beginning of NAME
         public uint TYPE { get; set; }
         public uint CLASS { get; set; }
         // fields after this do not exist for "question" rr, but do exist for "answers"
         public uint TTL { get; set; }
         public uint RDLENGTH { get; set; }
-        public uint RDATA1 { get; set; }    // index into dnsdata of beginning of first field of RDATA (how to resolve depends on TYPE)
+        public uint RDATA1 { get; set; }    // index into pkt.PData of beginning of first field of RDATA (how to resolve depends on TYPE)
         public uint RDATA2 { get; set; }
         public uint RDATA3 { get; set; }
-        public uint RDATA4 { get; set; }    // index into dnsdata of beginning of first field of RDATA (how to resolve depends on TYPE)
+        public uint RDATA4 { get; set; }    // index into pkt.PData of beginning of first field of RDATA (how to resolve depends on TYPE)
         public uint RDATA5 { get; set; }
         public uint RDATA6 { get; set; }
-        public uint RDATA7 { get; set; }    // index into dnsdata of beginning of first field of RDATA (how to resolve depends on TYPE)
-        public string NAMEString    // returns string form of domain name at dnsdata[pos], resolving compression and putting in dots for separators
+        public uint RDATA7 { get; set; }    // index into pkt.PData of beginning of first field of RDATA (how to resolve depends on TYPE)
+        public string NAMEString    // returns string form of domain name at pkt.PData[pos], resolving compression and putting in dots for separators
         {
             get
             {
@@ -54,20 +54,20 @@ namespace pviewer5
                 string d = "";
                 uint t;
 
-                if (dnsdata[pos] == 0) return "<root>"; // if NAME just points to a terminator, it is the root
+                if (mypkt.PData[pos] == 0) return "<root>"; // if NAME just points to a terminator, it is the root
 
-                while (dnsdata[pos] != 0)
+                while (mypkt.PData[pos] != 0)
                 {
-                    t = dnsdata[pos];
+                    t = mypkt.PData[pos];
                     switch (t & 0xc0)
                     {
                         case 0:     // name particle of length t, at t+1
                             if (d.Length != 0) d += ".";    // if we are here, then there is a non-zero-length label to add to the domain name, so put in a dot separator
-                            d += System.Text.Encoding.Default.GetString(dnsdata, (int)pos + 1, (int)t);
+                            d += System.Text.Encoding.Default.GetString(mypkt.PData, (int)pos + 1, (int)t);
                             pos += (t + 1);
                             break;
                         case 0xc0:  // this is a pointer to somewhere else in the RR
-                            pos = (t & 0x3f) * 0x100 + (uint)dnsdata[pos + 1];
+                            pos = (t & 0x3f) * 0x100 + (uint)mypkt.PData[pos + 1];
                             break;
                         default:    // this should never happen
                             MessageBox.Show("Invalid compressed domain name particle in DNS RR");
@@ -108,41 +108,25 @@ namespace pviewer5
 
         }
 
-        public DNSRR(byte[] d, ref uint pos, bool isquestion)    // if isquestion==true, process as a question entry (having only NAME, TYPE and CLASS fields)
+        public DNSRR(Packet pkt, ref uint pos, bool isquestion)    // if isquestion==true, process as a question entry (having only NAME, TYPE and CLASS fields)
         {
-            dnsdata = d;
+            mypkt = pkt;
+
             NAME = pos;
 
-            Advanceposovername(dnsdata, ref pos);
-/*            while (true)        // this loop moves pos forward to byte after name field; names end with either a label of zero length or a pointer to elsewhere in the dns message
-            {
-                if ((dnsdata[pos] & 0xc0) == 0xc0)  // if this is a pointer, 
-                {
-                    pos += 2;   // adjust pos to byte after pointer,
-                    break;      // and break out of loop
-                }
-                else                // else this is a regular label entry
-                {
-                    if (dnsdata[pos] == 0)  // if the label length is zero,
-                    {
-                        pos++;              // move pos to after the zero length label
-                        break;              // and exit the loop
-                    }
-                    else pos += (uint)(dnsdata[pos] + 1);     // else this is a regular label so adjust pos to byte after this label
-                }
-            }
- * */
-            TYPE = (uint)dnsdata[pos] * 0x100 + (uint)dnsdata[pos + 1]; pos += 2;
-            CLASS = (uint)dnsdata[pos] * 0x100 + (uint)dnsdata[pos + 1]; pos += 2;
+            Advanceposovername(pkt.PData, ref pos);
+
+            TYPE = (uint)pkt.PData[pos] * 0x100 + (uint)pkt.PData[pos + 1]; pos += 2;
+            CLASS = (uint)pkt.PData[pos] * 0x100 + (uint)pkt.PData[pos + 1]; pos += 2;
 
             if (isquestion) return;     // if this is a "question" record, there are no further fields
 
-            TTL = (uint)dnsdata[pos] * 0x1000000 + (uint)dnsdata[pos + 1] * 0x10000 + (uint)dnsdata[pos + 2] * 0x100 + (uint)dnsdata[pos + 3]; pos += 4;
-            RDLENGTH = (uint)dnsdata[pos] * 0x100 + (uint)dnsdata[pos + 1]; pos += 2;
+            TTL = (uint)pkt.PData[pos] * 0x1000000 + (uint)pkt.PData[pos + 1] * 0x10000 + (uint)pkt.PData[pos + 2] * 0x100 + (uint)pkt.PData[pos + 3]; pos += 4;
+            RDLENGTH = (uint)pkt.PData[pos] * 0x100 + (uint)pkt.PData[pos + 1]; pos += 2;
             switch (TYPE)
             {
                 case 1:         // A - a host address
-                    RDATA1 = (uint)dnsdata[pos] * 0x1000000 + (uint)dnsdata[pos + 1] * 0x10000 + (uint)dnsdata[pos + 2] * 0x100 + (uint)dnsdata[pos + 3]; pos += 4;  // A - internet address (ipv4)
+                    RDATA1 = (uint)pkt.PData[pos] * 0x1000000 + (uint)pkt.PData[pos + 1] * 0x10000 + (uint)pkt.PData[pos + 2] * 0x100 + (uint)pkt.PData[pos + 3]; pos += 4;  // A - internet address (ipv4)
                     break;
                 case 2:         // NS - an authoritative name server
                     RDATA1 = pos; pos += RDLENGTH;
@@ -152,14 +136,14 @@ namespace pviewer5
                     break;
                 case 6:         // SOA - start of zone of authority
                     RDATA1 = pos;        // MNAME - name server that was the original or primary source of data for this zone
-                    Advanceposovername(dnsdata, ref pos);
+                    Advanceposovername(pkt.PData, ref pos);
                     RDATA2 = pos;        // RNAME - mailbox of person responsible for this zone
-                    Advanceposovername(dnsdata, ref pos);
-                    RDATA3 = (uint)dnsdata[pos] * 0x1000000 + (uint)dnsdata[pos + 1] * 0x10000 + (uint)dnsdata[pos + 2] * 0x100 + (uint)dnsdata[pos + 3]; pos += 4;  // SERIAL - version number of the original copy of the zone
-                    RDATA4 = (uint)dnsdata[pos] * 0x1000000 + (uint)dnsdata[pos + 1] * 0x10000 + (uint)dnsdata[pos + 2] * 0x100 + (uint)dnsdata[pos + 3]; pos += 4;  // REFRESH - time (seconds) before zone should be refreshed
-                    RDATA5 = (uint)dnsdata[pos] * 0x1000000 + (uint)dnsdata[pos + 1] * 0x10000 + (uint)dnsdata[pos + 2] * 0x100 + (uint)dnsdata[pos + 3]; pos += 4;  // RETRY - time (seconds) before a failed refresh should be retried
-                    RDATA6 = (uint)dnsdata[pos] * 0x1000000 + (uint)dnsdata[pos + 1] * 0x10000 + (uint)dnsdata[pos + 2] * 0x100 + (uint)dnsdata[pos + 3]; pos += 4;  // EXPIRE - upper limit on time (seconds) before zone is no longer authoritative 
-                    RDATA7 = (uint)dnsdata[pos] * 0x1000000 + (uint)dnsdata[pos + 1] * 0x10000 + (uint)dnsdata[pos + 2] * 0x100 + (uint)dnsdata[pos + 3]; pos += 4;  // MINIMUM - TTL that should apply to any RR from this zone
+                    Advanceposovername(pkt.PData, ref pos);
+                    RDATA3 = (uint)pkt.PData[pos] * 0x1000000 + (uint)pkt.PData[pos + 1] * 0x10000 + (uint)pkt.PData[pos + 2] * 0x100 + (uint)pkt.PData[pos + 3]; pos += 4;  // SERIAL - version number of the original copy of the zone
+                    RDATA4 = (uint)pkt.PData[pos] * 0x1000000 + (uint)pkt.PData[pos + 1] * 0x10000 + (uint)pkt.PData[pos + 2] * 0x100 + (uint)pkt.PData[pos + 3]; pos += 4;  // REFRESH - time (seconds) before zone should be refreshed
+                    RDATA5 = (uint)pkt.PData[pos] * 0x1000000 + (uint)pkt.PData[pos + 1] * 0x10000 + (uint)pkt.PData[pos + 2] * 0x100 + (uint)pkt.PData[pos + 3]; pos += 4;  // RETRY - time (seconds) before a failed refresh should be retried
+                    RDATA6 = (uint)pkt.PData[pos] * 0x1000000 + (uint)pkt.PData[pos + 1] * 0x10000 + (uint)pkt.PData[pos + 2] * 0x100 + (uint)pkt.PData[pos + 3]; pos += 4;  // EXPIRE - upper limit on time (seconds) before zone is no longer authoritative 
+                    RDATA7 = (uint)pkt.PData[pos] * 0x1000000 + (uint)pkt.PData[pos + 1] * 0x10000 + (uint)pkt.PData[pos + 2] * 0x100 + (uint)pkt.PData[pos + 3]; pos += 4;  // MINIMUM - TTL that should apply to any RR from this zone
                     break;
                 case 7:         // MB - mailbox domain name
                     RDATA1 = pos; pos += RDLENGTH;
@@ -174,8 +158,8 @@ namespace pviewer5
                     pos += RDLENGTH;
                     break;
                 case 0x0b:         // WKS - well known service description
-                    RDATA1 = (uint)dnsdata[pos] * 0x1000000 + (uint)dnsdata[pos + 1] * 0x10000 + (uint)dnsdata[pos + 2] * 0x100 + (uint)dnsdata[pos + 3]; pos += 4;  // ADDRESS - 32 bit internet address
-                    RDATA2 = (uint)dnsdata[pos]; pos++;  // PROTOCOL - 8 bit IP protocol number
+                    RDATA1 = (uint)pkt.PData[pos] * 0x1000000 + (uint)pkt.PData[pos + 1] * 0x10000 + (uint)pkt.PData[pos + 2] * 0x100 + (uint)pkt.PData[pos + 3]; pos += 4;  // ADDRESS - 32 bit internet address
+                    RDATA2 = (uint)pkt.PData[pos]; pos++;  // PROTOCOL - 8 bit IP protocol number
                     RDATA3 = pos;    // bitmap - bit position corresponds to port number, bit set indicates protocol supported on that port
                     pos += RDLENGTH - 5;
                     break;
@@ -183,17 +167,17 @@ namespace pviewer5
                     RDATA1 = pos; pos += RDLENGTH;
                     break;
                 case 0x0d:         // HINFO - host information
-                    RDATA1 = pos; pos += dnsdata[pos];   // CPU - character string (first byte is length, no null terminator)
-                    RDATA2 = pos; pos += dnsdata[pos];   // OS - character string (first byte is length, no null terminator)
+                    RDATA1 = pos; pos += pkt.PData[pos];   // CPU - character string (first byte is length, no null terminator)
+                    RDATA2 = pos; pos += pkt.PData[pos];   // OS - character string (first byte is length, no null terminator)
                     break;
                 case 0x0e:         // MINFO - mailbox or mail list information
                     RDATA1 = pos;
-                    while (dnsdata[pos] > 0) pos++;
+                    while (pkt.PData[pos] > 0) pos++;
                     RDATA2 = pos;
-                    while (dnsdata[pos] > 0) pos++;
+                    while (pkt.PData[pos] > 0) pos++;
                     break;
                 case 0x0f:         // MX - mail exchange
-                    RDATA1 = (uint)dnsdata[pos] * 0x100 + (uint)dnsdata[pos + 1];
+                    RDATA1 = (uint)pkt.PData[pos] * 0x100 + (uint)pkt.PData[pos + 1];
                     RDATA2 = pos + 2;
                     pos += RDLENGTH;
                     break;
@@ -231,7 +215,7 @@ namespace pviewer5
     public class DNSH : H
     {
         // define the fields of the header itself
-        public byte[] dnsdata { get; set; } // this will contain the raw bytes of the whole DNS message - name entries will consist of pointers into this array, name entries that contain pointers to other names in the dns header can be resolved
+        // OBSOLETE - NAME ENTRIES WILL BE INDICES INTO pkt.PData       public byte[] dnsdata { get; set; } // this will contain the raw bytes of the whole DNS message - name entries will consist of pointers into this array, name entries that contain pointers to other names in the dns header can be resolved
         public uint Len { get; set; }
 
         public uint ID { get; set; }
@@ -268,43 +252,33 @@ namespace pviewer5
             }
         }
 
-        public DNSH(FileStream fs, PcapFile pfh, Packet pkt, ref ulong RemainingLength)
+        public DNSH(FileStream fs, PcapFile pfh, Packet pkt, uint i)
         {
-            uint pos;
-            Len = ((UDPH)pkt.phlist[pkt.phlist.Count() - 1]).Len - 8;
+            Len = (uint)(pkt.phlist[pkt.phlist.Count() - 1]).payloadlen;
 
             // if not enough data remaining, return without reading anything 
             // note that we have not added the header to the packet's header list yet, so we are not leaving an invalid header in the packet
-            if (RemainingLength < Len) return;
+            if ((pkt.Len - i) < Len) return;
 
-            // set protocol
-            headerprot = Protocols.DNS;
+            ID = (uint)pkt.PData[i++] * 0x100 + (uint)pkt.PData[i++];
+            QR = ((uint)pkt.PData[i] & 0x80) / 0x80;
+            OpCode = ((uint)pkt.PData[i] & 0x78) / 0x08;
+            AA = ((uint)pkt.PData[i] & 0x04) / 0x04;
+            TC = ((uint)pkt.PData[i] & 0x02) / 0x02;
+            RD = ((uint)pkt.PData[i++] & 0x01);
+            RA = ((uint)pkt.PData[i] & 0x80) / 0x80;
+            Z = ((uint)pkt.PData[i] & 0x70) / 0x10;
+            RCode = ((uint)pkt.PData[i++] & 0x000f);
 
-            // read in the header data
-            dnsdata = new byte[Len];
-            fs.Read(dnsdata, 0, (int)Len);
-
-            ID = (uint)dnsdata[0] * 0x100 + (uint)dnsdata[1];
-            QR = ((uint)dnsdata[2] & 0x80) / 0x80;
-            OpCode = ((uint)dnsdata[2] & 0x78) / 0x08;
-            AA = ((uint)dnsdata[2] & 0x04) / 0x04;
-            TC = ((uint)dnsdata[2] & 0x02) / 0x02;
-            RD = ((uint)dnsdata[2] & 0x01);
-            RA = ((uint)dnsdata[3] & 0x80) / 0x80;
-            Z = ((uint)dnsdata[3] & 0x70) / 0x10;
-            RCode = ((uint)dnsdata[3] & 0x000f);
-
-            QDCOUNT = (uint)dnsdata[4] * 0x100 + (uint)dnsdata[5];
-            ANCOUNT = (uint)dnsdata[6] * 0x100 + (uint)dnsdata[7];
-            NSCOUNT = (uint)dnsdata[8] * 0x100 + (uint)dnsdata[9];
-            ARCOUNT = (uint)dnsdata[0x0a] * 0x100 + (uint)dnsdata[0x0b];
-
-            pos = 0x0c;
+            QDCOUNT = (uint)pkt.PData[i++] * 0x100 + (uint)pkt.PData[i++];
+            ANCOUNT = (uint)pkt.PData[i++] * 0x100 + (uint)pkt.PData[i++];
+            NSCOUNT = (uint)pkt.PData[i++] * 0x100 + (uint)pkt.PData[i++];
+            ARCOUNT = (uint)pkt.PData[i++] * 0x100 + (uint)pkt.PData[i++];
 
             RRs = new List<DNSRRList>();
             RRs.Add(new DNSRRList());    // add empty list to containt the questions
 
-            for (int i = 0; i < QDCOUNT; i++) RRs[0].Items.Add(new DNSRR(dnsdata, ref pos, true));
+            for (int ii = 0; ii < QDCOUNT; ii++) RRs[0].Items.Add(new DNSRR(pkt, ref i, true));
 
 
             //ffadfdadfadd
@@ -318,21 +292,24 @@ namespace pviewer5
 
 
             RRs.Add(new DNSRRList());
-            for (int i = 0; i < ANCOUNT; i++) RRs[1].Items.Add(new DNSRR(dnsdata, ref pos, false));
+            for (int ii = 0; ii < ANCOUNT; ii++) RRs[1].Items.Add(new DNSRR(pkt, ref i, false));
             RRs.Add(new DNSRRList());
-            for (int i = 0; i < NSCOUNT; i++) RRs[2].Items.Add(new DNSRR(dnsdata, ref pos, false));
+            for (int ii = 0; ii < NSCOUNT; ii++) RRs[2].Items.Add(new DNSRR(pkt, ref i, false));
             RRs.Add(new DNSRRList());
-            for (int i = 0; i < ARCOUNT; i++) RRs[3].Items.Add(new DNSRR(dnsdata, ref pos, false));
+            for (int ii = 0; ii < ARCOUNT; ii++) RRs[3].Items.Add(new DNSRR(pkt, ref i, false));
 
-            if (pos != Len) MessageBox.Show("Did Not Read DNS record properly?  pos != Len");
+            if (i != pkt.Len) MessageBox.Show("Did Not Read DNS record properly?  i != pkt.Len");
 
-            // adjust RemainingLength as needed
-            RemainingLength -= Len;
+            // set generic header properties
+            headerprot = Protocols.DNS;
+            payloadindex = i;
+            payloadlen = (int)(pkt.Len - i);
+
+            // set packet-level convenience properties
+            pkt.Prots |= Protocols.DNS;
 
             // add header to packet's header list
             pkt.phlist.Add(this);
-            pkt.Prots |= Protocols.DNS;
-
         }
 
 

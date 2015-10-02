@@ -30,7 +30,7 @@ namespace pviewer5
     public class MACTools
     {
 
-        public static bool DisplayAliases = true;
+        public static bool DisplayMACAliases = true;
 
         // the "official" mac name map which will be used in the value converter
         public static macnamemapclass map = new macnamemapclass() 
@@ -212,7 +212,7 @@ namespace pviewer5
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (MACTools.DisplayAliases && MACTools.map.ContainsKey((ulong)value)) return MACTools.map[(ulong)value];
+            if (MACTools.DisplayMACAliases && MACTools.map.ContainsKey((ulong)value)) return MACTools.map[(ulong)value];
             else return MACTools.MACToString((ulong)value);
         }
 

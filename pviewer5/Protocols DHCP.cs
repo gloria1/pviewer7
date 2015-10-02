@@ -23,7 +23,7 @@ using Microsoft.Win32;
 namespace pviewer5
 {
 
-    public class DHCP4H : H       // generic example of a header class
+    public class DHCP4H : H       
     {
         // define the fields of the header itself
         public uint DHCP4OpCode { get; set; }
@@ -50,45 +50,47 @@ namespace pviewer5
             }
         }
 
-        public DHCP4H(FileStream fs, PcapFile pfh, Packet pkt, ref ulong RemainingLength)
+        public DHCP4H(FileStream fs, PcapFile pfh, Packet pkt, uint i)
         {
-            // set protocol
-            headerprot = Protocols.DHCP4;
 
             // if not enough data remaining, return without reading anything 
             // note that we have not added the header to the packet's header list yet, so we are not leaving an invalid header in the packet
-            if (RemainingLength < 0xf0) return;
+            if ((pkt.Len - i) < 0xf0) return;
 
             // read in the header data
-            DHCP4OpCode = (uint)fs.ReadByte();
-            DHCP4HWType = (uint)fs.ReadByte();
-            DHCP4HWAddrLen = (uint)fs.ReadByte();
-            DHCP4Hops = (uint)fs.ReadByte();
-            DHCP4XID = (uint)fs.ReadByte() * 0x000001000000 + (uint)fs.ReadByte() * 0x000000010000 + (uint)fs.ReadByte() * 0x000000000100 + (uint)fs.ReadByte();
-            DHCP4Secs = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-            DHCP4Flags = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-            DHCP4ClientIP4 = (uint)fs.ReadByte() * 0x000001000000 + (uint)fs.ReadByte() * 0x000000010000 + (uint)fs.ReadByte() * 0x000000000100 + (uint)fs.ReadByte();
-            DHCP4YourIP4 = (uint)fs.ReadByte() * 0x000001000000 + (uint)fs.ReadByte() * 0x000000010000 + (uint)fs.ReadByte() * 0x000000000100 + (uint)fs.ReadByte();
-            DHCP4ServerIP4 = (uint)fs.ReadByte() * 0x000001000000 + (uint)fs.ReadByte() * 0x000000010000 + (uint)fs.ReadByte() * 0x000000000100 + (uint)fs.ReadByte();
-            DHCP4GatewayIP4 = (uint)fs.ReadByte() * 0x000001000000 + (uint)fs.ReadByte() * 0x000000010000 + (uint)fs.ReadByte() * 0x000000000100 + (uint)fs.ReadByte();
+            DHCP4OpCode = (uint)pkt.PData[i++] ;
+            DHCP4HWType = (uint)pkt.PData[i++] ;
+            DHCP4HWAddrLen = (uint)pkt.PData[i++] ;
+            DHCP4Hops = (uint)pkt.PData[i++] ;
+            DHCP4XID = (uint)pkt.PData[i++]  * 0x000001000000 + (uint)pkt.PData[i++]  * 0x000000010000 + (uint)pkt.PData[i++]  * 0x000000000100 + (uint)pkt.PData[i++] ;
+            DHCP4Secs = (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
+            DHCP4Flags = (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
+            DHCP4ClientIP4 = (uint)pkt.PData[i++]  * 0x000001000000 + (uint)pkt.PData[i++]  * 0x000000010000 + (uint)pkt.PData[i++]  * 0x000000000100 + (uint)pkt.PData[i++] ;
+            DHCP4YourIP4 = (uint)pkt.PData[i++]  * 0x000001000000 + (uint)pkt.PData[i++]  * 0x000000010000 + (uint)pkt.PData[i++]  * 0x000000000100 + (uint)pkt.PData[i++] ;
+            DHCP4ServerIP4 = (uint)pkt.PData[i++]  * 0x000001000000 + (uint)pkt.PData[i++]  * 0x000000010000 + (uint)pkt.PData[i++]  * 0x000000000100 + (uint)pkt.PData[i++] ;
+            DHCP4GatewayIP4 = (uint)pkt.PData[i++]  * 0x000001000000 + (uint)pkt.PData[i++]  * 0x000000010000 + (uint)pkt.PData[i++]  * 0x000000000100 + (uint)pkt.PData[i++] ;
             // read bytes of client hardware addrsess, handle variable length, handle fact that bytes are "left justified" within the 16 byte field
-            int i = 0; DHCP4ClientHWAddrHigh = 0;
-            while (i < ((int)DHCP4HWAddrLen - 8)) { DHCP4ClientHWAddrHigh = DHCP4ClientHWAddrHigh * 0x100 + (ulong)fs.ReadByte(); i++; }
-            i = 0; DHCP4ClientHWAddr = 0;
-            while (i < (int)DHCP4HWAddrLen) { DHCP4ClientHWAddr = DHCP4ClientHWAddr * 0x100 + (uint)fs.ReadByte(); i++; }
-            fs.Seek(16 - DHCP4HWAddrLen, SeekOrigin.Current);
+            int ii = 0; DHCP4ClientHWAddrHigh = 0;
+            while (ii < ((int)DHCP4HWAddrLen - 8)) { DHCP4ClientHWAddrHigh = DHCP4ClientHWAddrHigh * 0x100 + (ulong)pkt.PData[i++] ; ii++; }
+            ii = 0; DHCP4ClientHWAddr = 0;
+            while (ii < (int)DHCP4HWAddrLen) { DHCP4ClientHWAddr = DHCP4ClientHWAddr * 0x100 + (uint)pkt.PData[i++] ; ii++; }
+            i += 16 - DHCP4HWAddrLen;
 
-            fs.Seek(0xc0, SeekOrigin.Current);  // skip over the 192, or 0xc0, legacy BOOTP area
+            i += 0xc0;  // skip over the 192, or 0xc0, legacy BOOTP area
 
-            DHCP4Cookie = (uint)fs.ReadByte() * 0x000001000000 + (uint)fs.ReadByte() * 0x000000010000 + (uint)fs.ReadByte() * 0x000000000100 + (uint)fs.ReadByte();
+            DHCP4Cookie = (uint)pkt.PData[i++]  * 0x000001000000 + (uint)pkt.PData[i++]  * 0x000000010000 + (uint)pkt.PData[i++]  * 0x000000000100 + (uint)pkt.PData[i++] ;
 
-            // adjust RemainingLength as needed
-            RemainingLength -= 0xF0;
+            // set generic header properties
+            headerprot = Protocols.DHCP4;
+            payloadindex = i;
+            payloadlen = (int)(pkt.Len - i);
+
+            // set packet-level convenience properties
+            pkt.Prots |= Protocols.DHCP4;
 
             // add header to packet's header list
             pkt.phlist.Add(this);
-            pkt.Prots |= Protocols.DHCP4;
-
+            
         }
     }
 

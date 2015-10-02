@@ -38,56 +38,54 @@ namespace pviewer5
         public override string headerdisplayinfo { get { return "ICMP header"; } }
 
 
-        public ICMPH(FileStream fs, PcapFile pfh, Packet pkt, ref ulong RemainingLength)
+        public ICMPH(FileStream fs, PcapFile pfh, Packet pkt, uint i)
         {
-            headerprot = Protocols.ICMP;
-
-            if (RemainingLength < 0x08) return;
-            Type = (uint)fs.ReadByte();
-            Code = (uint)fs.ReadByte();
-            Checksum = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-            RemainingLength -= 0x04;
+            if ((pkt.Len - i) < 0x08) return;
+            Type = (uint)pkt.PData[i++];
+            Code = (uint)pkt.PData[i++];
+            Checksum = (uint)pkt.PData[i++] * 0x100 + (uint)pkt.PData[i++];
 
             switch (Type)
             {
                 case 3:		// destination unreachable
                 case 11:	// time exceeded
                 case 4:		// source quench
-                    Unused = (uint)fs.ReadByte() * 0x1000000 + (uint)fs.ReadByte() * 0x10000 + (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-                    RemainingLength -= 0x04;
+                    Unused = (uint)pkt.PData[i++] * 0x1000000 + (uint)pkt.PData[i++] * 0x10000 + (uint)pkt.PData[i++] * 0x100 + (uint)pkt.PData[i++];
                     break;
                 case 12:	// parameter problem
-                    Pointer = (uint)fs.ReadByte();
-                    Unused = (uint)fs.ReadByte() * 0x10000 + (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-                    RemainingLength -= 0x04;
+                    Pointer = (uint)pkt.PData[i++];
+                    Unused = (uint)pkt.PData[i++] * 0x10000 + (uint)pkt.PData[i++] * 0x100 + (uint)pkt.PData[i++];
                     break;
                 case 5:		// redirect
-                    GatewayAddress = (uint)fs.ReadByte() * 0x1000000 + (uint)fs.ReadByte() * 0x10000 + (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-                    RemainingLength -= 0x04;
+                    GatewayAddress = (uint)pkt.PData[i++] * 0x1000000 + (uint)pkt.PData[i++] * 0x10000 + (uint)pkt.PData[i++] * 0x100 + (uint)pkt.PData[i++];
                     break;
                 case 8:		// echo
                 case 0:		// echo reply
                 case 15:	// information request
                 case 16:	// information reply
-                    Identifier = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-                    SequenceNumber = (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-                    RemainingLength -= 0x04;
+                    Identifier = (uint)pkt.PData[i++] * 0x100 + (uint)pkt.PData[i++];
+                    SequenceNumber = (uint)pkt.PData[i++] * 0x100 + (uint)pkt.PData[i++];
                     break;
                 case 13:	// timestamp
                 case 14:	// timestamp reply
-                    if (RemainingLength < 0x10) //need to "unread" the first 4 bytes since this will not be a valid header
-                    { fs.Seek(-0x4, SeekOrigin.Current); RemainingLength += 0x4; return; }
-                    OriginateTimestamp = (uint)fs.ReadByte() * 0x1000000 + (uint)fs.ReadByte() * 0x10000 + (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-                    ReceiveTimestamp = (uint)fs.ReadByte() * 0x1000000 + (uint)fs.ReadByte() * 0x10000 + (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-                    TransmitTimestamp = (uint)fs.ReadByte() * 0x1000000 + (uint)fs.ReadByte() * 0x10000 + (uint)fs.ReadByte() * 0x100 + (uint)fs.ReadByte();
-                    RemainingLength -= 0x10;
+                    if ((pkt.Len - i) < 0x0c) return; 
+                    OriginateTimestamp = (uint)pkt.PData[i++] * 0x1000000 + (uint)pkt.PData[i++] * 0x10000 + (uint)pkt.PData[i++] * 0x100 + (uint)pkt.PData[i++];
+                    ReceiveTimestamp = (uint)pkt.PData[i++] * 0x1000000 + (uint)pkt.PData[i++] * 0x10000 + (uint)pkt.PData[i++] * 0x100 + (uint)pkt.PData[i++];
+                    TransmitTimestamp = (uint)pkt.PData[i++] * 0x1000000 + (uint)pkt.PData[i++] * 0x10000 + (uint)pkt.PData[i++] * 0x100 + (uint)pkt.PData[i++];
                     break;
                 default:
                     break;
             }
 
-            pkt.phlist.Add(this);
+            // set generic header utility properties
+            headerprot = Protocols.ICMP;
+            payloadindex = i;
+            payloadlen = (int)(pkt.Len - i);
+
+            // set packet-level convenience properties
             pkt.Prots |= Protocols.ICMP;
+
+            pkt.phlist.Add(this);
         }
     }
 

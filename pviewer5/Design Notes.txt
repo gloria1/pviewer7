@@ -1,9 +1,27 @@
-﻿next:
+﻿
 
-	review existing application, inventory the
-		gui objects - windows, menus, etc
-		data objects
-		methods
+next:
+
+	DOWNLOAD VS 2015 COMMUNITY
+	MAKE DEFAULT HELP VIEWER THE OFFLINE VIEWER
+	DOWNLOAD OFFLINE HELP CONTENT
+
+	FIGURE OUT HOW TO HANDLE THE PACKET VIEWER WINDOW CLOSING - EITHER PREVENT IT, OR LET THE MAINWINDOW KNOW 
+
+	chagne packet reading routine so that entire packet is read into a byte array
+	then track 
+		index of firstnonpcapbyte
+		index of firstnonheaderbyte
+	eliminate DataLen property
+		anything that depended on it needs to access new bytee array
+	eliminate Data array anything that depended on it needs to be fixed up
+
+	DID I DO THE ABOVE STUFF?
+	BUILD OUT HANDLING HEADER CHECK BOXES IN PACKET VIEWER
+		DATA BINDING - BIND TO HEADER, PACKET, OR A PACKET CONTAINER OBJECT IN THE WINDOW???
+
+
+
 
 
 
