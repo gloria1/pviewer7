@@ -2,38 +2,13 @@
 
 next:
 
-	DOWNLOAD VS 2015 COMMUNITY
-	MAKE DEFAULT HELP VIEWER THE OFFLINE VIEWER
-	DOWNLOAD OFFLINE HELP CONTENT
 
 	FIGURE OUT HOW TO HANDLE THE PACKET VIEWER WINDOW CLOSING - EITHER PREVENT IT, OR LET THE MAINWINDOW KNOW 
 
-	chagne packet reading routine so that entire packet is read into a byte array
-	then track 
-		index of firstnonpcapbyte
-		index of firstnonheaderbyte
-	eliminate DataLen property
-		anything that depended on it needs to access new bytee array
-	eliminate Data array anything that depended on it needs to be fixed up
 
-	DID I DO THE ABOVE STUFF?
-	BUILD OUT HANDLING HEADER CHECK BOXES IN PACKET VIEWER
-		DATA BINDING - BIND TO HEADER, PACKET, OR A PACKET CONTAINER OBJECT IN THE WINDOW???
-
-
-
-
-
-
-	hex/ascii packet view
-		separate window, linked to main window
-		opens when main window opens, blank if it has no packet object
-		when user navigates onto an individual packet in main window, a copy is sent to packet window, and it displays (copy, not reference, in case that packet gets filtered out later)
-		stays open, updates when change to different packet in main window
+	packet viewer
 		can make copy, which becomes another window, that will not be linked to main window any more
-		mousewheel zoom
-		color code portions of packet by iterating over headers - each header should have function that returns length of that header for this packet, and a sting with a quickie legend 
-		check boxes for each protocol - unchecked protocols not shown, settings persist when change packet
+		color code portions of packet by iterating over headers 
 
 	tcp stream view
 		right click on tcp group opens separate window with stream view
@@ -58,8 +33,6 @@ next:
 			tcp
 			http/https
 		make the list be representalbe as a simple text file, so they can be exhanged with the linux c-based packet capture tool
-
-
 
 
 
