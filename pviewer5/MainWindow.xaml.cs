@@ -66,7 +66,7 @@ namespace pviewer5
         public TCPH tcphdr = null;
         public H groupprotoheader { get; set; }     // packet group logic will set this to point to the header of the protocol relevant to that group type
 
-        public string packetdisplayinfo { get { return "Packet innermost header: " + phlist[phlist.Count - 1].headerdisplayinfo; } }
+        public string packetdisplayinfo { get { return "Packet innermost header is: " + phlist[phlist.Count - 1].headerdisplayinfo; } }
 
         public byte[] PData;
         public uint Len;
@@ -136,10 +136,11 @@ namespace pviewer5
             try
             {
                 Rect bounds = Properties.Settings.Default.WindowPositionMain;
-                this.Top = bounds.Top;
-                this.Left = bounds.Left;
-                this.Width = bounds.Width;
-                this.Height = bounds.Height;
+                WindowState = WindowState.Normal;
+                Top = bounds.Top;
+                Left = bounds.Left;
+                Width = bounds.Width;
+                Height = bounds.Height;
                 displayIP4inhexcheckbox.IsChecked = IP4Tools.DisplayIP4InHex = Properties.Settings.Default.DisplayIP4InHex;
                 displayaliascheckbox.IsChecked = IP4Tools.DisplayIP4Aliases = Properties.Settings.Default.DisplayIP4Aliases;
                  MACTools.DisplayMACAliases = Properties.Settings.Default.DisplayMACAliases;
@@ -271,9 +272,9 @@ namespace pviewer5
             if (e.NewValue.GetType() == typeof(Packet))
             {
                 if (pview == null) pview = new PacketViewer();
+                pview.Pkt = (Packet)(e.NewValue);
+
                 if (!(pview.Visibility == System.Windows.Visibility.Visible)) pview.Show();
-                pview.ShowPacket((Packet)(e.NewValue));
-            
             }
 
             //BOOKMARK

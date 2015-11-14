@@ -11,10 +11,12 @@
             <Setter Property="Control.HorizontalAlignment" Value="Right"/>
         </Style>
         <DataTemplate DataType="{x:Type local:DNSRR}">
-            <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
+            <TextBlock Text="{Binding Path=headerdisplayinfo}"
+                       IsHitTestVisible="False"/>
         </DataTemplate>
         <DataTemplate DataType="{x:Type local:H}">
-            <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
+            <TextBlock Text="{Binding Path=headerdisplayinfo}"
+                       IsHitTestVisible="False"/>
         </DataTemplate>
         <HierarchicalDataTemplate DataType="{x:Type local:DNSRRList}"
                                   ItemsSource="{Binding Path=Items}">

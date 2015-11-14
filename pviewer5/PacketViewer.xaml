@@ -5,22 +5,21 @@
         Title="PacketViewer" Height="300" Width="700">
 
     <Window.Resources>
-        <HierarchicalDataTemplate DataType="{x:Type local:PVHdrItem}">
+        <DataTemplate DataType="{x:Type local:PVHdrItem}">
             <StackPanel Orientation="Horizontal">
-                <CheckBox IsChecked="{Binding Path=Checked}"/>
-                <TextBlock Text="{Binding Path=headerdisplayinfo}"
-                           
-                          />
+                <CheckBox IsChecked="{Binding Path=IsChecked}"/>
+                <TextBlock Text="{Binding Path=Hdr.headerdisplayinfo}" />
             </StackPanel>
-        </HierarchicalDataTemplate> 
-        <DataTemplate DataType="{x:Type local:H}">
-                <TextBlock Text="{Binding Path=headerdisplayinfo}"
-                          />
         </DataTemplate>
-        <HierarchicalDataTemplate DataType="{x:Type local:DNSH}"
-                                  ItemsSource="{Binding Path=RRs}">
-                <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
-        </HierarchicalDataTemplate>
+        <DataTemplate DataType="{x:Type local:PVHdrItemDNS}">
+            <StackPanel Orientation="Horizontal">
+                <CheckBox IsChecked="{Binding Path=IsChecked}"/>
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="{Binding Path=Hdr.headerdisplayinfo}"/>
+                    <TreeView ItemsSource="{Binding Path=Hdr.RRs}"/>
+                </StackPanel>
+            </StackPanel>
+        </DataTemplate>
         <HierarchicalDataTemplate DataType="{x:Type local:DNSRRList}"
                                   ItemsSource="{Binding Path=Items}">
             <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
@@ -35,32 +34,31 @@
     <Grid Name="grid">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="150"/>
+            <RowDefinition Height="Auto" MinHeight="150"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <WrapPanel
             Grid.Row="0">
-            <Button Name="actionbutton" Content="Action" Click="actionbutton_Click"/>
-            <Button Name="closebutton" Content="Close" Click="closebutton_Click"/>
+            <Button Name="actionbutton" Content="Action" />
+            <Button Name="closebutton" Content="Close" />
         </WrapPanel>
 
         <GroupBox Header="Packet and Header Info"
-                  Name="headertreebox"
+                  Name="xamlheadertreebox"
                   Grid.Row="1"
                   Margin="5,5,5,5">
-            <ListView Name="headerlist"
-                      ItemsSource="{Binding Path=hdritems}"
-                      SelectionChanged="headerlist_SelectionChanged"/>
+            <ListView Name="xamlheaderlist"
+                      ItemsSource="{Binding Path=HdrList}"
+                      SelectedIndex="{Binding Path=SelectedHdr}"/>
         </GroupBox>
-
-
 
         <FlowDocumentScrollViewer 
             Name="dataview"
             IsToolBarVisible="True"
-            Grid.Row="2">
+            Grid.Row="3">
             <FlowDocument>
-                <Paragraph Name="para"
+                <Paragraph Name="xamlparagraph"
                     FontFamily="Courier New"
                     FontSize="12"
                     FontStyle="Normal"
