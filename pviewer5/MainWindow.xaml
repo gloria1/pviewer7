@@ -40,6 +40,20 @@
             <TextBlock Text="{Binding Path=glistdisplayinfo}"/>
         </HierarchicalDataTemplate>
 
+        <HierarchicalDataTemplate DataType="{x:Type local:Filter}"
+                                  ItemsSource="{Binding Path=filterlist}">
+            <WrapPanel Orientation="Horizontal">
+                <CheckBox IsChecked="{Binding Path=Active}"/>
+                <Label Content="Active"/>
+                <Label Content="{Binding Path=DisplayInfo}"/>
+            </WrapPanel>
+        </HierarchicalDataTemplate>
+        <DataTemplate DataType="{x:Type local:FilterItem}">
+                <TextBlock Text="{Binding Path=DisplayInfo}"/>
+        </DataTemplate>
+
+
+
     </Window.Resources>
 
     <Grid Name="grid"
@@ -71,8 +85,10 @@
                    Grid.Column="1"
                    Grid.Row="0"
                    Margin="5,5,5,5">
+<!-- QUICKFILTER IS DEPRECATED
             <Button Content="Quick Filter"
                     Click="qfbutton"/>
+-->
             <Button Content="MAC Aliases"
                     Click="mnmbutton"/>
             <Button Content="IP4 Aliases"
@@ -98,25 +114,65 @@
                   Grid.ColumnSpan="2"
                   Grid.Row="2"
                   Margin="5,5,5,5">
-            <TreeView Name="grouptree"
+                 <TreeView Name="grouptree"
                         VirtualizingPanel.IsVirtualizing="True"
                         VirtualizingPanel.VirtualizationMode="Recycling"
                       ItemsSource="{Binding Path=grouplistlist}"
                       SelectedItemChanged="grouptree_SelectedItemChanged">
-            </TreeView>
+                  </TreeView>          
+ 
         </GroupBox>
-        
-        
-        
+
+        <GroupBox Header="Filters"
+                  Name="filterviewbox"
+                  Grid.Column="0"
+                  Grid.ColumnSpan="2"
+                  Grid.Row="3"
+                  Margin="5,5,5,5">
+            <WrapPanel
+                Orientation="Vertical">
+                <WrapPanel Orientation="Horizontal">
+                    <Button
+                        Content="Apply to View"
+                        IsEnabled="{Binding Path=filters.ChangedSinceApplied}"/>
+                    <Button
+                        Content="Reload PCAP File"
+                        IsEnabled="False"/>
+                    <Button Content="Add Filter"/>
+                    <Button Content="Load Filter Set"/>
+                    <Button
+                        Content="Save Filter Set"
+                        IsEnabled="{Binding Path=filters.ChangedSinceSave}"/>
+                    <Label Content="Current File= "/>
+                    <Label Name="filtersetfilename"
+                           Content="{Binding Path=filters.Filename}"
+                        MinWidth="100"/>
+                    
+                </WrapPanel>
+                <TreeView Name="filtertree"
+                        VirtualizingPanel.IsVirtualizing="True"
+                        VirtualizingPanel.VirtualizationMode="Recycling"
+                        ItemsSource="{Binding Path=filters.Filters}">
+                </TreeView>
+            </WrapPanel>
+        </GroupBox>
+
+    </Grid>
+
+
+</Window>
+
+        <!--  QUICKFILTER DATAGRID IS DEPRECATED - DELETE IF WE DON'T GO BACK TO USING THIS AFTER NEW FILTER MECHANIC IS IMPLEMENTED
         <GroupBox Header="Packets Excluded by QuickFilter"
                   Name="qfexcldg"
                   Grid.Column="0"  
                   Grid.ColumnSpan="2"
                   Grid.Row="3"
                   Margin="5,5,5,5">
+    -->
             <!-- added Enable*Virtualization lines based on http://www.elegant-software.net/2014/05/performance-of-the-wpf-datagrid.html -->
             <!-- added VirtualizingPanel lines based on http://www.codewrecks.com/blog/index.php/2012/07/06/wpf-datagrid-poor-performance-on-sorting/ -->
-            <DataGrid
+ <!--           <DataGrid
                 Name="QFExclGrid"
                 EnableColumnVirtualization="True"
                 EnableRowVirtualization="True"
@@ -131,6 +187,7 @@
                 </DataGrid.Columns>
             </DataGrid>
         </GroupBox>
+        -->
 <!--        <GroupBox Header="Packet Sets"
                   Name="packsetbox"
                   Grid.Column="0"
@@ -193,7 +250,4 @@
 
             </DataGrid>
         </GroupBox>    -->
-    </Grid>
 
-
-</Window>

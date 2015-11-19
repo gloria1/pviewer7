@@ -27,7 +27,25 @@ namespace pviewer5
 {
     public class IP4Tools
     {
+        //        private static bool _displayip4inhex;
         public static bool DisplayIP4InHex = true;
+/*        {
+            get { return _displayip4inhex; }
+            set
+            {
+                _displayip4inhex = value;
+                NotifyPropertyChanged("DisplayIP4InHex");
+            }
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged(String propertyName = "")
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        */
         public static bool DisplayIP4Aliases = true;
 
         public static IP4namemapclass map = new IP4namemapclass() 
@@ -133,6 +151,8 @@ namespace pviewer5
 
             return s;
         }
+        // implement INotifyPropertyChanged interface
+
     }
 
     public class ValidateIP4Number : ValidationRule

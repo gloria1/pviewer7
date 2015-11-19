@@ -102,7 +102,9 @@ namespace pviewer5
 	{
         public PacketViewer pview;
         public ObservableCollection<Packet> pkts { get; set; }
-        public ObservableCollection<Packet> exclpkts { get; set; }
+        // line below is deprecated
+        // public ObservableCollection<Packet> exclpkts { get; set; }
+        public FilterSet filters { get; set; }
         public ObservableCollection<GList> grouplistlist { get; set; }
         
     //    public static DataGrid PacketDG;    // copy of packet data grid reference, static so that other classes can refer to it
@@ -113,9 +115,14 @@ namespace pviewer5
 		
 		public MainWindow()
 		{
-
+            
             pkts = new ObservableCollection<Packet>();
-            exclpkts = new ObservableCollection<Packet>();
+            // line below is deprecated
+            // exclpkts = new ObservableCollection<Packet>();
+
+            filters = new FilterSet();
+            filters.Filters.Add(new Filter());
+            filters.Filters[0].Parent = filters;
 
             grouplistlist = new ObservableCollection<GList>();
             grouplistlist.Add(new DNSGList("DNS Groups"));
@@ -155,6 +162,8 @@ namespace pviewer5
 
         void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            filters.SaveToDisk(null);
+
             Properties.Settings.Default.WindowPositionMain = this.RestoreBounds;
             Properties.Settings.Default.DisplayIP4InHex = IP4Tools.DisplayIP4InHex;
             Properties.Settings.Default.DisplayIP4Aliases = IP4Tools.DisplayIP4Aliases;
@@ -181,7 +190,7 @@ namespace pviewer5
 			if (result == true)
 			{
                 pkts.Clear();
-                exclpkts.Clear();
+                // deprecated:  exclpkts.Clear();
                 foreach (GList gl in grouplistlist) gl.groups.Clear();
 
 				QuickFilterTools.QFMAC.ResetCounters();
@@ -198,9 +207,12 @@ namespace pviewer5
                 while (fs.Position < fs.Length)
                 {
                     pkt = new Packet(fs, pfh);
-                    // NEXT LINE IS TEMPORARY - ONCE QUICKFILTER IS TRUSTED, PACKETS THAT ARE EXCLUDED SHOULD SIMPLY BE DESTROYED
-                    if (pkt.qfexcluded) exclpkts.Add(pkt);
-                    else pkts.Add(pkt);
+                    if (filters.Include(pkt)) pkts.Add(pkt);
+
+                    // lines below are from older "Quickfilter" implementation - this may be permanently obsolete
+                    // // NEXT LINE IS TEMPORARY - ONCE QUICKFILTER IS TRUSTED, PACKETS THAT ARE EXCLUDED SHOULD SIMPLY BE DESTROYED
+                    // if (pkt.qfexcluded) exclpkts.Add(pkt);
+                    // else pkts.Add(pkt);
                 }
 
                 foreach (Packet p in pkts)
@@ -228,29 +240,29 @@ namespace pviewer5
 			Window w1 = new MACNameMapDialog();
 			w1.ShowDialog();
 			CollectionViewSource.GetDefaultView(grouptree.ItemsSource).Refresh();
-			CollectionViewSource.GetDefaultView(QFExclGrid.ItemsSource).Refresh();
+			// deprecated CollectionViewSource.GetDefaultView(QFExclGrid.ItemsSource).Refresh();
 		}
 		private void inmbutton(object sender, RoutedEventArgs e)
 		{
 			Window w1 = new IP4NameMapDialog();
 			w1.ShowDialog();
 			CollectionViewSource.GetDefaultView(grouptree.ItemsSource).Refresh();
-            CollectionViewSource.GetDefaultView(QFExclGrid.ItemsSource).Refresh();
-		}
-		private void displayaliastoggle(object sender, RoutedEventArgs e)
+            // deprecated CollectionViewSource.GetDefaultView(QFExclGrid.ItemsSource).Refresh();
+        }
+        private void displayaliastoggle(object sender, RoutedEventArgs e)
 		{
 			IP4Tools.DisplayIP4Aliases = (bool)displayaliascheckbox.IsChecked;
             MACTools.DisplayMACAliases = (bool)displayaliascheckbox.IsChecked;
             CollectionViewSource.GetDefaultView(grouptree.ItemsSource).Refresh();
-            CollectionViewSource.GetDefaultView(QFExclGrid.ItemsSource).Refresh();
-		}
-		private void displayIP4inhextoggle(object sender, RoutedEventArgs e)
+            // deprecated CollectionViewSource.GetDefaultView(QFExclGrid.ItemsSource).Refresh();
+        }
+        private void displayIP4inhextoggle(object sender, RoutedEventArgs e)
 		{
 			IP4Tools.DisplayIP4InHex = (bool)displayIP4inhexcheckbox.IsChecked;
 			CollectionViewSource.GetDefaultView(grouptree.ItemsSource).Refresh();
-            CollectionViewSource.GetDefaultView(QFExclGrid.ItemsSource).Refresh();
-		}
-		private static void Executedtabulate(object sender, ExecutedRoutedEventArgs e)
+            // deprecated CollectionViewSource.GetDefaultView(QFExclGrid.ItemsSource).Refresh();
+        }
+        private static void Executedtabulate(object sender, ExecutedRoutedEventArgs e)
 		{
 			//ulong q;
 

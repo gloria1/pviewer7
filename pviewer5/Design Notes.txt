@@ -19,6 +19,43 @@ next:
 			src and dest ip4 and port
 			total numbers of packest and bytes
 
+	main window
+		allow toggle between view by group and view by packet
+			view by packet should be a datagrid, which can be sorted by sequence number, time, protocol, port, etc
+			view by group should also be datagrid, which can be sorted by group type, time of first or last packet, etc.
+			
+		filtering
+			main window will have a "filterset", which will be a list of "filters", which in turn consist of "filteritems"
+			brand new main window will have a filterset with one filter that will include all packets (otherwise, all packets would be excluded per the logic below)
+			when a file is loaded, packets that do not pass the filterset will not even be loaded
+			when MainWindow closes, trigger saves of all the filters, and save the list of filters with the stored window properties
+			when MainWindow opens, load from list of saved filters and open FilterViews for each
+			the packet CollectionView will be filtered based on the filterset, so if the filterset changes, the packet view will be re-filtered
+				(this may be either automatic, or manually triggered with a "refresh" button, depending on how fast it is)
+			filtersets can be saved/loaded to/from disk
+			last filterset open will be saved in mainwindow properties
+			logic for testing inclusion:
+				packet will be tested against filters in order - the first one that matches determines the outcome
+				each filter will have a flag for inclusion vs. exclusion
+				if packet matches an exclusion filter , it is excluded
+				if packet matches an inclusion filter , it is included
+				else, packet is excluded
+				==> in order for a filter to match a packet, it must match on ALL the filteritems within it - this iwll allow for logical and constraints
+
+			types of filteritems
+				ip4
+				ip6
+				mac
+				protocol
+				port
+				timestamp
+				grouptype
+				includeall - always returns true for inclusion - this will be an easy way to say everything is includes unless specifically excluded
+			filteritems will include a mask value, a test value and a relation (<, =, <> or >)
+				the data type for mask and test value will depend on the filter type
+				support mac and ip aliases
+
+
 	add http/https
 	group tcp, http, https
 

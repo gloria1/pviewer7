@@ -68,6 +68,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Filter.cs" />
     <Compile Include="PacketViewer.xaml.cs">
       <DependentUpon>PacketViewer.xaml</DependentUpon>
     </Compile>
