@@ -27,7 +27,7 @@ namespace pviewer5
 {
     public class IP4Tools
     {
-        //        private static bool _displayip4inhex;
+        //     d   private static bool _displayip4inhex;
         public static bool DisplayIP4InHex = true;
 /*        {
             get { return _displayip4inhex; }
