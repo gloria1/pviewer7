@@ -48,11 +48,13 @@ namespace pviewer5
                 {0x00000000, "ALL ZEROES"},
         };
 
-        private IP4Util()
+        // private constructor below was set up per the "singleton" pattern, so that no further instances of this class could be created
+        // however, for some reason this caused the data binding to IP4Hex to stop working, so i have commented this out
+        /* private IP4Util()
         // constructor is private, so no one else can call it - the singleton instance was created in the initialization of Instance above
         {
             return;
-        }
+        }*/
 
         // implement INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;
