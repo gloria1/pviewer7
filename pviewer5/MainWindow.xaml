@@ -8,8 +8,6 @@
         <local:IP4ConverterNumberOrAlias x:Key="IP4converternumberoralias"/>
         <ObjectDataProvider x:Key="IP4UtilKey" ObjectType="{x:Type local:IP4Util}"/>
         <local:IP4MultiConverterNumberOrAlias x:Key="IP4multiconverternumberoralias"/>
-
-        <!-- set up the data template with a multi-binding, including binding to ip4hex-->
         
         <DataTemplate DataType="{x:Type local:DNSRR}">
             <TextBlock Text="{Binding Path=headerdisplayinfo}"

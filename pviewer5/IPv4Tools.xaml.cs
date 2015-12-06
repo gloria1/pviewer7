@@ -25,260 +25,49 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace pviewer5
 {
-    /*
-    // this functionality is split between a static class and a dynamic class
-    // overall, these properties and methods are meant to be global in nature
-    // originally this was all implemented as a static class
-    // however, we also need to have a dynamic class so that the properties for whether to display in hex and whether to use aliases
-    // can be dependency properties and data bound to the ui
-
-    // the dynamic class constructor maintains an instance counter to alert the user if there is ever more than one instance - this should never happen
-    // the static and dynamic versions of each property update each other
-    
-
-    public static class IP4UtilStatic
-    {
-        // NumberOfToolsIntances is a static counter of the number of intances of the IP4Util class that have been instantiated
-        // There should not be more than one instance of IP4Util, but it needs to be a non-static class so that it can
-        // implement an interface (INotifyPropertyChanged)
-        // This variable will be managed by the constructor/destructor of IP4Util
-        public static int NumberOfToolsIntances = 0;
-        public static IP4Util TheInstance; // when the first IP4Util instance is created, store the reference here, so property setter can keep properties in sync
-
-        private static bool _ip4hexstatic = true;
-        public static bool IP4HexStatic
-        {
-            get { return _ip4hexstatic; }
-            set { _ip4hexstatic = value; }
-        }
-
-        private static bool _usealiasesstatic = true;
-        public static bool UseAliasesStatic
-        {
-            get { return _usealiasesstatic; }
-            set { _usealiasesstatic = value; }
-        }
-
-        public static IP4namemapclass map = new IP4namemapclass()
-        {
-                {0x00000000, "ALL ZEROES"},
-        };
-
-
-
-        public static uint? StringToIP4(string s)
-        {
-            // returns null if string cannot be parsed
-
-            // deprecated - now get hex as argument     bool hex = DisplayIP4InHex;
-            string regIP4 = (IP4HexStatic ? "^([a-fA-F0-9]{0,2}.){0,3}[a-fA-F0-9]{0,2}$" : "^([0-9]{0,3}.){0,3}[0-9]{0,3}$");
-            NumberStyles style = (IP4HexStatic ? NumberStyles.HexNumber : NumberStyles.Integer);
-            string[] IP4bits = new string[4];
-
-            try
-            {
-                return uint.Parse(s, style);
-            }
-            catch (FormatException ex)
-            {
-                if (Regex.IsMatch(s, regIP4))
-                {
-                    IP4bits = Regex.Split(s, "\\.");
-                    // resize array to 4 - we want to tolerate missing dots, i.e., user entering less than 4 segments,
-                    // split will produce array with number of elements equal to nmber of dots + 1
-                    Array.Resize<string>(ref IP4bits, 4);
-
-                    for (int i = 0; i < 4; i++) { IP4bits[i] = "0" + IP4bits[i]; }
-                    return uint.Parse(IP4bits[0], style) * 0x0000000001000000 +
-                            uint.Parse(IP4bits[1], style) * 0x0000000000010000 +
-                            uint.Parse(IP4bits[2], style) * 0x0000000000000100 +
-                            uint.Parse(IP4bits[3], style) * 0x0000000000000001;
-                }
-            }
-
-            return null;
-        }
-        public static string IP4ToString(uint value)
-        {
-            uint[] b = new uint[4];
-            string s;
-
-            b[0] = ((value & 0xff000000) / 0x1000000);
-            b[1] = ((value & 0xff0000) / 0x10000);
-            b[2] = ((value & 0xff00) / 0x100);
-            b[3] = ((value & 0xff) / 0x1);
-
-            if (IP4HexStatic) s = String.Format("{0:x2}.{1:x2}.{2:x2}.{3:x2}", b[0], b[1], b[2], b[3]);
-            else s = String.Format("{0}.{1}.{2}.{3}", b[0], b[1], b[2], b[3]);
-
-            return s;
-        }
-
-
-
-
-        [Serializable]
-        public class IP4namemapclass : Dictionary<uint, string>
-        {
-            // need the following constructor (from ISerializable, which is inherited by Dictionary)
-            protected IP4namemapclass(SerializationInfo info, StreamingContext ctx) : base(info, ctx) { }
-            // need to explicitly declare an empty constructor, because without this, new tries to use the above constructor
-            public IP4namemapclass() { }
-
-            public IP4nametableclass maptotable()	// transfers IP4namemap dictionary to a table to support a datagrid
-            {
-                IP4nametableclass table = new IP4nametableclass();
-
-                foreach (uint k in this.Keys) table.Add(new inmtableitem(k, this[k]));
-                return table;
-            }
-        }
-
-        [Serializable]
-        public class IP4nametableclass : ObservableCollection<inmtableitem>, INotifyPropertyChanged
-        {
-            public IP4namemapclass tabletomap()	// transfers IP4name table from a datagrid to a IP4namemap dictionary
-            {
-                IP4namemapclass map = new IP4namemapclass();
-
-                // need to catch exceptions in case table has duplicate IP4 entries - if this is the case, just return null
-                try
-                {
-                    foreach (inmtableitem i in this) map.Add(i.IP4, i.alias);
-                }
-                catch
-                {
-                    return null;
-                }
-                return map;
-            }
-        }
-
-
-        public class inmtableitem
-        {
-            public uint IP4 { get; set; }
-            public string alias { get; set; }
-
-            public inmtableitem(uint u, string s)
-            {
-                this.IP4 = u;
-                this.alias = s;
-            }
-        }
-    }
-
-
-
-
-
-    public class IP4Util : INotifyPropertyChanged
-    {
-        // properties for displaying IP4 in hex and using aliases
-        // these use the static properties as the backing properties, to keep everything in sync
-
-        public bool IP4Hex
-         {
-            get { return IP4UtilStatic.IP4HexStatic; }
-            set { IP4UtilStatic.IP4HexStatic = value;  NotifyPropertyChanged("IP4Hex"); }
-        }
-        public bool UseAliases
-        {
-            get { return IP4UtilStatic.UseAliasesStatic; }
-            set { IP4UtilStatic.UseAliasesStatic = value; NotifyPropertyChanged("UseAliases"); }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void NotifyPropertyChanged(String propertyName = "")
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
-
-
-        // constructor and destructor for this class
-        // these explicitly monitor whether more than one instance of this class ever gets created
-        // there should never be more than one - the intention is for the key properties to be global
-        // the reason this class is not static is so that it can implement an interface, INotifyPropertyChanged
-        // so that wpf can databind to the properites for display in hex and use aliases
-        public IP4Util()
-        {
-            if (IP4UtilStatic.NumberOfToolsIntances > 0)
-            {
-          //      MessageBox.Show("THIS SHOULD NEVER HAPPEN:  THERE IS ALREADY AN INSTANCE OF THE IP4UTIL CLASS AND SOMEONE TRIED TO CREATE ANOTHER.");
-                return;
-            }
-            else
-            {
-                IP4UtilStatic.NumberOfToolsIntances = 1;
-                IP4UtilStatic.TheInstance = this;
-            }
-        }
-        ~IP4Util()
-        {
-            if (IP4UtilStatic.NumberOfToolsIntances > 1)
-            {
-            //    MessageBox.Show("THIS SHOULD NEVER HAPPEN:  THERE IS MORE THAN ONE INSTANCE OF THE IP4UTIL CLASS.  THIS MESSAGE IS COMING FROM THE DESTRUCTOR.  DON'T KNOW WHY WE WOULD EVER GET HERE SINCE THE CONSTRUCTOR SHOULD FLAG IF SOMEONE TRIES TO CREATE MORE THAN ONE INSTANCE.");
-                return;
-            }
-            else
-            {
-                IP4UtilStatic.NumberOfToolsIntances = 0;
-                IP4UtilStatic.TheInstance = null;
-            }
-        }
-
-    }
-
-*/
-
-
 
     // below is IP4Util class re-implemented as a regular class with a singleton Instance
 
     public class IP4Util : INotifyPropertyChanged
+    // class containing:
+    //      utility functions related to IP4 addresses (value converters, etc.)
+    //      global state variables for whether to show them in hex and whether to show aliases
+    // this is implemented as a dynamic class as a Singleton, i.e., there can only ever be one instance
+    // this is because static classes cannot implement interfaces (or at least INotifyPropertyChanged)
     {
-        // properties for displaying IP4 in hex and using aliases
-        // these use the static properties as the backing properties, to keep everything in sync
-
         private static readonly IP4Util instance = new IP4Util();
         public static IP4Util Instance { get { return instance; } }
 
         private bool _ip4hex;
-        public bool IP4Hex { get { return _ip4hex; } set { _ip4hex = value; NotifyPropertyChanged(); } }
-        public bool UseAliases { get; set; }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void NotifyPropertyChanged(String propertyName = "")
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
-
-
-        // constructor and destructor for this class
-        // these explicitly monitor whether more than one instance of this class ever gets created
-        // there should never be more than one - the intention is for the key properties to be global
-        // the reason this class is not static is so that it can implement an interface, INotifyPropertyChanged
-        // so that wpf can databind to the properites for display in hex and use aliases
-
+        public bool IP4Hex { get { return _ip4hex; } set { _ip4hex = value; NotifyPropertyChanged("IP4Hex"); } }
+        private bool _usealiases;
+        public bool UseAliases { get { return _usealiases; } set { _usealiases = value; NotifyPropertyChanged(); } }
 
         public IP4namemapclass map = new IP4namemapclass()
         {
                 {0x00000000, "ALL ZEROES"},
         };
 
+        private IP4Util()
+        // constructor is private, so no one else can call it - the singleton instance was created in the initialization of Instance above
+        {
+            return;
+        }
 
+        // implement INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged(String propertyName = "")
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
 
         public uint? StringToIP4(string s)
+        // converts string to numerical IP4 value
+        // returns null if string cannot be parsed
         {
-            // returns null if string cannot be parsed
-
-            // deprecated - now get hex as argument     bool hex = DisplayIP4InHex;
             string regIP4 = (IP4Hex ? "^([a-fA-F0-9]{0,2}.){0,3}[a-fA-F0-9]{0,2}$" : "^([0-9]{0,3}.){0,3}[0-9]{0,3}$");
             NumberStyles style = (IP4Hex ? NumberStyles.HexNumber : NumberStyles.Integer);
             string[] IP4bits = new string[4];
@@ -306,6 +95,7 @@ namespace pviewer5
 
             return null;
         }
+
         public string IP4ToString(uint value)
         {
             uint[] b = new uint[4];
@@ -323,10 +113,9 @@ namespace pviewer5
         }
 
 
-
-
         [Serializable]
         public class IP4namemapclass : Dictionary<uint, string>
+        // data model for a mapping of IP4 addresses to aliases
         {
             // need the following constructor (from ISerializable, which is inherited by Dictionary)
             protected IP4namemapclass(SerializationInfo info, StreamingContext ctx) : base(info, ctx) { }
@@ -344,6 +133,7 @@ namespace pviewer5
 
         [Serializable]
         public class IP4nametableclass : ObservableCollection<inmtableitem>, INotifyPropertyChanged
+        // view model for mapping of IP4 values to aliases
         {
             public IP4namemapclass tabletomap()	// transfers IP4name table from a datagrid to a IP4namemap dictionary
             {
@@ -362,7 +152,6 @@ namespace pviewer5
             }
         }
 
-
         public class inmtableitem
         {
             public uint IP4 { get; set; }
@@ -374,7 +163,6 @@ namespace pviewer5
                 this.alias = s;
             }
         }
-
 
     }
 
