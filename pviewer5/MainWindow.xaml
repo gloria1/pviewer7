@@ -7,13 +7,16 @@
     <Window.Resources>
         <local:IP4ConverterNumberOrAlias x:Key="IP4converternumberoralias"/>
         <ObjectDataProvider x:Key="IP4UtilKey" ObjectType="{x:Type local:IP4Util}"/>
+        <local:IP4MultiConverterNumberOrAlias x:Key="IP4multiconverternumberoralias"/>
+
+        <!-- set up the data template with a multi-binding, including binding to ip4hex-->
         
         <DataTemplate DataType="{x:Type local:DNSRR}">
             <TextBlock Text="{Binding Path=headerdisplayinfo}"
                        IsHitTestVisible="False"/>
         </DataTemplate>
         <DataTemplate DataType="{x:Type local:H}">
-                <CheckBox IsChecked="{Binding Source={StaticResource IP4UtilKey}, Path=Instance.IP4Hex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
         </DataTemplate>
         <HierarchicalDataTemplate DataType="{x:Type local:DNSRRList}"
                                   ItemsSource="{Binding Path=Items}">
@@ -29,7 +32,14 @@
             <WrapPanel Orientation="Horizontal">
                 <TextBlock Text="{Binding Path=packetdisplayinfo}"/>
                 <TextBlock Text="Source IP: "/>
-                <TextBlock Text="{Binding Path=SrcIP4, Converter={StaticResource IP4converternumberoralias}}"/>
+                <TextBlock>
+                    <TextBlock.Text>
+                        <MultiBinding Converter="{StaticResource IP4multiconverternumberoralias}">
+                            <Binding Path="SrcIP4"/>
+                            <Binding Source="{StaticResource IP4UtilKey}" Path="Instance.IP4Hex" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
             </WrapPanel>
         </HierarchicalDataTemplate>
         <HierarchicalDataTemplate DataType="{x:Type local:G}"

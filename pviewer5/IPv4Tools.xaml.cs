@@ -438,6 +438,9 @@ namespace pviewer5
         }
     }
 
+
+
+
     public class IP4ConverterNumberOrAlias : IValueConverter
     {
         // converts number to/from display format IP4 address, including translating aliases
@@ -468,7 +471,24 @@ namespace pviewer5
             return 0;
         }
     }
-    
+
+    public class IP4MultiConverterNumberOrAlias : IMultiValueConverter
+    {
+        // converts number to/from display format IP4 address, including translating aliases
+        // also takes value of IP4Hex as an argument
+
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (IP4Util.Instance.UseAliases && IP4Util.Instance.map.ContainsKey((uint)values[0]))
+                return IP4Util.Instance.map[(uint)values[0]];
+            else return IP4Util.Instance.IP4ToString((uint)values[0]);
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException("Cannot convert back");
+        }
+    }
 
 
 
