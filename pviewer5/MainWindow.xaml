@@ -55,7 +55,7 @@
                 <CheckBox IsChecked="{Binding Path=Active}"/>
                 <Label Content="Active"/>
                 <Label Content="{Binding Path=DisplayInfo}"/>
-                <CheckBox IsChecked="{Binding Path=ip4util.IP4Hex}"/>
+                <CheckBox IsChecked="{Binding Source={StaticResource IP4UtilKey}, Path=Instance.IP4Hex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             </WrapPanel>
         </HierarchicalDataTemplate>
         <DataTemplate DataType="{x:Type local:FilterItem}">
