@@ -5,18 +5,15 @@
         Title="MainWindow">
 
     <Window.Resources>
-        <Style x:Key="DGCellStyle">
-            <Setter Property="Control.FontSize" Value="9pt"/>
-            <Setter Property="Control.FontFamily" Value="Courier New"/>
-            <Setter Property="Control.HorizontalAlignment" Value="Right"/>
-        </Style>
+        <local:IP4ConverterNumberOrAlias x:Key="IP4converternumberoralias"/>
+        <ObjectDataProvider x:Key="IP4UtilKey" ObjectType="{x:Type local:IP4Util}"/>
+        
         <DataTemplate DataType="{x:Type local:DNSRR}">
             <TextBlock Text="{Binding Path=headerdisplayinfo}"
                        IsHitTestVisible="False"/>
         </DataTemplate>
         <DataTemplate DataType="{x:Type local:H}">
-            <TextBlock Text="{Binding Path=headerdisplayinfo}"
-                       IsHitTestVisible="False"/>
+                <CheckBox IsChecked="{Binding Source={StaticResource IP4UtilKey}, Path=Instance.IP4Hex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
         </DataTemplate>
         <HierarchicalDataTemplate DataType="{x:Type local:DNSRRList}"
                                   ItemsSource="{Binding Path=Items}">
@@ -29,7 +26,11 @@
         <HierarchicalDataTemplate DataType="{x:Type local:Packet}"
                                   ItemsSource="{Binding Path=phlist}"
                                   >
-            <TextBlock Text="{Binding Path=packetdisplayinfo}"/>
+            <WrapPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding Path=packetdisplayinfo}"/>
+                <TextBlock Text="Source IP: "/>
+                <TextBlock Text="{Binding Path=SrcIP4, Converter={StaticResource IP4converternumberoralias}}"/>
+            </WrapPanel>
         </HierarchicalDataTemplate>
         <HierarchicalDataTemplate DataType="{x:Type local:G}"
                                   ItemsSource="{Binding Path=L}">
@@ -46,10 +47,12 @@
                 <CheckBox IsChecked="{Binding Path=Active}"/>
                 <Label Content="Active"/>
                 <Label Content="{Binding Path=DisplayInfo}"/>
+                <CheckBox IsChecked="{Binding Path=ip4util.IP4Hex}"/>
             </WrapPanel>
         </HierarchicalDataTemplate>
         <DataTemplate DataType="{x:Type local:FilterItem}">
                 <TextBlock Text="{Binding Path=DisplayInfo}"/>
+ 
         </DataTemplate>
 
 
@@ -101,11 +104,11 @@
                    Margin="5,5,5,5">
             <CheckBox Name="displayaliascheckbox"
                       Content="Display Aliases"
-                      Click="displayaliastoggle"
+                      IsChecked="{Binding Source={StaticResource IP4UtilKey}, Path=Instance.UseAliases, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                       Margin="20,5"/>
             <CheckBox Name="displayIP4inhexcheckbox"
                       Content="Display IP4 in Hex"
-                      Click="displayIP4inhextoggle"
+                      IsChecked="{Binding Source={StaticResource IP4UtilKey}, Path=Instance.IP4Hex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                       Margin="20,5"/>
         </WrapPanel>
         <GroupBox Header="Packet Groups"

@@ -14,13 +14,13 @@
     <Setting Name="LastFile" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="DisplayIP4InHex" Type="System.Boolean" Scope="User">
+    <Setting Name="IP4Hex" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="DisplayIP4Aliases" Type="System.Boolean" Scope="User">
+    <Setting Name="ShowIP4Aliases" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="DisplayMACAliases" Type="System.Boolean" Scope="User">
+    <Setting Name="ShowMACAliases" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="WindowPositionStreamViewer" Type="System.Windows.Rect" Scope="User">

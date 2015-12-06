@@ -57,7 +57,7 @@ namespace pviewer5
         public Protocols Prots = Protocols.Generic;     // flags for protocols present in this packet
         public ulong SrcMAC = 0;
         public ulong DestMAC = 0;
-        public uint SrcIP4 = 0;
+        public uint SrcIP4 { get; set; } = 0;
         public uint DestIP4 = 0;
         public uint SrcPort = 0;       // UPD or TCP port, if any
         public uint DestPort = 0;
@@ -115,7 +115,7 @@ namespace pviewer5
 		
 		public MainWindow()
 		{
-            
+            IP4Util.Instance.PropertyChanged += this.IP4HexChangeHandler;
             pkts = new ObservableCollection<Packet>();
             // line below is deprecated
             // exclpkts = new ObservableCollection<Packet>();
@@ -131,7 +131,7 @@ namespace pviewer5
             grouplistlist.Add(new UDPGList("UDP Groups"));
             grouplistlist.Add(new ARPGList("ARP Groups"));
             grouplistlist.Add(new GList("Ungrouped Packets"));
-
+            
             InitializeComponent();
 
 			grid.DataContext = this;
@@ -148,9 +148,9 @@ namespace pviewer5
                 Left = bounds.Left;
                 Width = bounds.Width;
                 Height = bounds.Height;
-                displayIP4inhexcheckbox.IsChecked = IP4Tools.DisplayIP4InHex = Properties.Settings.Default.DisplayIP4InHex;
-                displayaliascheckbox.IsChecked = IP4Tools.DisplayIP4Aliases = Properties.Settings.Default.DisplayIP4Aliases;
-                 MACTools.DisplayMACAliases = Properties.Settings.Default.DisplayMACAliases;
+                IP4Util.Instance.IP4Hex = Properties.Settings.Default.IP4Hex;
+                IP4Util.Instance.UseAliases = Properties.Settings.Default.ShowIP4Aliases;
+                MACTools.DisplayMACAliases = Properties.Settings.Default.ShowMACAliases;
                 
             }
             catch
@@ -160,14 +160,24 @@ namespace pviewer5
 
 		}
 
+        void IP4HexChangeHandler(Object obj, PropertyChangedEventArgs args)
+        {
+
+            // put code here to make bindings refresh
+
+
+            return;
+        }
+
+
         void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             filters.SaveToDisk(null);
 
             Properties.Settings.Default.WindowPositionMain = this.RestoreBounds;
-            Properties.Settings.Default.DisplayIP4InHex = IP4Tools.DisplayIP4InHex;
-            Properties.Settings.Default.DisplayIP4Aliases = IP4Tools.DisplayIP4Aliases;
-            Properties.Settings.Default.DisplayMACAliases = MACTools.DisplayMACAliases;
+            Properties.Settings.Default.IP4Hex = IP4Util.Instance.IP4Hex;
+            Properties.Settings.Default.ShowIP4Aliases = IP4Util.Instance.UseAliases;
+            Properties.Settings.Default.ShowMACAliases = MACTools.DisplayMACAliases;
             Properties.Settings.Default.Save();
             foreach (Window w in Application.Current.Windows) if (w != this) w.Close();
         }
@@ -249,19 +259,22 @@ namespace pviewer5
 			CollectionViewSource.GetDefaultView(grouptree.ItemsSource).Refresh();
             // deprecated CollectionViewSource.GetDefaultView(QFExclGrid.ItemsSource).Refresh();
         }
+
+        /* following are deprecated, will handle changes to checkboxes through property setters
         private void displayaliastoggle(object sender, RoutedEventArgs e)
 		{
-			IP4Tools.DisplayIP4Aliases = (bool)displayaliascheckbox.IsChecked;
+			ip4util.UseAliases = (bool)displayaliascheckbox.IsChecked;
             MACTools.DisplayMACAliases = (bool)displayaliascheckbox.IsChecked;
             CollectionViewSource.GetDefaultView(grouptree.ItemsSource).Refresh();
             // deprecated CollectionViewSource.GetDefaultView(QFExclGrid.ItemsSource).Refresh();
         }
         private void displayIP4inhextoggle(object sender, RoutedEventArgs e)
 		{
-			IP4Tools.DisplayIP4InHex = (bool)displayIP4inhexcheckbox.IsChecked;
+			ip4util.IP4Hex = (bool)displayIP4inhexcheckbox.IsChecked;
 			CollectionViewSource.GetDefaultView(grouptree.ItemsSource).Refresh();
             // deprecated CollectionViewSource.GetDefaultView(QFExclGrid.ItemsSource).Refresh();
         }
+        */
         private static void Executedtabulate(object sender, ExecutedRoutedEventArgs e)
 		{
 			//ulong q;
@@ -280,6 +293,7 @@ namespace pviewer5
 
         private void grouptree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
+            if (e.NewValue == null) return;
 
             if (e.NewValue.GetType() == typeof(Packet))
             {

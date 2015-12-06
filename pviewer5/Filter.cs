@@ -217,7 +217,7 @@ namespace pviewer5
                 // BOOKMARK - SHOW ALIASES
 
 
-                return "IPv4 Source " + r + IP4Tools.IP4ToString(Value) + ", Mask=" + IP4Tools.IP4ToString(Mask);
+                return "IPv4 Source " + r + IP4Util.Instance.IP4ToString(Value) + ", Mask=" + IP4Util.Instance.IP4ToString(Mask);
             }
         }
 

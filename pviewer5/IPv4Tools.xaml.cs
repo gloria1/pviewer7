@@ -25,18 +25,169 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace pviewer5
 {
-    public class IP4Tools
+    /*
+    // this functionality is split between a static class and a dynamic class
+    // overall, these properties and methods are meant to be global in nature
+    // originally this was all implemented as a static class
+    // however, we also need to have a dynamic class so that the properties for whether to display in hex and whether to use aliases
+    // can be dependency properties and data bound to the ui
+
+    // the dynamic class constructor maintains an instance counter to alert the user if there is ever more than one instance - this should never happen
+    // the static and dynamic versions of each property update each other
+    
+
+    public static class IP4UtilStatic
     {
-        //     d   private static bool _displayip4inhex;
-        public static bool DisplayIP4InHex = true;
-/*        {
-            get { return _displayip4inhex; }
-            set
+        // NumberOfToolsIntances is a static counter of the number of intances of the IP4Util class that have been instantiated
+        // There should not be more than one instance of IP4Util, but it needs to be a non-static class so that it can
+        // implement an interface (INotifyPropertyChanged)
+        // This variable will be managed by the constructor/destructor of IP4Util
+        public static int NumberOfToolsIntances = 0;
+        public static IP4Util TheInstance; // when the first IP4Util instance is created, store the reference here, so property setter can keep properties in sync
+
+        private static bool _ip4hexstatic = true;
+        public static bool IP4HexStatic
+        {
+            get { return _ip4hexstatic; }
+            set { _ip4hexstatic = value; }
+        }
+
+        private static bool _usealiasesstatic = true;
+        public static bool UseAliasesStatic
+        {
+            get { return _usealiasesstatic; }
+            set { _usealiasesstatic = value; }
+        }
+
+        public static IP4namemapclass map = new IP4namemapclass()
+        {
+                {0x00000000, "ALL ZEROES"},
+        };
+
+
+
+        public static uint? StringToIP4(string s)
+        {
+            // returns null if string cannot be parsed
+
+            // deprecated - now get hex as argument     bool hex = DisplayIP4InHex;
+            string regIP4 = (IP4HexStatic ? "^([a-fA-F0-9]{0,2}.){0,3}[a-fA-F0-9]{0,2}$" : "^([0-9]{0,3}.){0,3}[0-9]{0,3}$");
+            NumberStyles style = (IP4HexStatic ? NumberStyles.HexNumber : NumberStyles.Integer);
+            string[] IP4bits = new string[4];
+
+            try
             {
-                _displayip4inhex = value;
-                NotifyPropertyChanged("DisplayIP4InHex");
+                return uint.Parse(s, style);
+            }
+            catch (FormatException ex)
+            {
+                if (Regex.IsMatch(s, regIP4))
+                {
+                    IP4bits = Regex.Split(s, "\\.");
+                    // resize array to 4 - we want to tolerate missing dots, i.e., user entering less than 4 segments,
+                    // split will produce array with number of elements equal to nmber of dots + 1
+                    Array.Resize<string>(ref IP4bits, 4);
+
+                    for (int i = 0; i < 4; i++) { IP4bits[i] = "0" + IP4bits[i]; }
+                    return uint.Parse(IP4bits[0], style) * 0x0000000001000000 +
+                            uint.Parse(IP4bits[1], style) * 0x0000000000010000 +
+                            uint.Parse(IP4bits[2], style) * 0x0000000000000100 +
+                            uint.Parse(IP4bits[3], style) * 0x0000000000000001;
+                }
+            }
+
+            return null;
+        }
+        public static string IP4ToString(uint value)
+        {
+            uint[] b = new uint[4];
+            string s;
+
+            b[0] = ((value & 0xff000000) / 0x1000000);
+            b[1] = ((value & 0xff0000) / 0x10000);
+            b[2] = ((value & 0xff00) / 0x100);
+            b[3] = ((value & 0xff) / 0x1);
+
+            if (IP4HexStatic) s = String.Format("{0:x2}.{1:x2}.{2:x2}.{3:x2}", b[0], b[1], b[2], b[3]);
+            else s = String.Format("{0}.{1}.{2}.{3}", b[0], b[1], b[2], b[3]);
+
+            return s;
+        }
+
+
+
+
+        [Serializable]
+        public class IP4namemapclass : Dictionary<uint, string>
+        {
+            // need the following constructor (from ISerializable, which is inherited by Dictionary)
+            protected IP4namemapclass(SerializationInfo info, StreamingContext ctx) : base(info, ctx) { }
+            // need to explicitly declare an empty constructor, because without this, new tries to use the above constructor
+            public IP4namemapclass() { }
+
+            public IP4nametableclass maptotable()	// transfers IP4namemap dictionary to a table to support a datagrid
+            {
+                IP4nametableclass table = new IP4nametableclass();
+
+                foreach (uint k in this.Keys) table.Add(new inmtableitem(k, this[k]));
+                return table;
             }
         }
+
+        [Serializable]
+        public class IP4nametableclass : ObservableCollection<inmtableitem>, INotifyPropertyChanged
+        {
+            public IP4namemapclass tabletomap()	// transfers IP4name table from a datagrid to a IP4namemap dictionary
+            {
+                IP4namemapclass map = new IP4namemapclass();
+
+                // need to catch exceptions in case table has duplicate IP4 entries - if this is the case, just return null
+                try
+                {
+                    foreach (inmtableitem i in this) map.Add(i.IP4, i.alias);
+                }
+                catch
+                {
+                    return null;
+                }
+                return map;
+            }
+        }
+
+
+        public class inmtableitem
+        {
+            public uint IP4 { get; set; }
+            public string alias { get; set; }
+
+            public inmtableitem(uint u, string s)
+            {
+                this.IP4 = u;
+                this.alias = s;
+            }
+        }
+    }
+
+
+
+
+
+    public class IP4Util : INotifyPropertyChanged
+    {
+        // properties for displaying IP4 in hex and using aliases
+        // these use the static properties as the backing properties, to keep everything in sync
+
+        public bool IP4Hex
+         {
+            get { return IP4UtilStatic.IP4HexStatic; }
+            set { IP4UtilStatic.IP4HexStatic = value;  NotifyPropertyChanged("IP4Hex"); }
+        }
+        public bool UseAliases
+        {
+            get { return IP4UtilStatic.UseAliasesStatic; }
+            set { IP4UtilStatic.UseAliasesStatic = value; NotifyPropertyChanged("UseAliases"); }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
         private void NotifyPropertyChanged(String propertyName = "")
         {
@@ -45,13 +196,135 @@ namespace pviewer5
                 PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
             }
         }
-        */
-        public static bool DisplayIP4Aliases = true;
 
-        public static IP4namemapclass map = new IP4namemapclass() 
-		{
-				{0x00000000, "ALL ZEROES"},
-		};
+
+        // constructor and destructor for this class
+        // these explicitly monitor whether more than one instance of this class ever gets created
+        // there should never be more than one - the intention is for the key properties to be global
+        // the reason this class is not static is so that it can implement an interface, INotifyPropertyChanged
+        // so that wpf can databind to the properites for display in hex and use aliases
+        public IP4Util()
+        {
+            if (IP4UtilStatic.NumberOfToolsIntances > 0)
+            {
+          //      MessageBox.Show("THIS SHOULD NEVER HAPPEN:  THERE IS ALREADY AN INSTANCE OF THE IP4UTIL CLASS AND SOMEONE TRIED TO CREATE ANOTHER.");
+                return;
+            }
+            else
+            {
+                IP4UtilStatic.NumberOfToolsIntances = 1;
+                IP4UtilStatic.TheInstance = this;
+            }
+        }
+        ~IP4Util()
+        {
+            if (IP4UtilStatic.NumberOfToolsIntances > 1)
+            {
+            //    MessageBox.Show("THIS SHOULD NEVER HAPPEN:  THERE IS MORE THAN ONE INSTANCE OF THE IP4UTIL CLASS.  THIS MESSAGE IS COMING FROM THE DESTRUCTOR.  DON'T KNOW WHY WE WOULD EVER GET HERE SINCE THE CONSTRUCTOR SHOULD FLAG IF SOMEONE TRIES TO CREATE MORE THAN ONE INSTANCE.");
+                return;
+            }
+            else
+            {
+                IP4UtilStatic.NumberOfToolsIntances = 0;
+                IP4UtilStatic.TheInstance = null;
+            }
+        }
+
+    }
+
+*/
+
+
+
+    // below is IP4Util class re-implemented as a regular class with a singleton Instance
+
+    public class IP4Util : INotifyPropertyChanged
+    {
+        // properties for displaying IP4 in hex and using aliases
+        // these use the static properties as the backing properties, to keep everything in sync
+
+        private static readonly IP4Util instance = new IP4Util();
+        public static IP4Util Instance { get { return instance; } }
+
+        private bool _ip4hex;
+        public bool IP4Hex { get { return _ip4hex; } set { _ip4hex = value; NotifyPropertyChanged(); } }
+        public bool UseAliases { get; set; }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged(String propertyName = "")
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+
+        // constructor and destructor for this class
+        // these explicitly monitor whether more than one instance of this class ever gets created
+        // there should never be more than one - the intention is for the key properties to be global
+        // the reason this class is not static is so that it can implement an interface, INotifyPropertyChanged
+        // so that wpf can databind to the properites for display in hex and use aliases
+
+
+        public IP4namemapclass map = new IP4namemapclass()
+        {
+                {0x00000000, "ALL ZEROES"},
+        };
+
+
+
+        public uint? StringToIP4(string s)
+        {
+            // returns null if string cannot be parsed
+
+            // deprecated - now get hex as argument     bool hex = DisplayIP4InHex;
+            string regIP4 = (IP4Hex ? "^([a-fA-F0-9]{0,2}.){0,3}[a-fA-F0-9]{0,2}$" : "^([0-9]{0,3}.){0,3}[0-9]{0,3}$");
+            NumberStyles style = (IP4Hex ? NumberStyles.HexNumber : NumberStyles.Integer);
+            string[] IP4bits = new string[4];
+
+            try
+            {
+                return uint.Parse(s, style);
+            }
+            catch (FormatException ex)
+            {
+                if (Regex.IsMatch(s, regIP4))
+                {
+                    IP4bits = Regex.Split(s, "\\.");
+                    // resize array to 4 - we want to tolerate missing dots, i.e., user entering less than 4 segments,
+                    // split will produce array with number of elements equal to nmber of dots + 1
+                    Array.Resize<string>(ref IP4bits, 4);
+
+                    for (int i = 0; i < 4; i++) { IP4bits[i] = "0" + IP4bits[i]; }
+                    return uint.Parse(IP4bits[0], style) * 0x0000000001000000 +
+                            uint.Parse(IP4bits[1], style) * 0x0000000000010000 +
+                            uint.Parse(IP4bits[2], style) * 0x0000000000000100 +
+                            uint.Parse(IP4bits[3], style) * 0x0000000000000001;
+                }
+            }
+
+            return null;
+        }
+        public string IP4ToString(uint value)
+        {
+            uint[] b = new uint[4];
+            string s;
+
+            b[0] = ((value & 0xff000000) / 0x1000000);
+            b[1] = ((value & 0xff0000) / 0x10000);
+            b[2] = ((value & 0xff00) / 0x100);
+            b[3] = ((value & 0xff) / 0x1);
+
+            if (IP4Hex) s = String.Format("{0:x2}.{1:x2}.{2:x2}.{3:x2}", b[0], b[1], b[2], b[3]);
+            else s = String.Format("{0}.{1}.{2}.{3}", b[0], b[1], b[2], b[3]);
+
+            return s;
+        }
+
+
+
+
         [Serializable]
         public class IP4namemapclass : Dictionary<uint, string>
         {
@@ -103,57 +376,9 @@ namespace pviewer5
         }
 
 
-
-        public static uint? StringToIP4(string s)
-        {
-            // returns null if string cannot be parsed
-
-            bool hex = DisplayIP4InHex;
-            string regIP4 = (hex ? "^([a-fA-F0-9]{0,2}.){0,3}[a-fA-F0-9]{0,2}$" : "^([0-9]{0,3}.){0,3}[0-9]{0,3}$");
-            NumberStyles style = (hex ? NumberStyles.HexNumber : NumberStyles.Integer);
-            string[] IP4bits = new string[4];
-
-            try
-            {
-                return uint.Parse(s, style);
-            }
-            catch (FormatException ex)
-            {
-                if (Regex.IsMatch(s, regIP4))
-                {
-                    IP4bits = Regex.Split(s, "\\.");
-                    // resize array to 4 - we want to tolerate missing dots, i.e., user entering less than 4 segments,
-                    // split will produce array with number of elements equal to nmber of dots + 1
-                    Array.Resize<string>(ref IP4bits, 4);
-
-                    for (int i = 0; i < 4; i++) { IP4bits[i] = "0" + IP4bits[i]; }
-                    return uint.Parse(IP4bits[0], style) * 0x0000000001000000 +
-                            uint.Parse(IP4bits[1], style) * 0x0000000000010000 +
-                            uint.Parse(IP4bits[2], style) * 0x0000000000000100 +
-                            uint.Parse(IP4bits[3], style) * 0x0000000000000001;
-                }
-            }
-
-            return null;
-        }
-        public static string IP4ToString(uint value)
-        {
-            uint[] b = new uint[4];
-            string s;
-
-            b[0] = ((value & 0xff000000) / 0x1000000);
-            b[1] = ((value & 0xff0000) / 0x10000);
-            b[2] = ((value & 0xff00) / 0x100);
-            b[3] = ((value & 0xff) / 0x1);
-
-            if (DisplayIP4InHex) s = String.Format("{0:x2}.{1:x2}.{2:x2}.{3:x2}", b[0], b[1], b[2], b[3]);
-            else s = String.Format("{0}.{1}.{2}.{3}", b[0], b[1], b[2], b[3]);
-
-            return s;
-        }
-        // implement INotifyPropertyChanged interface
-
     }
+
+
 
     public class ValidateIP4Number : ValidationRule
     {
@@ -163,7 +388,7 @@ namespace pviewer5
             uint? v = 0;
 
             // try to parse as a raw IP4 address
-            v = IP4Tools.StringToIP4((string)value);
+            v = IP4Util.Instance.StringToIP4((string)value);
             if (v != null) return new ValidationResult(true, "Valid IP4 Address");
             else return new ValidationResult(false, "Not a valid IP4 address");
         }
@@ -179,11 +404,11 @@ namespace pviewer5
             uint? v = 0;
 
             // first try to parse as a raw IP4 address
-            v = IP4Tools.StringToIP4((string)value);
+            v = IP4Util.Instance.StringToIP4((string)value);
             if (v != null) return new ValidationResult(true, "Valid IP4 Address");
             // if that failed, see if string exists in IP4namemap
-            foreach (uint u in IP4Tools.map.Keys)
-                if ((string)value == IP4Tools.map[u])
+            foreach (uint u in IP4Util.Instance.map.Keys)
+                if ((string)value == IP4Util.Instance.map[u])
                     return new ValidationResult(true, "Valid IP4 Address");
             return new ValidationResult(false, "Not a valid IP4 address");
         }
@@ -195,7 +420,7 @@ namespace pviewer5
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return IP4Tools.IP4ToString((uint)value);
+            return IP4Util.Instance.IP4ToString((uint)value);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -203,7 +428,7 @@ namespace pviewer5
             ulong? v = 0;
 
             // first try to parse as a raw IP4 address
-            v = IP4Tools.StringToIP4((string)value);
+            v = IP4Util.Instance.StringToIP4((string)value);
             if (v != null) return v;
 
             // we should never get to this point, since validation step will not pass unless value is either valid raw IP4 
@@ -219,9 +444,9 @@ namespace pviewer5
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (IP4Tools.DisplayIP4Aliases && IP4Tools.map.ContainsKey((uint)value))
-                return IP4Tools.map[(uint)value];
-            else return IP4Tools.IP4ToString((uint)value);
+            if (IP4Util.Instance.UseAliases && IP4Util.Instance.map.ContainsKey((uint)value))
+                return IP4Util.Instance.map[(uint)value];
+            else return IP4Util.Instance.IP4ToString((uint)value);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -229,12 +454,12 @@ namespace pviewer5
             uint? v = 0;
 
             // first try to parse as a raw IP4 address
-            v = IP4Tools.StringToIP4((string)value);
+            v = IP4Util.Instance.StringToIP4((string)value);
             if (v != null) return v;
 
             // if that failed, see if string exists in IP4namemap
-            foreach (uint u in IP4Tools.map.Keys)
-                if ((string)value == IP4Tools.map[u])
+            foreach (uint u in IP4Util.Instance.map.Keys)
+                if ((string)value == IP4Util.Instance.map[u])
                     return u;
 
             // we should never get to this point, since validation step will not pass unless value is either valid raw IP4 or existing entry in IP4namemap
@@ -243,19 +468,23 @@ namespace pviewer5
             return 0;
         }
     }
-
     
+
+
+
+
+
     public partial class IP4NameMapDialog : Window
 	{
 		public static RoutedCommand inmaddrow = new RoutedCommand();
 
-		public IP4Tools.IP4nametableclass dgtable { get; set; }
+		public IP4Util.IP4nametableclass dgtable { get; set; }
 
 		public IP4NameMapDialog()
 		{
 			CommandBinding inmaddrowbinding;
 
-			dgtable = IP4Tools.map.maptotable();
+			dgtable = IP4Util.Instance.map.maptotable();
 
 			InitializeComponent();
 			INMDG.DataContext = this;
@@ -291,7 +520,7 @@ namespace pviewer5
 
 		private void inmAccept(object sender, RoutedEventArgs e)
 		{
-			IP4Tools.IP4namemapclass map = new IP4Tools.IP4namemapclass();
+			IP4Util.IP4namemapclass map = new IP4Util.IP4namemapclass();
 
 			if (!IsValid(inmgrid))
 			{
@@ -308,7 +537,7 @@ namespace pviewer5
 				}
 				else        // else transfer local map to official map and close dialog
 				{
-					IP4Tools.map = map;
+					IP4Util.Instance.map = map;
 					DialogResult = true;
 					// no need to call Close, since changing DialogResult to non-null automatically closes window
 					//Close();
@@ -332,7 +561,7 @@ namespace pviewer5
 			SaveFileDialog dlg = new SaveFileDialog();
 			FileStream fs;
 			IFormatter formatter = new BinaryFormatter();
-			IP4Tools.IP4namemapclass map = new IP4Tools.IP4namemapclass();
+			IP4Util.IP4namemapclass map = new IP4Util.IP4namemapclass();
 
 			// first need to transfer datagrid table to official map
 			if (!IsValid(inmgrid))
@@ -380,7 +609,7 @@ namespace pviewer5
 
 				try
 				{
-					dgtable = ((IP4Tools.IP4namemapclass)formatter.Deserialize(fs)).maptotable();
+					dgtable = ((IP4Util.IP4namemapclass)formatter.Deserialize(fs)).maptotable();
 					// next command re-sets ItemsSource, window on screen does not update to show new contents of dgtable, don't know why
 					// there is probably some mechanism to get the display to update without re-setting the ItemsSource, but this seems to work
 					INMDG.ItemsSource = dgtable;
@@ -411,7 +640,7 @@ namespace pviewer5
 
 				try
 				{
-					foreach (IP4Tools.inmtableitem i in ((IP4Tools.IP4namemapclass)formatter.Deserialize(fs)).maptotable()) dgtable.Add(i);
+					foreach (IP4Util.inmtableitem i in ((IP4Util.IP4namemapclass)formatter.Deserialize(fs)).maptotable()) dgtable.Add(i);
 					// next command re-sets ItemsSource, window on screen does not update to show new contents of dgtable, don't know why
 					// there is probably some mechanism to get the display to update without re-setting the ItemsSource, but this seems to work
 					INMDG.ItemsSource = dgtable;
@@ -428,12 +657,12 @@ namespace pviewer5
 		}
 		private static void Executedaddrow(object sender, ExecutedRoutedEventArgs e)
 		{
-			IP4Tools.IP4nametableclass q;
+			IP4Util.IP4nametableclass q;
 			DataGrid dg = (DataGrid)e.Source;
 
-			q = (IP4Tools.IP4nametableclass)(dg.ItemsSource);
+			q = (IP4Util.IP4nametableclass)(dg.ItemsSource);
 
-			q.Add(new IP4Tools.inmtableitem(0, ""));
+			q.Add(new IP4Util.inmtableitem(0, ""));
 		}
 
 		private static void PreviewExecutedaddrow(object sender, ExecutedRoutedEventArgs e)
