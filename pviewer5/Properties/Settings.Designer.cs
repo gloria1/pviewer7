@@ -86,24 +86,12 @@ namespace pviewer5.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool ShowIP4Aliases {
+        public bool UseAliases {
             get {
-                return ((bool)(this["ShowIP4Aliases"]));
+                return ((bool)(this["UseAliases"]));
             }
             set {
-                this["ShowIP4Aliases"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool ShowMACAliases {
-            get {
-                return ((bool)(this["ShowMACAliases"]));
-            }
-            set {
-                this["ShowMACAliases"] = value;
+                this["UseAliases"] = value;
             }
         }
         

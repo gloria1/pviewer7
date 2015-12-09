@@ -25,9 +25,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace pviewer5
 {
-
-    // below is IP4Util class re-implemented as a regular class with a singleton Instance
-
+    
     public class IP4Util : INotifyPropertyChanged
     // class containing:
     //      utility functions related to IP4 addresses (value converters, etc.)
@@ -284,31 +282,41 @@ namespace pviewer5
 
 
 
-    public partial class IP4NameMapDialog : Window
+    public partial class IP4NameMapDialog : Window, INotifyPropertyChanged
 	{
 		public static RoutedCommand inmaddrow = new RoutedCommand();
 
 		public IP4Util.IP4nametableclass dgtable { get; set; }
 
-		public IP4NameMapDialog()
+        private bool _chgsincesave = false;
+        public bool changedsincesavedtodisk { get { return _chgsincesave; } set { _chgsincesave = value; NotifyPropertyChanged(); } }
+        private bool _chgsinceapplied = false;
+        public bool changedsinceapplied { get { return _chgsinceapplied; } set { _chgsinceapplied = value; NotifyPropertyChanged(); } }
+
+        // implement INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged(String propertyName = "")
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+
+        public IP4NameMapDialog()
 		{
 			CommandBinding inmaddrowbinding;
-
+            
 			dgtable = IP4Util.Instance.map.maptotable();
 
-			InitializeComponent();
+            InitializeComponent();
+            buttonbar.DataContext = this;
 			INMDG.DataContext = this;
 			inmaddrowbinding = new CommandBinding(inmaddrow, Executedaddrow, CanExecuteaddrow);
 			INMDG.CommandBindings.Add(inmaddrowbinding);
 			inmaddrowmenuitem.CommandTarget = INMDG;   // added this so that menu command would not be disabled when datagrid first created; not sure exactly why this works, books/online articles refer to WPF not correctly determining the intended command target based on focus model (logical focus? keyboard focus?), so you have to set the command target explicitly
-
-
-
-			// add handlers for 
-			//		file save/load/append from
-
-
-
+            
 		}
 
 		public bool IsValid(DependencyObject parent)
@@ -328,7 +336,7 @@ namespace pviewer5
 			return true;
 		}
 
-		private void inmAccept(object sender, RoutedEventArgs e)
+		private void inmApply(object sender, RoutedEventArgs e)
 		{
 			IP4Util.IP4namemapclass map = new IP4Util.IP4namemapclass();
 
@@ -347,26 +355,34 @@ namespace pviewer5
 				}
 				else        // else transfer local map to official map and close dialog
 				{
+                    changedsinceapplied = false;
 					IP4Util.Instance.map = map;
-					DialogResult = true;
-					// no need to call Close, since changing DialogResult to non-null automatically closes window
-					//Close();
+                    IP4Util.Instance.IP4Hex = IP4Util.Instance.IP4Hex; // no-op but causes change notifications to gui
 				}
 			}
-
-			// do we automatically trigger re-application of filter, or have separate command for that?
-			// if/when reapply, need to reset nummatched properties
 		}
 
-		private void inmCancel(object sender, RoutedEventArgs e)
+        private void inmAccept(object sender, RoutedEventArgs e)
+        // close window with saving changes
+        {
+            inmApply(this, null);
+            Close();
+        }
+
+        private void inmCancel(object sender, RoutedEventArgs e)
+        // close window without saving changes
 		{
-			DialogResult = false;
-			// no need to call Close, since changing DialogResult to non-null automatically closes window
-			//Close();
+			Close();
 		}
 
+        private void inmcelleditending(object sender, DataGridCellEditEndingEventArgs e)
+        // handle CellEditEnding event from the datagrid
+        {
+            changedsinceapplied = true;
+            changedsincesavedtodisk = true;
+        }
 
-		private void inmSaveToDisk(object sender, RoutedEventArgs e)
+        private void inmSaveToDisk(object sender, RoutedEventArgs e)
 		{
 			SaveFileDialog dlg = new SaveFileDialog();
 			FileStream fs;
@@ -397,6 +413,7 @@ namespace pviewer5
 					{
 						fs = new FileStream(dlg.FileName, FileMode.OpenOrCreate);
 						formatter.Serialize(fs, map);
+                        changedsincesavedtodisk = false;
 						fs.Close();
 					}
 				}
@@ -423,6 +440,7 @@ namespace pviewer5
 					// next command re-sets ItemsSource, window on screen does not update to show new contents of dgtable, don't know why
 					// there is probably some mechanism to get the display to update without re-setting the ItemsSource, but this seems to work
 					INMDG.ItemsSource = dgtable;
+                    changedsincesavedtodisk = false;
 				}
 				catch
 				{
@@ -454,6 +472,7 @@ namespace pviewer5
 					// next command re-sets ItemsSource, window on screen does not update to show new contents of dgtable, don't know why
 					// there is probably some mechanism to get the display to update without re-setting the ItemsSource, but this seems to work
 					INMDG.ItemsSource = dgtable;
+                    changedsincesavedtodisk = true;
 				}
 				catch
 				{

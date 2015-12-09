@@ -115,14 +115,11 @@ namespace pviewer5
 		
 		public MainWindow()
 		{
-            IP4Util.Instance.PropertyChanged += this.IP4HexChangeHandler;
             pkts = new ObservableCollection<Packet>();
             // line below is deprecated
             // exclpkts = new ObservableCollection<Packet>();
 
             filters = new FilterSet();
-            filters.Filters.Add(new Filter());
-            filters.Filters[0].Parent = filters;
 
             grouplistlist = new ObservableCollection<GList>();
             grouplistlist.Add(new DNSGList("DNS Groups"));
@@ -139,7 +136,7 @@ namespace pviewer5
 			//PacketDG = PacketDataGrid;
 			//ExclDG = QFExclGrid;
 
-            // try to restore window position - see "Programing WPF Second Edition" page 321
+            // try to restore window position and other settings - see "Programing WPF Second Edition" page 321
             try
             {
                 Rect bounds = Properties.Settings.Default.WindowPositionMain;
@@ -149,9 +146,7 @@ namespace pviewer5
                 Width = bounds.Width;
                 Height = bounds.Height;
                 IP4Util.Instance.IP4Hex = Properties.Settings.Default.IP4Hex;
-                IP4Util.Instance.UseAliases = Properties.Settings.Default.ShowIP4Aliases;
-                MACTools.DisplayMACAliases = Properties.Settings.Default.ShowMACAliases;
-                
+                IP4Util.Instance.UseAliases = MACUtil.Instance.UseAliases = Properties.Settings.Default.UseAliases;
             }
             catch
             { MessageBox.Show("problem retrieving stored settings"); }
@@ -160,15 +155,6 @@ namespace pviewer5
 
 		}
 
-        void IP4HexChangeHandler(Object obj, PropertyChangedEventArgs args)
-        {
-
-            // put code here to make bindings refresh
-
-
-            return;
-        }
-
 
         void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -176,8 +162,7 @@ namespace pviewer5
 
             Properties.Settings.Default.WindowPositionMain = this.RestoreBounds;
             Properties.Settings.Default.IP4Hex = IP4Util.Instance.IP4Hex;
-            Properties.Settings.Default.ShowIP4Aliases = IP4Util.Instance.UseAliases;
-            Properties.Settings.Default.ShowMACAliases = MACTools.DisplayMACAliases;
+            Properties.Settings.Default.UseAliases = IP4Util.Instance.UseAliases;
             Properties.Settings.Default.Save();
             foreach (Window w in Application.Current.Windows) if (w != this) w.Close();
         }
@@ -255,26 +240,9 @@ namespace pviewer5
 		private void inmbutton(object sender, RoutedEventArgs e)
 		{
 			Window w1 = new IP4NameMapDialog();
-			w1.ShowDialog();
-			CollectionViewSource.GetDefaultView(grouptree.ItemsSource).Refresh();
-            // deprecated CollectionViewSource.GetDefaultView(QFExclGrid.ItemsSource).Refresh();
+			w1.Show();
         }
 
-        /* following are deprecated, will handle changes to checkboxes through property setters
-        private void displayaliastoggle(object sender, RoutedEventArgs e)
-		{
-			ip4util.UseAliases = (bool)displayaliascheckbox.IsChecked;
-            MACTools.DisplayMACAliases = (bool)displayaliascheckbox.IsChecked;
-            CollectionViewSource.GetDefaultView(grouptree.ItemsSource).Refresh();
-            // deprecated CollectionViewSource.GetDefaultView(QFExclGrid.ItemsSource).Refresh();
-        }
-        private void displayIP4inhextoggle(object sender, RoutedEventArgs e)
-		{
-			ip4util.IP4Hex = (bool)displayIP4inhexcheckbox.IsChecked;
-			CollectionViewSource.GetDefaultView(grouptree.ItemsSource).Refresh();
-            // deprecated CollectionViewSource.GetDefaultView(QFExclGrid.ItemsSource).Refresh();
-        }
-        */
         private static void Executedtabulate(object sender, ExecutedRoutedEventArgs e)
 		{
 			//ulong q;
@@ -309,4 +277,7 @@ namespace pviewer5
         }
 
 	}
+    
+
+
 }

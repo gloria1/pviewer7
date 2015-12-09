@@ -6,9 +6,12 @@
 
     <Window.Resources>
         <local:IP4ConverterNumberOrAlias x:Key="IP4converternumberoralias"/>
+        <local:MACConverterNumberOrAlias x:Key="MACconverternumberoralias"/>
         <ObjectDataProvider x:Key="IP4UtilKey" ObjectType="{x:Type local:IP4Util}"/>
+        <ObjectDataProvider x:Key="MACUtilKey" ObjectType="{x:Type local:MACUtil}"/>
         <local:IP4MultiConverterNumberOrAlias x:Key="IP4multiconverternumberoralias"/>
-        
+        <local:MACMultiConverterNumberOrAlias x:Key="MACmulticonverternumberoralias"/>
+
         <DataTemplate DataType="{x:Type local:DNSRR}">
             <TextBlock Text="{Binding Path=headerdisplayinfo}"
                        IsHitTestVisible="False"/>
@@ -16,6 +19,24 @@
         <DataTemplate DataType="{x:Type local:H}">
             <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
         </DataTemplate>
+        <DataTemplate DataType="{x:Type local:ARPH}">
+            <WrapPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
+                <TextBlock Text=", Sender HW: "/>
+                <TextBlock>
+                    <TextBlock.Text>
+                        <MultiBinding Converter="{StaticResource MACmulticonverternumberoralias}">
+                            <Binding Path="SenderHW"/>
+                            <Binding Source="{StaticResource IP4UtilKey}" Path="Instance.UseAliases" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+
+
+
+            </WrapPanel>            
+        </DataTemplate>
+        
         <HierarchicalDataTemplate DataType="{x:Type local:DNSRRList}"
                                   ItemsSource="{Binding Path=Items}">
             <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
