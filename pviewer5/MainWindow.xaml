@@ -10,7 +10,7 @@
         <ObjectDataProvider x:Key="GUIUtilKey" ObjectType="{x:Type local:GUIUtil}"/>
         <ObjectDataProvider x:Key="IP4UtilKey" ObjectType="{x:Type local:IP4Util}"/>
         <ObjectDataProvider x:Key="MACUtilKey" ObjectType="{x:Type local:MACUtil}"/>
-        <local:HexMultiConverter4 x:Key="hexmultivalueconverter4"/>
+        <local:HexMultiConverter x:Key="hexmultivalueconverter"/>
         <local:IP4MultiConverterNumberOrAlias x:Key="IP4multiconverternumberoralias"/>
         <local:MACMultiConverterNumberOrAlias x:Key="MACmulticonverternumberoralias"/>
 
@@ -27,9 +27,10 @@
                 <TextBlock Text=", Sender Prot: "/>
                 <TextBlock>
                     <TextBlock.Text>
-                        <MultiBinding Converter="{StaticResource hexmultivalueconverter4}">
+                        <MultiBinding Converter="{StaticResource hexmultivalueconverter}">
                             <Binding Path="SenderProt"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.WidthFour"/>
                         </MultiBinding>
                     </TextBlock.Text>
                 </TextBlock>

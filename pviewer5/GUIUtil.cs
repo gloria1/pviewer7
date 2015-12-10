@@ -38,6 +38,8 @@ namespace pviewer5
         private bool _usealiases;
         public bool UseAliases { get { return _usealiases; } set { _usealiases = value; NotifyPropertyChanged(); } }
 
+        public int WidthFour {get;} = 4;
+
         // private constructor below was set up per the "singleton" pattern, so that no further instances of this class could be created
         // however, for some reason this caused the data binding to IP4Hex to stop working, so i have commented this out
         /* private GUIUtil()
@@ -95,12 +97,16 @@ namespace pviewer5
 
     }
 
-    class HexMultiConverter4 : IMultiValueConverter
+    class HexMultiConverter : IMultiValueConverter
+    // three arguments:
+    // values[0] - value to be converted
+    // values[1] - ignored - needed so we have an argument to bind to Hex property on xaml side
+    // values[2] - fixed width value (0 for varible width)
     {
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            return GUIUtil.Instance.UIntToStringHex((uint)values[0], 4);
+            return GUIUtil.Instance.UIntToStringHex((uint)values[0], (int)values[2]);
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
