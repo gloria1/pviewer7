@@ -24,11 +24,11 @@
         <DataTemplate DataType="{x:Type local:ARPH}">
             <WrapPanel Orientation="Horizontal">
                 <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
-                <TextBlock Text=", Sender Prot: "/>
+                <TextBlock Text=", Protocol: "/>
                 <TextBlock>
                     <TextBlock.Text>
                         <MultiBinding Converter="{StaticResource hexmultivalueconverter}">
-                            <Binding Path="SenderProt"/>
+                            <Binding Path="Prot"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.WidthFour"/>
                         </MultiBinding>
