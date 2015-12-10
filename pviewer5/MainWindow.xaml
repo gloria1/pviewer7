@@ -7,6 +7,7 @@
     <Window.Resources>
         <local:IP4ConverterNumberOrAlias x:Key="IP4converternumberoralias"/>
         <local:MACConverterNumberOrAlias x:Key="MACconverternumberoralias"/>
+        <ObjectDataProvider x:Key="GUIUtilKey" ObjectType="{x:Type local:GUIUtil}"/>
         <ObjectDataProvider x:Key="IP4UtilKey" ObjectType="{x:Type local:IP4Util}"/>
         <ObjectDataProvider x:Key="MACUtilKey" ObjectType="{x:Type local:MACUtil}"/>
         <local:IP4MultiConverterNumberOrAlias x:Key="IP4multiconverternumberoralias"/>
