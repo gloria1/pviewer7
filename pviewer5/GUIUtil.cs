@@ -95,17 +95,12 @@ namespace pviewer5
 
     }
 
-    
-    /*
-    public class HexMultiConverter : IMultiValueConverter
+    class HexMultiConverter4 : IMultiValueConverter
     {
-        // converts number to/from display format hex number, respecting Hex flag
-        // also takes value of Hex as second argument, though this is ignored - this is so Hex can be included in the data binding on the xaml side
-        // also takes width as the third argument
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            return GUIUtil.Instance.UIntToStringHex((uint)values[0],(int)values[2]);
+            return GUIUtil.Instance.UIntToStringHex((uint)values[0], 4);
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
@@ -114,6 +109,4 @@ namespace pviewer5
         }
     }
     
-    */
-
 }

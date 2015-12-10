@@ -10,8 +10,8 @@
         <ObjectDataProvider x:Key="GUIUtilKey" ObjectType="{x:Type local:GUIUtil}"/>
         <ObjectDataProvider x:Key="IP4UtilKey" ObjectType="{x:Type local:IP4Util}"/>
         <ObjectDataProvider x:Key="MACUtilKey" ObjectType="{x:Type local:MACUtil}"/>
-        
-       <local:IP4MultiConverterNumberOrAlias x:Key="IP4multiconverternumberoralias"/>
+        <local:HexMultiConverter4 x:Key="hexmultivalueconverter4"/>
+        <local:IP4MultiConverterNumberOrAlias x:Key="IP4multiconverternumberoralias"/>
         <local:MACMultiConverterNumberOrAlias x:Key="MACmulticonverternumberoralias"/>
 
         <DataTemplate DataType="{x:Type local:DNSRR}">
@@ -24,6 +24,15 @@
         <DataTemplate DataType="{x:Type local:ARPH}">
             <WrapPanel Orientation="Horizontal">
                 <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
+                <TextBlock Text=", Sender Prot: "/>
+                <TextBlock>
+                    <TextBlock.Text>
+                        <MultiBinding Converter="{StaticResource hexmultivalueconverter4}">
+                            <Binding Path="SenderProt"/>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
                 <TextBlock Text=", Sender HW: "/>
                 <TextBlock>
                     <TextBlock.Text>
