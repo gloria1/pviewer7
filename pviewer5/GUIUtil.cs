@@ -23,7 +23,97 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace pviewer5
 {
-    class GUIUtil
+    class GUIUtil : INotifyPropertyChanged
+    // class containing:
+    //      utility functions related to displaying hex numbers
+    //      global state variables for whether to show them in hex and whether to show aliases
+    // this is implemented as a dynamic class as a Singleton, i.e., there can only ever be one instance
+    // this is because static classes cannot implement interfaces (or at least INotifyPropertyChanged)
     {
+        private static readonly GUIUtil instance = new GUIUtil();
+        public static GUIUtil Instance { get { return instance; } }
+
+        private bool _hex;
+        public bool Hex { get { return _hex; } set { _hex = value; NotifyPropertyChanged("Hex"); } }
+        private bool _usealiases;
+        public bool UseAliases { get { return _usealiases; } set { _usealiases = value; NotifyPropertyChanged(); } }
+
+        // private constructor below was set up per the "singleton" pattern, so that no further instances of this class could be created
+        // however, for some reason this caused the data binding to IP4Hex to stop working, so i have commented this out
+        /* private GUIUtil()
+        // constructor is private, so no one else can call it - the singleton instance was created in the initialization of Instance above
+        {
+            return;
+        }*/
+
+        // implement INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged(String propertyName = "")
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+        public uint? StringToUInt(string s)
+        // converts string to numerical value, respecting state of Hex flag
+        // returns null if string cannot be parsed
+        {
+            NumberStyles style = (Hex ? NumberStyles.HexNumber : NumberStyles.Integer);
+
+            // try to parse, if it fails fall through to return null
+            try
+            {
+                return uint.Parse(s, style);
+            }
+            catch (FormatException ex)
+            {
+            }
+
+            return null;
+        }
+
+        public string UIntToStringHex(uint value, int width)
+        // converts a uint to a string, respecting Hex flag
+        // fixed width if width > 0
+        {
+            string s;
+
+            if (Hex) s = String.Format("{0:x}", value);
+            else s = String.Format("{0}", value);
+
+            if (width > 0)
+            {
+                if (width > s.Length) s.PadLeft(width, '0');
+                else s = s.Remove(0, (s.Length - width));
+            }
+
+            return s;
+        }
+        
+
     }
+
+    
+    /*
+    public class HexMultiConverter : IMultiValueConverter
+    {
+        // converts number to/from display format hex number, respecting Hex flag
+        // also takes value of Hex as second argument, though this is ignored - this is so Hex can be included in the data binding on the xaml side
+        // also takes width as the third argument
+
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            return GUIUtil.Instance.UIntToStringHex((uint)values[0],(int)values[2]);
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException("Cannot convert back");
+        }
+    }
+    
+    */
+
 }

@@ -145,8 +145,8 @@ namespace pviewer5
                 Left = bounds.Left;
                 Width = bounds.Width;
                 Height = bounds.Height;
-                IP4Util.Instance.IP4Hex = Properties.Settings.Default.IP4Hex;
-                IP4Util.Instance.UseAliases = MACUtil.Instance.UseAliases = Properties.Settings.Default.UseAliases;
+                GUIUtil.Instance.Hex = Properties.Settings.Default.Hex;
+                GUIUtil.Instance.UseAliases = Properties.Settings.Default.UseAliases;
             }
             catch
             { MessageBox.Show("problem retrieving stored settings"); }
@@ -161,8 +161,8 @@ namespace pviewer5
             filters.SaveToDisk(null);
 
             Properties.Settings.Default.WindowPositionMain = this.RestoreBounds;
-            Properties.Settings.Default.IP4Hex = IP4Util.Instance.IP4Hex;
-            Properties.Settings.Default.UseAliases = IP4Util.Instance.UseAliases;
+            Properties.Settings.Default.Hex = GUIUtil.Instance.Hex;
+            Properties.Settings.Default.UseAliases = GUIUtil.Instance.UseAliases;
             Properties.Settings.Default.Save();
             foreach (Window w in Application.Current.Windows) if (w != this) w.Close();
         }

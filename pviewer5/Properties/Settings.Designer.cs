@@ -74,12 +74,12 @@ namespace pviewer5.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool IP4Hex {
+        public bool Hex {
             get {
-                return ((bool)(this["IP4Hex"]));
+                return ((bool)(this["Hex"]));
             }
             set {
-                this["IP4Hex"] = value;
+                this["Hex"] = value;
             }
         }
         

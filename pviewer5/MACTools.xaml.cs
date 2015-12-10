@@ -37,9 +37,6 @@ namespace pviewer5
         private static readonly MACUtil instance = new MACUtil();
         public static MACUtil Instance { get { return instance; } }
 
-        // no private backing property - instead this property is tied to the IP4Util.UseAliases property
-        public bool UseAliases { get { return IP4Util.Instance.UseAliases; } set { IP4Util.Instance.UseAliases = value; NotifyPropertyChanged(); } }
-
         // the "official" mac name map which will be used in the value converter
         public macnamemapclass map = new macnamemapclass() 
 		    {
@@ -238,7 +235,7 @@ namespace pviewer5
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (MACUtil.Instance.UseAliases && MACUtil.Instance.map.ContainsKey((ulong)value)) return MACUtil.Instance.map[(ulong)value];
+            if (GUIUtil.Instance.UseAliases && MACUtil.Instance.map.ContainsKey((ulong)value)) return MACUtil.Instance.map[(ulong)value];
             else return MACUtil.Instance.MACToString((ulong)value);
         }
 
@@ -269,7 +266,7 @@ namespace pviewer5
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            if (MACUtil.Instance.UseAliases && MACUtil.Instance.map.ContainsKey((ulong)values[0]))
+            if (GUIUtil.Instance.UseAliases && MACUtil.Instance.map.ContainsKey((ulong)values[0]))
                 return MACUtil.Instance.map[(ulong)values[0]];
             else return MACUtil.Instance.MACToString((ulong)values[0]);
         }
@@ -355,7 +352,7 @@ namespace pviewer5
 				{
                     changedsinceapplied = false;
 					MACUtil.Instance.map = map;
-                    MACUtil.Instance.UseAliases = MACUtil.Instance.UseAliases; // no-op but will cause change notifications to view
+                    GUIUtil.Instance.UseAliases = GUIUtil.Instance.UseAliases; // no-op but will cause change notifications to view
                 }
 			}
 		}
