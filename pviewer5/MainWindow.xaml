@@ -21,6 +21,7 @@
         <DataTemplate DataType="{x:Type local:H}">
             <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
         </DataTemplate>
+
         <DataTemplate DataType="{x:Type local:ARPH}">
             <TextBlock>
                 <TextBlock.Text>
@@ -34,6 +35,7 @@
                         <Binding Path="SenderProt"/>
                         <Binding Path="TargetHW"/>
                         <Binding Path="TargetProt"/>
+                        <Binding Path="self"/>
                     </MultiBinding>
                 </TextBlock.Text>
             </TextBlock>
