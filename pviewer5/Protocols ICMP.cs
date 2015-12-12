@@ -35,7 +35,7 @@ namespace pviewer5
         public ulong OriginateTimestamp { get; set; }
         public ulong ReceiveTimestamp { get; set; }
         public ulong TransmitTimestamp { get; set; }
-        public override string headerdisplayinfo { get { return "ICMP header"; } }
+        public override string displayinfo { get { return "ICMP header"; } }
 
 
         public ICMPH(FileStream fs, PcapFile pfh, Packet pkt, uint i)

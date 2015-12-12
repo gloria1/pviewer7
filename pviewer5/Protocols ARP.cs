@@ -36,7 +36,7 @@ namespace pviewer5
         public ulong TargetHW { get; set; }
         public uint TargetProt { get; set; }
   
-        public override string headerdisplayinfo {
+        public override string displayinfo {
            get { 
                 if (Prot == 0x0800)     // IPv4
                     return String.Format("ARP OpCode: {0:X4}, HWType: {1:X4}, Prot {2:X4}", Opn, HWType, Prot)
@@ -93,7 +93,7 @@ namespace pviewer5
         public ulong SenderHW;
         public uint SenderProt;
         public uint TargetProt;
-        public override string groupdisplayinfo
+        public override string displayinfo
         {
             get
             {

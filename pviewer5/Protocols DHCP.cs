@@ -42,7 +42,7 @@ namespace pviewer5
         public uint DHCP4Cookie { get; set; }
 
         // define a property that will be used by the xaml data templates for the one-line display of this header in the tree
-        public override string headerdisplayinfo
+        public override string displayinfo
         {
             get
             {
@@ -101,7 +101,7 @@ namespace pviewer5
             public uint DHCP4XID;      // these are the header fields that define an DHCPv4 group
 
             // define a property that will be used by the xaml data templates for the one-line display of this header in the tree
-            public override string groupdisplayinfo
+            public override string displayinfo
             {
                 get
                 {

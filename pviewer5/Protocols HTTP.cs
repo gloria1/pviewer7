@@ -49,7 +49,7 @@ namespace pviewer5
         // define properties of a specific group here
 
         // define a property that will be used by the xaml data templates for the one-line display of this header in the tree
-        public override string groupdisplayinfo
+        public override string displayinfo
         {
             get
             {

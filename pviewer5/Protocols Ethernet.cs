@@ -27,7 +27,7 @@ namespace pviewer5
         public ulong DestMAC { get; set; }
         public ulong SrcMAC { get; set; }
         public uint TypeLen { get; set; }
-        public override string headerdisplayinfo { get { return "Ethernet header"; } }
+        public override string displayinfo { get { return "Ethernet header"; } }
 
 
         public EthernetH(FileStream fs, PcapFile pfh, Packet pkt, uint i)

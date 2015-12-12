@@ -22,8 +22,15 @@ using Microsoft.Win32;
 
 namespace pviewer5
 {
+    public class PVDisplayObject
+    {
+        public virtual string displayinfo { get { return "Generic Display Object"; } }
+        public virtual PVDisplayObject self { get { return this; } }
+    }
 
-    public class H
+
+
+    public class H :PVDisplayObject
     {
         // generic fields common to all headers
         public Protocols headerprot;    // protocol of this header, from Protocols enum
@@ -32,8 +39,7 @@ namespace pviewer5
                                         // default value of -1 indicates that this header's protocol doesn't know anything about the size of its payload
 
         
-        public virtual string headerdisplayinfo { get { return "Generic header"; } }
-        public virtual H self { get { return this; } }  // so that data bindings in data templates can have a path to the whole object
+        public override string displayinfo { get { return "Generic header"; } }
 
         public H()          // need a parameter-less constructor for sublcasses to inherit from ?????
         { }
@@ -53,14 +59,14 @@ namespace pviewer5
         }
     }
 
-    public class G
+    public class G : PVDisplayObject
     {
         public bool Complete = false;
         public DateTime FirstTime, LastTime;   // earliest and latest timestamp in this group
 
         public ObservableCollection<Packet> L { get; set; }  // list items are individual packets
-        public virtual string groupdisplayinfo { get { return String.Format("Generic group, Count = {0}", L.Count); } }
-
+        public override string displayinfo { get { return String.Format("Generic group, Count = {0}", L.Count); } }
+        
         public G()      // need parameter-less constructor needs to exist for sub-classes for some reason
         { }
 
@@ -92,20 +98,14 @@ namespace pviewer5
 
     }
     
-    public class GList
+    public class GList : PVDisplayObject
     {
         public string name;
         public ObservableCollection<G> groups { get; set; }
         public virtual Protocols headerselector { get; set; }   // used by G.GroupPacket to pull the header for the relevant protocol out of the packet, to pass into the Belongs and StartNewGroup functions
 
-        public string glistdisplayinfo
-        {
-            get
-            {
-                return name + String.Format(", contains {0} groups", groups.Count());
-            }
-        }
-
+        public override string displayinfo { get { return name + String.Format(", contains {0} groups", groups.Count()); } }
+        
         public GList(string n)
         {
             name = n;
@@ -168,12 +168,12 @@ namespace pviewer5
 
 
 
-    public class HdrMVC : IMultiValueConverter
+    public class DisplayInfoMVC : IMultiValueConverter
     {
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            return ((H)values[0]).headerdisplayinfo;
+            return ((PVDisplayObject)values[0]).displayinfo;
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
@@ -191,7 +191,7 @@ namespace pviewer5
         public uint Prot { get; set; }
 
         // define a property that will be used by the xaml data templates for the one-line display of this header in the tree
-        public override string headerdisplayinfo
+        public override string displayinfo
         {
             get
             {
@@ -244,7 +244,7 @@ namespace pviewer5
         // define properties of a specific group here
 
         // define a property that will be used by the xaml data templates for the one-line display of this header in the tree
-        public override string groupdisplayinfo
+        public override string displayinfo
         {
             get
             {

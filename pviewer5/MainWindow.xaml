@@ -10,22 +10,15 @@
         <ObjectDataProvider x:Key="GUIUtilKey" ObjectType="{x:Type local:GUIUtil}"/>
         <ObjectDataProvider x:Key="IP4UtilKey" ObjectType="{x:Type local:IP4Util}"/>
         <ObjectDataProvider x:Key="MACUtilKey" ObjectType="{x:Type local:MACUtil}"/>
-        <local:HdrMVC x:Key="hdrmvc"/>
+        <local:DisplayInfoMVC x:Key="displayinfomvc"/>
         <local:IP4MultiConverterNumberOrAlias x:Key="IP4multiconverternumberoralias"/>
         <local:MACMultiConverterNumberOrAlias x:Key="MACmulticonverternumberoralias"/>
 
-        <DataTemplate DataType="{x:Type local:DNSRR}">
-            <TextBlock Text="{Binding Path=headerdisplayinfo}"
-                       IsHitTestVisible="False"/>
-        </DataTemplate>
-        <DataTemplate DataType="{x:Type local:H}">
-            <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
-        </DataTemplate>
 
-        <DataTemplate DataType="{x:Type local:ARPH}">
+        <DataTemplate DataType="{x:Type local:H}">
             <TextBlock>
                 <TextBlock.Text>
-                    <MultiBinding Converter="{StaticResource hdrmvc}">
+                    <MultiBinding Converter="{StaticResource displayinfomvc}">
                         <Binding Path="self"/>
                         <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
                         <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
@@ -33,38 +26,82 @@
                 </TextBlock.Text>
             </TextBlock>
         </DataTemplate>
-        
+
+        <DataTemplate DataType="{x:Type local:DNSRR}">
+            <TextBlock>
+                <TextBlock.Text>
+                    <MultiBinding Converter="{StaticResource displayinfomvc}">
+                        <Binding Path="self"/>
+                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
+                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
+        </DataTemplate>
+
         <HierarchicalDataTemplate DataType="{x:Type local:DNSRRList}"
                                   ItemsSource="{Binding Path=Items}">
-            <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
+            <TextBlock>
+                <TextBlock.Text>
+                    <MultiBinding Converter="{StaticResource displayinfomvc}">
+                        <Binding Path="self"/>
+                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
+                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
         </HierarchicalDataTemplate>
+
         <HierarchicalDataTemplate DataType="{x:Type local:DNSH}"
                                   ItemsSource="{Binding Path=RRs}">
-            <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
+            <TextBlock>
+                <TextBlock.Text>
+                    <MultiBinding Converter="{StaticResource displayinfomvc}">
+                        <Binding Path="self"/>
+                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
+                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
         </HierarchicalDataTemplate>
+
         <HierarchicalDataTemplate DataType="{x:Type local:Packet}"
-                                  ItemsSource="{Binding Path=phlist}"
-                                  >
-            <WrapPanel Orientation="Horizontal">
-                <TextBlock Text="{Binding Path=packetdisplayinfo}"/>
-                <TextBlock Text="Source IP: "/>
-                <TextBlock>
-                    <TextBlock.Text>
-                        <MultiBinding Converter="{StaticResource IP4multiconverternumberoralias}">
-                            <Binding Path="SrcIP4"/>
-                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex"/>
-                        </MultiBinding>
-                    </TextBlock.Text>
-                </TextBlock>
-            </WrapPanel>
+                                  ItemsSource="{Binding Path=phlist}">
+            <TextBlock>
+                <TextBlock.Text>
+                    <MultiBinding Converter="{StaticResource displayinfomvc}">
+                        <Binding Path="self"/>
+                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
+                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
         </HierarchicalDataTemplate>
+        
         <HierarchicalDataTemplate DataType="{x:Type local:G}"
                                   ItemsSource="{Binding Path=L}">
-            <TextBlock Text="{Binding Path=groupdisplayinfo}"/>
+            <TextBlock>
+                <TextBlock.Text>
+                    <MultiBinding Converter="{StaticResource displayinfomvc}">
+                        <Binding Path="self"/>
+                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
+                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
         </HierarchicalDataTemplate>
+
         <HierarchicalDataTemplate DataType="{x:Type local:GList}"
                                   ItemsSource="{Binding Path=groups}">
-            <TextBlock Text="{Binding Path=glistdisplayinfo}"/>
+            <TextBlock>
+                <TextBlock.Text>
+                    <MultiBinding Converter="{StaticResource displayinfomvc}">
+                        <Binding Path="self"/>
+                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
+                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
         </HierarchicalDataTemplate>
 
         <HierarchicalDataTemplate DataType="{x:Type local:Filter}"

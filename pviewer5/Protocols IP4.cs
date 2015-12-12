@@ -39,7 +39,7 @@ namespace pviewer5
         public uint DestIP4 { get; set; }
         public uint OptionLen { get; set; }
 
-        public override string headerdisplayinfo
+        public override string displayinfo
         {
             get
             {

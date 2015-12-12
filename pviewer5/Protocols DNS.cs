@@ -29,7 +29,7 @@ namespace pviewer5
     // must also handle dns over tcp see rfc 5966
 
 
-    public class DNSRR
+    public class DNSRR : PVDisplayObject
     {
         public Packet mypkt;            // reference to packet that contains this RR, so we can access the name string data
         public uint NAME { get; set; }    // index into pkt.PData of beginning of NAME
@@ -78,14 +78,8 @@ namespace pviewer5
             }
         }
 
-        public string headerdisplayinfo
-        {
-            get
-            {
-                return "DNS RR, Name = " + NAMEString;
-            }
-        }
-
+        public override string displayinfo { get { return "DNS RR, Name = " + NAMEString; } }
+        
         public void Advanceposovername(byte[] d, ref uint pos)
         {
             while (true)        // this loop moves pos forward to byte after name field; names end with either a label of zero length or a pointer to elsewhere in the dns message
@@ -193,7 +187,7 @@ namespace pviewer5
         }
     }
 
-    public class DNSRRList
+    public class DNSRRList : PVDisplayObject
     {
         public List<DNSRR> Items { get; set; }
 
@@ -202,7 +196,7 @@ namespace pviewer5
             Items = new List<DNSRR>();
         }
 
-        public string headerdisplayinfo
+        public override string displayinfo
         {
             get
             {
@@ -244,7 +238,7 @@ namespace pviewer5
         public List<DNSRRList> RRs { get; set; } // outer list is questions, answers, authorities, additionals
 
         // define a property that will be used by the xaml data templates for the one-line display of this header in the tree
-        public override string headerdisplayinfo
+        public override string displayinfo
         {
             get
             {
@@ -323,7 +317,7 @@ namespace pviewer5
         public uint ID;
 
         // define a property that will be used by the xaml data templates for the one-line display of this header in the tree
-        public override string groupdisplayinfo
+        public override string displayinfo
         {
             get
             {
