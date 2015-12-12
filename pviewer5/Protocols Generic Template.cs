@@ -33,6 +33,7 @@ namespace pviewer5
 
         
         public virtual string headerdisplayinfo { get { return "Generic header"; } }
+        public virtual H self { get { return this; } }  // so that data bindings in data templates can have a path to the whole object
 
         public H()          // need a parameter-less constructor for sublcasses to inherit from ?????
         { }
@@ -165,8 +166,21 @@ namespace pviewer5
         }
     }
 
-    
-    
+
+
+    public class HdrMVC : IMultiValueConverter
+    {
+
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            return ((H)values[0]).headerdisplayinfo;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException("Cannot convert back");
+        }
+    }
 
 
 

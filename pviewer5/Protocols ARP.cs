@@ -35,14 +35,7 @@ namespace pviewer5
         public uint SenderProt { get; set; }
         public ulong TargetHW { get; set; }
         public uint TargetProt { get; set; }
-
-        public ARPH self {get; set; }
-   
-
-        public delegate string hdupdatertype();
-        public hdupdatertype hdupdater;
-        public string hdreturner() { return headerdisplayinfo; }
-
+  
         public override string headerdisplayinfo {
            get { 
                 if (Prot == 0x0800)     // IPv4
@@ -62,9 +55,6 @@ namespace pviewer5
 
         public ARPH(FileStream fs, PcapFile pfh, Packet pkt, uint i)
         {
-            hdupdater = hdreturner;
-            self = this;
-
             if ((pkt.Len - i) < 0x8) return;
             HWType = (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
             Prot = (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
@@ -201,53 +191,5 @@ namespace pviewer5
         }
     }
 
-    class ARPHMVC : IMultiValueConverter
-    {
-/*
-        BOOKMARK - WHY CAN'T I JUST PASS IN THE headerdisplayinfo PROPERTY AND FORCE IT TO RE-EVALUATE?
-            HOW ABOUT PASSING IN A REFERENCE TO IT?
-            OR PASS IN A DELEGATE THAT CALLS THE GETTER?
-
-    */
-
-
-
-        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
-        {
-            string s;
-
-            return ((ARPH)values[9]).headerdisplayinfo;
-
-            s =
-                "ARP Header: OpCode: " + GUIUtil.Instance.UIntToStringHex((uint)values[2],2)
-                + ", HWType: " + GUIUtil.Instance.UIntToStringHex((uint)values[3], 4)
-                + ", Prot: " + GUIUtil.Instance.UIntToStringHex((uint)values[4], 4);
-
-            switch ((uint)values[4])
-            {
-                case 0x800:
-                    s +=
-                        ", SenderHW " + MACUtil.Instance.MACToString((ulong)values[5])
-                            + ", Sender IP4 " + IP4Util.Instance.IP4ToString((uint)values[6])
-                            + ", TargetHW " + MACUtil.Instance.MACToString((ulong)values[7])
-                            + ", Target IP4 " + IP4Util.Instance.IP4ToString((uint)values[8]);
-                    break;
-                default:
-                    s +=
-                        ", SenderHW " + MACUtil.Instance.MACToString((ulong)values[5])
-                            + String.Format(", SenderProto {0:X8}", (ulong)values[6])
-                            + ", TargetHW " + MACUtil.Instance.MACToString((ulong)values[7])
-                            + String.Format(", TargetProto {0:X8}", (ulong)values[8]);
-                    break;
-            }
-       
-            return s;
-        }
-
-        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
-        {
-            throw new NotSupportedException("Cannot convert back");
-        }
-    }
 
 }
