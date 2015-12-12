@@ -193,11 +193,15 @@ namespace pviewer5
     }
 
     class ARPHMVC : IMultiValueConverter
-    // takes three arguments
-    // first is a string which is returned
-    // second and third are ignored, they only exist so that the 
-    // multibinding can also bind to the Hex and UseAliases global properties
     {
+
+        BOOKMARK - WHY CAN'T I JUST PASS IN THE headerdisplayinfo PROPERTY AND FORCE IT TO RE-EVALUATE?
+            HOW ABOUT PASSING IN A REFERENCE TO IT?
+            OR PASS IN A DELEGATE THAT CALLS THE GETTER?
+
+
+
+
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
