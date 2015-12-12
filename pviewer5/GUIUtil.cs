@@ -97,16 +97,16 @@ namespace pviewer5
 
     }
 
-    class HexMultiConverter : IMultiValueConverter
-    // three arguments:
-    // values[0] - value to be converted
-    // values[1] - ignored - needed so we have an argument to bind to Hex property on xaml side
-    // values[2] - fixed width value (0 for varible width)
+    class MultiConverterThreeArgs : IMultiValueConverter
+    // takes three arguments
+    // first is a string which is returned
+    // second and third are ignored, they only exist so that the 
+    // multibinding can also bind to the Hex and UseAliases global properties
     {
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            return GUIUtil.Instance.UIntToStringHex((uint)values[0], (int)values[2]);
+            return ((string)values[0]);
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)

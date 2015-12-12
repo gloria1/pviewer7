@@ -25,7 +25,20 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace pviewer5
 {
-    
+    public class IPAddr
+    {
+
+    }
+
+    public class IP4Addr : IPAddr
+    {
+
+    }
+
+
+
+
+
     public class IP4Util : INotifyPropertyChanged
     // class containing:
     //      utility functions related to IP4 addresses (value converters, etc.)

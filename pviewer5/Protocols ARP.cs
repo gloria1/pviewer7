@@ -33,23 +33,23 @@ namespace pviewer5
         public uint SenderProt { get; set; }
         public ulong TargetHW { get; set; }
         public uint TargetProt { get; set; }
-        public override string headerdisplayinfo
-        {
-            get
-            {
-                MACConverterNumberOrAlias mc = new MACConverterNumberOrAlias();
-                IP4ConverterNumberOrAlias ic = new IP4ConverterNumberOrAlias();
+
+        public override string headerdisplayinfo {
+           get { 
                 if (Prot == 0x0800)     // IPv4
-                    return String.Format("ARP OpCode: {0:X4}, HWType: {1:X4}, Prot {2:X4}", Opn, HWType, Prot);
+                    return String.Format("ARP OpCode: {0:X4}, HWType: {1:X4}, Prot {2:X4}", Opn, HWType, Prot)
+                            + ", SenderHW " + MACUtil.Instance.MACToString(SenderHW)
+                            + ", Sender IP4 " + IP4Util.Instance.IP4ToString(SenderProt)
+                            + ", TargetHW " + MACUtil.Instance.MACToString(TargetHW)
+                            + ", Target IP4 " + IP4Util.Instance.IP4ToString(TargetProt);
                 else
                     return String.Format("ARP OpCode: {0:X4}, HWType: {1:X4}, Prot {2:X4}", Opn, HWType, Prot)
-                            + ", SenderHW " + mc.Convert(SenderHW, null, null, null)
+                            + ", SenderHW " + MACUtil.Instance.MACToString(SenderHW)
                             + String.Format(", SenderProto {0:X8}", SenderProt)
-                            + ", TargetHW " + mc.Convert(TargetHW, null, null, null)
+                            + ", TargetHW " + MACUtil.Instance.MACToString(TargetHW)
                             + String.Format(", TargetProto {0:X8}", TargetProt);
             }
         }
-
 
         public ARPH(FileStream fs, PcapFile pfh, Packet pkt, uint i)
         {
