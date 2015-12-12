@@ -10,7 +10,7 @@
         <ObjectDataProvider x:Key="GUIUtilKey" ObjectType="{x:Type local:GUIUtil}"/>
         <ObjectDataProvider x:Key="IP4UtilKey" ObjectType="{x:Type local:IP4Util}"/>
         <ObjectDataProvider x:Key="MACUtilKey" ObjectType="{x:Type local:MACUtil}"/>
-        <local:MultiConverterThreeArgs x:Key="multiconverterthreeargs"/>
+        <local:ARPHMVC x:Key="arphmvc"/>
         <local:IP4MultiConverterNumberOrAlias x:Key="IP4multiconverternumberoralias"/>
         <local:MACMultiConverterNumberOrAlias x:Key="MACmulticonverternumberoralias"/>
 
@@ -24,10 +24,11 @@
         <DataTemplate DataType="{x:Type local:ARPH}">
             <TextBlock>
                 <TextBlock.Text>
-                    <MultiBinding Converter="{StaticResource multiconverterthreeargs}">
-                        <Binding Path="headerdisplayinfo"/>
+                    <MultiBinding Converter="{StaticResource arphmvc}">
                         <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
                         <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                        <Binding Path="HWType"/>
+                        <Binding Path="Prot"/>
                     </MultiBinding>
                 </TextBlock.Text>
             </TextBlock>
@@ -51,7 +52,7 @@
                     <TextBlock.Text>
                         <MultiBinding Converter="{StaticResource IP4multiconverternumberoralias}">
                             <Binding Path="SrcIP4"/>
-                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex"/>
                         </MultiBinding>
                     </TextBlock.Text>
                 </TextBlock>
