@@ -27,8 +27,13 @@
                     <MultiBinding Converter="{StaticResource arphmvc}">
                         <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
                         <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                        <Binding Path="Opn"/>
                         <Binding Path="HWType"/>
                         <Binding Path="Prot"/>
+                        <Binding Path="SenderHW"/>
+                        <Binding Path="SenderProt"/>
+                        <Binding Path="TargetHW"/>
+                        <Binding Path="TargetProt"/>
                     </MultiBinding>
                 </TextBlock.Text>
             </TextBlock>

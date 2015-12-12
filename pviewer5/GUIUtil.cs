@@ -87,7 +87,7 @@ namespace pviewer5
 
             if (width > 0)
             {
-                if (width > s.Length) s.PadLeft(width, '0');
+                if (width > s.Length) s=s.PadLeft(width, '0');
                 else s = s.Remove(0, (s.Length - width));
             }
 
@@ -97,24 +97,6 @@ namespace pviewer5
 
     }
 
-    class ARPHMVC : IMultiValueConverter
-    // takes three arguments
-    // first is a string which is returned
-    // second and third are ignored, they only exist so that the 
-    // multibinding can also bind to the Hex and UseAliases global properties
-    {
-
-        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
-        {
-            return
-                "HWType: " + GUIUtil.Instance.UIntToStringHex((uint)values[2], 4)
-                + ", Prot: " + GUIUtil.Instance.UIntToStringHex((uint)values[3], 4);
-        }
-
-        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
-        {
-            throw new NotSupportedException("Cannot convert back");
-        }
-    }
+  
     
 }

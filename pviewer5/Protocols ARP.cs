@@ -22,6 +22,8 @@ using Microsoft.Win32;
 
 namespace pviewer5
 {
+
+
     public class ARPH : H
     {
         public uint HWType { get; set; }
@@ -190,5 +192,46 @@ namespace pviewer5
         }
     }
 
+    class ARPHMVC : IMultiValueConverter
+    // takes three arguments
+    // first is a string which is returned
+    // second and third are ignored, they only exist so that the 
+    // multibinding can also bind to the Hex and UseAliases global properties
+    {
+
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            string s;
+            s =
+                "ARP Header: OpCode: " + GUIUtil.Instance.UIntToStringHex((uint)values[2],2)
+                + ", HWType: " + GUIUtil.Instance.UIntToStringHex((uint)values[3], 4)
+                + ", Prot: " + GUIUtil.Instance.UIntToStringHex((uint)values[4], 4);
+
+            switch ((uint)values[4])
+            {
+                case 0x800:
+                    s +=
+                        ", SenderHW " + MACUtil.Instance.MACToString((ulong)values[5])
+                            + ", Sender IP4 " + IP4Util.Instance.IP4ToString((uint)values[6])
+                            + ", TargetHW " + MACUtil.Instance.MACToString((ulong)values[7])
+                            + ", Target IP4 " + IP4Util.Instance.IP4ToString((uint)values[8]);
+                    break;
+                default:
+                    s +=
+                        ", SenderHW " + MACUtil.Instance.MACToString((ulong)values[5])
+                            + String.Format(", SenderProto {0:X8}", (ulong)values[6])
+                            + ", TargetHW " + MACUtil.Instance.MACToString((ulong)values[7])
+                            + String.Format(", TargetProto {0:X8}", (ulong)values[8]);
+                    break;
+            }
+       
+            return s;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException("Cannot convert back");
+        }
+    }
 
 }
