@@ -5,15 +5,8 @@
         Title="MainWindow">
 
     <Window.Resources>
-        <local:IP4ConverterNumberOrAlias x:Key="IP4converternumberoralias"/>
-        <local:MACConverterNumberOrAlias x:Key="MACconverternumberoralias"/>
         <ObjectDataProvider x:Key="GUIUtilKey" ObjectType="{x:Type local:GUIUtil}"/>
-        <ObjectDataProvider x:Key="IP4UtilKey" ObjectType="{x:Type local:IP4Util}"/>
-        <ObjectDataProvider x:Key="MACUtilKey" ObjectType="{x:Type local:MACUtil}"/>
         <local:DisplayInfoMVC x:Key="displayinfomvc"/>
-        <local:IP4MultiConverterNumberOrAlias x:Key="IP4multiconverternumberoralias"/>
-        <local:MACMultiConverterNumberOrAlias x:Key="MACmulticonverternumberoralias"/>
-
 
         <DataTemplate DataType="{x:Type local:H}">
             <TextBlock>
@@ -26,7 +19,6 @@
                 </TextBlock.Text>
             </TextBlock>
         </DataTemplate>
-
         <DataTemplate DataType="{x:Type local:DNSRR}">
             <TextBlock>
                 <TextBlock.Text>
@@ -38,7 +30,6 @@
                 </TextBlock.Text>
             </TextBlock>
         </DataTemplate>
-
         <HierarchicalDataTemplate DataType="{x:Type local:DNSRRList}"
                                   ItemsSource="{Binding Path=Items}">
             <TextBlock>
@@ -51,7 +42,6 @@
                 </TextBlock.Text>
             </TextBlock>
         </HierarchicalDataTemplate>
-
         <HierarchicalDataTemplate DataType="{x:Type local:DNSH}"
                                   ItemsSource="{Binding Path=RRs}">
             <TextBlock>
@@ -64,7 +54,6 @@
                 </TextBlock.Text>
             </TextBlock>
         </HierarchicalDataTemplate>
-
         <HierarchicalDataTemplate DataType="{x:Type local:Packet}"
                                   ItemsSource="{Binding Path=phlist}">
             <TextBlock>
@@ -77,7 +66,6 @@
                 </TextBlock.Text>
             </TextBlock>
         </HierarchicalDataTemplate>
-        
         <HierarchicalDataTemplate DataType="{x:Type local:G}"
                                   ItemsSource="{Binding Path=L}">
             <TextBlock>
@@ -90,7 +78,6 @@
                 </TextBlock.Text>
             </TextBlock>
         </HierarchicalDataTemplate>
-
         <HierarchicalDataTemplate DataType="{x:Type local:GList}"
                                   ItemsSource="{Binding Path=groups}">
             <TextBlock>
@@ -103,7 +90,6 @@
                 </TextBlock.Text>
             </TextBlock>
         </HierarchicalDataTemplate>
-
         <HierarchicalDataTemplate DataType="{x:Type local:Filter}"
                                   ItemsSource="{Binding Path=filterlist}">
             <WrapPanel Orientation="Horizontal">
@@ -115,7 +101,6 @@
         </HierarchicalDataTemplate>
         <DataTemplate DataType="{x:Type local:FilterItem}">
                 <TextBlock Text="{Binding Path=DisplayInfo}"/>
- 
         </DataTemplate>
 
 

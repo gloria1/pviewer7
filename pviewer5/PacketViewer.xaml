@@ -5,27 +5,74 @@
         Title="PacketViewer" Height="300" Width="700">
 
     <Window.Resources>
+        <ObjectDataProvider x:Key="GUIUtilKey" ObjectType="{x:Type local:GUIUtil}"/>
+        <local:DisplayInfoMVC x:Key="displayinfomvc"/>
+
+        <DataTemplate DataType="{x:Type local:H}">
+            <TextBlock>
+                <TextBlock.Text>
+                    <MultiBinding Converter="{StaticResource displayinfomvc}">
+                        <Binding Path="self"/>
+                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
+                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
+        </DataTemplate>
+
         <DataTemplate DataType="{x:Type local:PVHdrItem}">
             <StackPanel Orientation="Horizontal">
                 <CheckBox IsChecked="{Binding Path=IsChecked}"/>
-                <TextBlock Text="{Binding Path=Hdr.headerdisplayinfo}" />
+                <TextBlock>
+                    <TextBlock.Text>
+                        <MultiBinding Converter="{StaticResource displayinfomvc}">
+                            <Binding Path="Hdr.self"/>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
             </StackPanel>
         </DataTemplate>
         <DataTemplate DataType="{x:Type local:PVHdrItemDNS}">
             <StackPanel Orientation="Horizontal">
                 <CheckBox IsChecked="{Binding Path=IsChecked}"/>
                 <StackPanel Orientation="Vertical">
-                    <TextBlock Text="{Binding Path=Hdr.headerdisplayinfo}"/>
+                    <TextBlock>
+                        <TextBlock.Text>
+                            <MultiBinding Converter="{StaticResource displayinfomvc}">
+                                <Binding Path="Hdr.self"/>
+                                <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
+                                <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
                     <TreeView ItemsSource="{Binding Path=Hdr.RRs}"/>
                 </StackPanel>
             </StackPanel>
         </DataTemplate>
         <HierarchicalDataTemplate DataType="{x:Type local:DNSRRList}"
                                   ItemsSource="{Binding Path=Items}">
-            <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
+            <TextBlock>
+                <TextBlock.Text>
+                    <MultiBinding Converter="{StaticResource displayinfomvc}">
+                        <Binding Path="self"/>
+                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
+                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
         </HierarchicalDataTemplate>
         <DataTemplate DataType="{x:Type local:DNSRR}">
-            <TextBlock Text="{Binding Path=headerdisplayinfo}"/>
+            <TextBlock>
+                <TextBlock.Text>
+                    <MultiBinding Converter="{StaticResource displayinfomvc}">
+                        <Binding Path="self"/>
+                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
+                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
         </DataTemplate>
     </Window.Resources>
 

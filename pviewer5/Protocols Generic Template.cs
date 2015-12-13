@@ -170,7 +170,6 @@ namespace pviewer5
 
     public class DisplayInfoMVC : IMultiValueConverter
     {
-
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
             return ((PVDisplayObject)values[0]).displayinfo;
