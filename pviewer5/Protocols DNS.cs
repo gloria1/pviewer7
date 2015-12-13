@@ -45,39 +45,8 @@ namespace pviewer5
         public uint RDATA5 { get; set; }
         public uint RDATA6 { get; set; }
         public uint RDATA7 { get; set; }    // index into pkt.PData of beginning of first field of RDATA (how to resolve depends on TYPE)
-        public string NAMEString    // returns string form of domain name at pkt.PData[pos], resolving compression and putting in dots for separators
-        {
-            get
-            {
-
-                uint pos = NAME;
-                string d = "";
-                uint t;
-
-                if (mypkt.PData[pos] == 0) return "<root>"; // if NAME just points to a terminator, it is the root
-
-                while (mypkt.PData[pos] != 0)
-                {
-                    t = mypkt.PData[pos];
-                    switch (t & 0xc0)
-                    {
-                        case 0:     // name particle of length t, at t+1
-                            if (d.Length != 0) d += ".";    // if we are here, then there is a non-zero-length label to add to the domain name, so put in a dot separator
-                            d += System.Text.Encoding.Default.GetString(mypkt.PData, (int)pos + 1, (int)t);
-                            pos += (t + 1);
-                            break;
-                        case 0xc0:  // this is a pointer to somewhere else in the RR
-                            pos = (t & 0x3f) * 0x100 + (uint)mypkt.PData[pos + 1];
-                            break;
-                        default:    // this should never happen
-                            MessageBox.Show("Invalid compressed domain name particle in DNS RR");
-                            break;
-                    }
-                }
-                return d;
-            }
-        }
-
+        public string NAMEString { get; set; }   // returns string form of domain name at pkt.PData[pos], resolving compression and putting in dots for separators
+        
         public override string displayinfo { get { return "DNS RR, Name = " + NAMEString; } }
         
         public void Advanceposovername(byte[] d, ref uint pos)
@@ -102,6 +71,35 @@ namespace pviewer5
 
         }
 
+        string formnamestring()
+        {
+            uint pos = NAME;
+            string d = "";
+            uint t;
+            
+            if (mypkt.PData[pos] == 0) return "<root>"; // if NAME just points to a terminator, it is the root
+
+            while (mypkt.PData[pos] != 0)
+            {
+                 t = mypkt.PData[pos];
+                 switch (t & 0xc0)
+                 {
+                     case 0:     // name particle of length t, at t+1
+                         if (d.Length != 0) d += ".";    // if we are here, then there is a non-zero-length label to add to the domain name, so put in a dot separator
+                         d += System.Text.Encoding.Default.GetString(mypkt.PData, (int)pos + 1, (int)t);
+                         pos += (t + 1);
+                         break;
+                     case 0xc0:  // this is a pointer to somewhere else in the RR
+                         pos = (t & 0x3f) * 0x100 + (uint)mypkt.PData[pos + 1];
+                         break;
+                     default:    // this should never happen
+                         MessageBox.Show("Invalid compressed domain name particle in DNS RR");
+                         break;
+                  }
+            }
+            return d;
+        }
+
         public DNSRR(Packet pkt, ref uint pos, bool isquestion)    // if isquestion==true, process as a question entry (having only NAME, TYPE and CLASS fields)
         {
             mypkt = pkt;
@@ -117,6 +115,8 @@ namespace pviewer5
 
             TTL = (uint)pkt.PData[pos] * 0x1000000 + (uint)pkt.PData[pos + 1] * 0x10000 + (uint)pkt.PData[pos + 2] * 0x100 + (uint)pkt.PData[pos + 3]; pos += 4;
             RDLENGTH = (uint)pkt.PData[pos] * 0x100 + (uint)pkt.PData[pos + 1]; pos += 2;
+            NAMEString = formnamestring();
+
             switch (TYPE)
             {
                 case 1:         // A - a host address

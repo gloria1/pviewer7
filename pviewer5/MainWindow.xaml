@@ -19,6 +19,7 @@
                 </TextBlock.Text>
             </TextBlock>
         </DataTemplate>
+<!--
         <DataTemplate DataType="{x:Type local:DNSRR}">
             <TextBlock>
                 <TextBlock.Text>
@@ -30,8 +31,21 @@
                 </TextBlock.Text>
             </TextBlock>
         </DataTemplate>
+-->
+
+        <DataTemplate DataType="{x:Type local:DNSRR}">
+            <TextBlock>
+                <TextBlock.Text>
+                    <MultiBinding Converter="{StaticResource displayinfomvc}">
+                        <Binding Path="self"/>
+                        
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
+        </DataTemplate>
         <HierarchicalDataTemplate DataType="{x:Type local:DNSRRList}"
-                                  ItemsSource="{Binding Path=Items}">
+                                  ItemsSource="{Binding Path=Items}"
+>
             <TextBlock>
                 <TextBlock.Text>
                     <MultiBinding Converter="{StaticResource displayinfomvc}">
