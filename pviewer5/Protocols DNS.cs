@@ -32,22 +32,23 @@ namespace pviewer5
     public class DNSRR : PVDisplayObject
     {
         public Packet mypkt;            // reference to packet that contains this RR, so we can access the name string data
-        public uint NAME { get; set; }    // index into pkt.PData of beginning of NAME
+        public uint PDataIndex;         // index into mypkt.PData of beginning of DNS header - the NAME and RDATA values are relative to beginning of DNS header
+
+        public uint NAME { get; set; }    // index into DNS header of beginning of NAME
         public uint TYPE { get; set; }
         public uint CLASS { get; set; }
         // fields after this do not exist for "question" rr, but do exist for "answers"
         public uint TTL { get; set; }
         public uint RDLENGTH { get; set; }
-        public uint RDATA1 { get; set; }    // index into pkt.PData of beginning of first field of RDATA (how to resolve depends on TYPE)
+        public uint RDATA1 { get; set; }    // index into DNS header of beginning of first field of RDATA (how to resolve depends on TYPE)
         public uint RDATA2 { get; set; }
         public uint RDATA3 { get; set; }
-        public uint RDATA4 { get; set; }    // index into pkt.PData of beginning of first field of RDATA (how to resolve depends on TYPE)
+        public uint RDATA4 { get; set; }    // index into DNS header of beginning of first field of RDATA (how to resolve depends on TYPE)
         public uint RDATA5 { get; set; }
         public uint RDATA6 { get; set; }
-        public uint RDATA7 { get; set; }    // index into pkt.PData of beginning of first field of RDATA (how to resolve depends on TYPE)
-        public string NAMEString { get; set; }   // returns string form of domain name at pkt.PData[pos], resolving compression and putting in dots for separators
+        public uint RDATA7 { get; set; }    // index into DNS header of beginning of first field of RDATA (how to resolve depends on TYPE)
         
-        public override string displayinfo { get { return "DNS RR, Name = " + NAMEString; } }
+        public override string displayinfo { get { return "DNS RR, Name = " + formnamestring(NAME); } }
         
         public void Advanceposovername(byte[] d, ref uint pos)
         {
@@ -71,26 +72,26 @@ namespace pviewer5
 
         }
 
-        string formnamestring()
+        public string formnamestring(uint dnsindex)    // argument is index into dns record of start of domain name
         {
-            uint pos = NAME;
+            uint pdi = dnsindex + PDataIndex;   // pdi is the index into PData of the byte we are looking at
             string d = "";
             uint t;
             
-            if (mypkt.PData[pos] == 0) return "<root>"; // if NAME just points to a terminator, it is the root
+            if (mypkt.PData[pdi] == 0) return "<root>"; // if NAME just points to a terminator, it is the root
 
-            while (mypkt.PData[pos] != 0)
+            while (mypkt.PData[pdi] != 0)
             {
-                 t = mypkt.PData[pos];
+                 t = mypkt.PData[pdi];
                  switch (t & 0xc0)
                  {
                      case 0:     // name particle of length t, at t+1
                          if (d.Length != 0) d += ".";    // if we are here, then there is a non-zero-length label to add to the domain name, so put in a dot separator
-                         d += System.Text.Encoding.Default.GetString(mypkt.PData, (int)pos + 1, (int)t);
-                         pos += (t + 1);
+                         d += System.Text.Encoding.Default.GetString(mypkt.PData, (int)pdi + 1, (int)t);
+                         pdi += (t + 1);
                          break;
                      case 0xc0:  // this is a pointer to somewhere else in the RR
-                         pos = (t & 0x3f) * 0x100 + (uint)mypkt.PData[pos + 1];
+                         pdi = (t & 0x3f) * 0x100 + (uint)mypkt.PData[pdi + 1] + PDataIndex;
                          break;
                      default:    // this should never happen
                          MessageBox.Show("Invalid compressed domain name particle in DNS RR");
@@ -100,11 +101,12 @@ namespace pviewer5
             return d;
         }
 
-        public DNSRR(Packet pkt, ref uint pos, bool isquestion)    // if isquestion==true, process as a question entry (having only NAME, TYPE and CLASS fields)
+        public DNSRR(Packet pkt, ref uint pos, bool isquestion, uint dnsindex)    // if isquestion==true, process as a question entry (having only NAME, TYPE and CLASS fields)
         {
             mypkt = pkt;
+            PDataIndex = dnsindex;
 
-            NAME = pos;
+            NAME = pos - PDataIndex;
 
             Advanceposovername(pkt.PData, ref pos);
 
@@ -115,7 +117,6 @@ namespace pviewer5
 
             TTL = (uint)pkt.PData[pos] * 0x1000000 + (uint)pkt.PData[pos + 1] * 0x10000 + (uint)pkt.PData[pos + 2] * 0x100 + (uint)pkt.PData[pos + 3]; pos += 4;
             RDLENGTH = (uint)pkt.PData[pos] * 0x100 + (uint)pkt.PData[pos + 1]; pos += 2;
-            NAMEString = formnamestring();
 
             switch (TYPE)
             {
@@ -123,15 +124,15 @@ namespace pviewer5
                     RDATA1 = (uint)pkt.PData[pos] * 0x1000000 + (uint)pkt.PData[pos + 1] * 0x10000 + (uint)pkt.PData[pos + 2] * 0x100 + (uint)pkt.PData[pos + 3]; pos += 4;  // A - internet address (ipv4)
                     break;
                 case 2:         // NS - an authoritative name server
-                    RDATA1 = pos; pos += RDLENGTH;
+                    RDATA1 = pos - PDataIndex; pos += RDLENGTH;
                     break;
                 case 5:         // CNAME - the canonical name for an alias
-                    RDATA1 = pos; pos += RDLENGTH;
+                    RDATA1 = pos - PDataIndex; pos += RDLENGTH;
                     break;
                 case 6:         // SOA - start of zone of authority
-                    RDATA1 = pos;        // MNAME - name server that was the original or primary source of data for this zone
+                    RDATA1 = pos - PDataIndex;        // MNAME - name server that was the original or primary source of data for this zone
                     Advanceposovername(pkt.PData, ref pos);
-                    RDATA2 = pos;        // RNAME - mailbox of person responsible for this zone
+                    RDATA2 = pos - PDataIndex;        // RNAME - mailbox of person responsible for this zone
                     Advanceposovername(pkt.PData, ref pos);
                     RDATA3 = (uint)pkt.PData[pos] * 0x1000000 + (uint)pkt.PData[pos + 1] * 0x10000 + (uint)pkt.PData[pos + 2] * 0x100 + (uint)pkt.PData[pos + 3]; pos += 4;  // SERIAL - version number of the original copy of the zone
                     RDATA4 = (uint)pkt.PData[pos] * 0x1000000 + (uint)pkt.PData[pos + 1] * 0x10000 + (uint)pkt.PData[pos + 2] * 0x100 + (uint)pkt.PData[pos + 3]; pos += 4;  // REFRESH - time (seconds) before zone should be refreshed
@@ -140,13 +141,13 @@ namespace pviewer5
                     RDATA7 = (uint)pkt.PData[pos] * 0x1000000 + (uint)pkt.PData[pos + 1] * 0x10000 + (uint)pkt.PData[pos + 2] * 0x100 + (uint)pkt.PData[pos + 3]; pos += 4;  // MINIMUM - TTL that should apply to any RR from this zone
                     break;
                 case 7:         // MB - mailbox domain name
-                    RDATA1 = pos; pos += RDLENGTH;
+                    RDATA1 = pos - PDataIndex; pos += RDLENGTH;
                     break;
                 case 8:         // MG - mail group member
-                    RDATA1 = pos; pos += RDLENGTH;
+                    RDATA1 = pos - PDataIndex; pos += RDLENGTH;
                     break;
                 case 9:         // MR - mail rename domain name
-                    RDATA1 = pos; pos += RDLENGTH;
+                    RDATA1 = pos - PDataIndex; pos += RDLENGTH;
                     break;
                 case 0x0a:         // NULL - a null RR
                     pos += RDLENGTH;
@@ -158,21 +159,21 @@ namespace pviewer5
                     pos += RDLENGTH - 5;
                     break;
                 case 0x0c:         // PTR - domain name pointer
-                    RDATA1 = pos; pos += RDLENGTH;
+                    RDATA1 = pos - PDataIndex; pos += RDLENGTH;
                     break;
                 case 0x0d:         // HINFO - host information
                     RDATA1 = pos; pos += pkt.PData[pos];   // CPU - character string (first byte is length, no null terminator)
                     RDATA2 = pos; pos += pkt.PData[pos];   // OS - character string (first byte is length, no null terminator)
                     break;
                 case 0x0e:         // MINFO - mailbox or mail list information
-                    RDATA1 = pos;
+                    RDATA1 = pos - PDataIndex;
                     while (pkt.PData[pos] > 0) pos++;
-                    RDATA2 = pos;
+                    RDATA2 = pos - PDataIndex;
                     while (pkt.PData[pos] > 0) pos++;
                     break;
                 case 0x0f:         // MX - mail exchange
                     RDATA1 = (uint)pkt.PData[pos] * 0x100 + (uint)pkt.PData[pos + 1];
-                    RDATA2 = pos + 2;
+                    RDATA2 = pos - PDataIndex + 2;
                     pos += RDLENGTH;
                     break;
                 case 0x10:         // TXT - text strings
@@ -181,7 +182,7 @@ namespace pviewer5
                 case 3:         // MD - a mail destination (OBSOLETE per rfc 1035)
                 case 4:         // MF - a mail forwarder (obsolete per rfc 1035) 
                 default:
-                    MessageBox.Show("Unhandled DNS RR Type");
+                    MessageBox.Show("Obsolete DNS RR Type - why are we receiving this?");
                     break;
             }
         }
@@ -209,7 +210,6 @@ namespace pviewer5
     public class DNSH : H
     {
         // define the fields of the header itself
-        // OBSOLETE - NAME ENTRIES WILL BE INDICES INTO pkt.PData       public byte[] dnsdata { get; set; } // this will contain the raw bytes of the whole DNS message - name entries will consist of pointers into this array, name entries that contain pointers to other names in the dns header can be resolved
         public uint Len { get; set; }
 
         public uint ID { get; set; }
@@ -248,6 +248,9 @@ namespace pviewer5
 
         public DNSH(FileStream fs, PcapFile pfh, Packet pkt, uint i)
         {
+            uint pdataindex;  // index into PData of start of this header - used to convert RDATA values, which are indexed relative to start of DNS header, into indices into PData
+            pdataindex = (uint)(pkt.phlist[pkt.phlist.Count() - 1]).payloadindex;
+
             Len = (uint)(pkt.phlist[pkt.phlist.Count() - 1]).payloadlen;
 
             // if not enough data remaining, return without reading anything 
@@ -272,7 +275,7 @@ namespace pviewer5
             RRs = new List<DNSRRList>();
             RRs.Add(new DNSRRList());    // add empty list to containt the questions
 
-            for (int ii = 0; ii < QDCOUNT; ii++) RRs[0].Items.Add(new DNSRR(pkt, ref i, true));
+            for (int ii = 0; ii < QDCOUNT; ii++) RRs[0].Items.Add(new DNSRR(pkt, ref i, true, pdataindex));
 
 
             //ffadfdadfadd
@@ -286,11 +289,11 @@ namespace pviewer5
 
 
             RRs.Add(new DNSRRList());
-            for (int ii = 0; ii < ANCOUNT; ii++) RRs[1].Items.Add(new DNSRR(pkt, ref i, false));
+            for (int ii = 0; ii < ANCOUNT; ii++) RRs[1].Items.Add(new DNSRR(pkt, ref i, false, pdataindex));
             RRs.Add(new DNSRRList());
-            for (int ii = 0; ii < NSCOUNT; ii++) RRs[2].Items.Add(new DNSRR(pkt, ref i, false));
+            for (int ii = 0; ii < NSCOUNT; ii++) RRs[2].Items.Add(new DNSRR(pkt, ref i, false, pdataindex));
             RRs.Add(new DNSRRList());
-            for (int ii = 0; ii < ARCOUNT; ii++) RRs[3].Items.Add(new DNSRR(pkt, ref i, false));
+            for (int ii = 0; ii < ARCOUNT; ii++) RRs[3].Items.Add(new DNSRR(pkt, ref i, false, pdataindex));
 
             if (i != pkt.Len) MessageBox.Show("Did Not Read DNS record properly?  i != pkt.Len");
 
@@ -326,7 +329,8 @@ namespace pviewer5
                 foreach (H h in L[0].phlist)
                     if (h.headerprot == Protocols.DNS)
                     {
-                        s = ((DNSH)h).RRs[0].Items[0].NAMEString;
+                        DNSRR rr = (DNSRR)(((DNSH)h).RRs[0].Items[0]);
+                        s = rr.formnamestring(rr.NAME);
                         break;
                     }
 
