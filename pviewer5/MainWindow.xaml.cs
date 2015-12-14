@@ -97,27 +97,25 @@ namespace pviewer5
 
 
 
+    // next
+    //  filter implementation
+    //      gui - add filter and filteritems to list
+    //      buttons and commands to save/load filtersets
+    //      autosave filterset on window close, autoreload on startup
+    //      add button to clear filter
+    //      commands to apply filters, reload file reflecting filters
+
 
 	public partial class MainWindow : Window
 	{
         public PacketViewer pview;
         public ObservableCollection<Packet> pkts { get; set; }
-        // line below is deprecated
-        // public ObservableCollection<Packet> exclpkts { get; set; }
         public FilterSet filters { get; set; }
         public ObservableCollection<GList> grouplistlist { get; set; }
         
-    //    public static DataGrid PacketDG;    // copy of packet data grid reference, static so that other classes can refer to it
-	// TEMPORARY - PROVISION FOR VIEWING QF EXLUDED PACKETS
-		// WHEN NO LONGER NEEDED, ALSO DELETE
-		//		CODE IN ETHER AND IP4 HEADER STATIC CONSTRUCTORS THAT CREATES THE EXTRA HF ENTRIES
-		//public static DataGrid ExclDG;    // copy of packet data grid reference, static so that other classes can refer to it
-		
 		public MainWindow()
 		{
             pkts = new ObservableCollection<Packet>();
-            // line below is deprecated
-            // exclpkts = new ObservableCollection<Packet>();
 
             filters = new FilterSet();
 
@@ -130,11 +128,9 @@ namespace pviewer5
             grouplistlist.Add(new GList("Ungrouped Packets"));
             
             InitializeComponent();
+            
 
 			grid.DataContext = this;
-			//QFExclGrid.DataContext = qfexcluded;
-			//PacketDG = PacketDataGrid;
-			//ExclDG = QFExclGrid;
 
             // try to restore window position and other settings - see "Programing WPF Second Edition" page 321
             try
@@ -158,8 +154,6 @@ namespace pviewer5
 
         void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            filters.SaveToDisk(null);
-
             Properties.Settings.Default.WindowPositionMain = this.RestoreBounds;
             Properties.Settings.Default.Hex = GUIUtil.Instance.Hex;
             Properties.Settings.Default.UseAliases = GUIUtil.Instance.UseAliases;
@@ -276,8 +270,39 @@ namespace pviewer5
                 // IF IT IS A PACKET, OPEN PACKET VIEW WINDOW ON IT
         }
 
-	}
-    
+        private void filter_addfilter(object sender, RoutedEventArgs e)
+        {
+            filters.Filters.Insert(filters.Filters.Count-1,new Filter(filters));
+        }
+
+        private void filter_moveup(object sender, RoutedEventArgs e)
+        {
+            Filter self = (Filter)(((Button)sender).DataContext);
+            int i = self.Parent.Filters.IndexOf(self);
+            if (i == 0) return; // do nothing if already first item
+            self.Parent.Filters.Move(i, i - 1);
+            return;
+        }
+        private void filter_movedown(object sender, RoutedEventArgs e)
+        {
+            Filter self = (Filter)(((Button)sender).DataContext);
+            int i = self.Parent.Filters.IndexOf(self);
+            if (i == self.Parent.Filters.Count-2) return; // do nothing if already the last item
+            self.Parent.Filters.Move(i, i + 1);
+            return;
+        }
+        private void filter_delete(object sender, RoutedEventArgs e)
+        {
+            Filter self = (Filter)(((Button)sender).DataContext);
+            int i = self.Parent.Filters.IndexOf(self);
+            self.Parent.Filters.RemoveAt(i);
+            return;
+        }
+        private void filter_addfilteritem(object sender, RoutedEventArgs e)
+        {
+        }
+    }
+
 
 
 }

@@ -38,8 +38,6 @@ namespace pviewer5
         private bool _usealiases;
         public bool UseAliases { get { return _usealiases; } set { _usealiases = value; NotifyPropertyChanged(); } }
 
-        public int WidthFour {get;} = 4;
-
         // private constructor below was set up per the "singleton" pattern, so that no further instances of this class could be created
         // however, for some reason this caused the data binding to IP4Hex to stop working, so i have commented this out
         /* private GUIUtil()

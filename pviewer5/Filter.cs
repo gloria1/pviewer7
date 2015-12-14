@@ -44,6 +44,7 @@ namespace pviewer5
             ChangedSinceApplied = false;
             ChangedSinceSave = false;
             Filters = new ObservableCollection<Filter>();
+            Filters.Add(new FilterAddItem());
             if (fn != null)
             {
                 // do stuff to load a file
@@ -137,6 +138,15 @@ namespace pviewer5
 
     }
 
+    public class FilterAddItem : Filter
+    // special item, of which there will always be exactly one at the end of the filterset
+    // purpose is to have a data template that will show an add button at the end of the filterset list in the gui
+    {
+        public FilterAddItem()
+        {
+            Active = false;   // so it will be ignored in any filter testing
+        }
+    }
 
     [Serializable]
     public class Filter : INotifyPropertyChanged
@@ -162,7 +172,7 @@ namespace pviewer5
         {
             get
             {
-                return String.Format("Filter with {0} items", filterlist.Count());
+                return String.Format("Filter with {0} items", filterlist.Count()-1);
             }
         }
 
@@ -173,6 +183,7 @@ namespace pviewer5
             Active = true;
             InclusionFilter = true;
             filterlist = new ObservableCollection<FilterItem>();
+            filterlist.Add(new FilterItemAddItem());
             Parent = parent;
         }
 
@@ -194,7 +205,21 @@ namespace pviewer5
             }
         }
 
+
     }
+
+    public class FilterItemAddItem : FilterItem
+    // special item, of which there will always be exactly one at the end of the filterset
+    // purpose is to have a data template that will show an add button at the end of the filterset list in the gui
+    {
+        public FilterItemAddItem()
+        {
+            Value = 0;   // so it will always return a match in any filter testing
+            Mask = 0;
+            Relation = Relations.Equal;
+        }
+    }
+
 
     [Serializable]
     public class FilterItem

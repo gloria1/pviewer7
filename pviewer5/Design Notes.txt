@@ -2,7 +2,6 @@
 
 next:
 
-
 	FIGURE OUT HOW TO HANDLE THE PACKET VIEWER WINDOW CLOSING - EITHER PREVENT IT, OR LET THE MAINWINDOW KNOW 
 
 
@@ -72,9 +71,6 @@ next:
 		make the list be representalbe as a simple text file, so they can be exhanged with the linux c-based packet capture tool
 
 
-
-
-make header fields not be properties (save overhead?)
 
 perf analysis - is grouping logic still the hot spot?
 	can just test by commenting out various groupings

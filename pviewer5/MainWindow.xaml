@@ -19,20 +19,6 @@
                 </TextBlock.Text>
             </TextBlock>
         </DataTemplate>
-<!--
-        <DataTemplate DataType="{x:Type local:DNSRR}">
-            <TextBlock>
-                <TextBlock.Text>
-                    <MultiBinding Converter="{StaticResource displayinfomvc}">
-                        <Binding Path="self"/>
-                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
-                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
-                    </MultiBinding>
-                </TextBlock.Text>
-            </TextBlock>
-        </DataTemplate>
--->
-
         <DataTemplate DataType="{x:Type local:DNSRR}">
             <TextBlock>
                 <TextBlock.Text>
@@ -104,20 +90,29 @@
                 </TextBlock.Text>
             </TextBlock>
         </HierarchicalDataTemplate>
+
         <HierarchicalDataTemplate DataType="{x:Type local:Filter}"
                                   ItemsSource="{Binding Path=filterlist}">
             <WrapPanel Orientation="Horizontal">
                 <CheckBox IsChecked="{Binding Path=Active}"/>
                 <Label Content="Active"/>
                 <Label Content="{Binding Path=DisplayInfo}"/>
-                <CheckBox IsChecked="{Binding Source={StaticResource GUIUtilKey}, Path=Instance.Hex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                <Button Content="Add Item" HorizontalAlignment="Right" Click="filter_addfilteritem"/>
+                <Button Content="Up" HorizontalAlignment="Right" Click="filter_moveup"/>
+                <Button Content="Dn" HorizontalAlignment="Right" Click="filter_movedown"/>
+                <Button Content="X" HorizontalAlignment="Right" Click="filter_delete"/>
             </WrapPanel>
         </HierarchicalDataTemplate>
+        <DataTemplate DataType="{x:Type local:FilterAddItem}">
+            <Button Content="Add Filter" Click="filter_addfilter"/>
+        </DataTemplate>
+
         <DataTemplate DataType="{x:Type local:FilterItem}">
                 <TextBlock Text="{Binding Path=DisplayInfo}"/>
         </DataTemplate>
-
-
+        <DataTemplate DataType="{x:Type local:FilterItemAddItem}">
+            <Button Content="Add Filter Item"/>
+        </DataTemplate>
 
     </Window.Resources>
 
@@ -203,22 +198,23 @@
                     <Button
                         Content="Reload PCAP File"
                         IsEnabled="False"/>
-                    <Button Content="Add Filter"/>
                     <Button Content="Load Filter Set"/>
                     <Button
                         Content="Save Filter Set"
                         IsEnabled="{Binding Path=filters.ChangedSinceSave}"/>
                     <Label Content="Current File= "/>
+                    <Button Content="Clear Filter Set"/>
                     <Label Name="filtersetfilename"
                            Content="{Binding Path=filters.Filename}"
                         MinWidth="100"/>
                     
                 </WrapPanel>
-                <TreeView Name="filtertree"
+                <ListView Name="filtertree"
                         VirtualizingPanel.IsVirtualizing="True"
                         VirtualizingPanel.VirtualizationMode="Recycling"
                         ItemsSource="{Binding Path=filters.Filters}">
-                </TreeView>
+                </ListView>
+
             </WrapPanel>
         </GroupBox>
 
