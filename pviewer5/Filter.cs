@@ -183,7 +183,7 @@ namespace pviewer5
             Active = true;
             InclusionFilter = true;
             filterlist = new ObservableCollection<FilterItem>();
-            filterlist.Add(new FilterItemAddItem());
+            filterlist.Add(new FilterItemAddItem(this));
             Parent = parent;
         }
 
@@ -212,11 +212,12 @@ namespace pviewer5
     // special item, of which there will always be exactly one at the end of the filterset
     // purpose is to have a data template that will show an add button at the end of the filterset list in the gui
     {
-        public FilterItemAddItem()
+        public FilterItemAddItem(Filter parent)
         {
             Value = 0;   // so it will always return a match in any filter testing
             Mask = 0;
             Relation = Relations.Equal;
+            Parent = parent;
         }
     }
 
@@ -227,6 +228,7 @@ namespace pviewer5
         public uint Value {get; set;}
         public uint Mask { get; set; }     // bit mask applied to Value and to the packet being tested
         public Relations Relation { get; set; }
+        public Filter Parent { get; set; } = null;
         public string DisplayInfo
         {
             get
@@ -268,15 +270,14 @@ namespace pviewer5
 
         }
 
-        public FilterItem() : this(0, 0, Relations.Undefined) { }
-        public FilterItem(uint value, uint mask, Relations rel)
+        public FilterItem() : this(0, 0, Relations.Undefined, null) { }
+        public FilterItem(uint value, uint mask, Relations rel, Filter parent)
         {
             Value = value;
             Mask = mask;
             Relation = rel;
+            Parent = parent;
         }
-
-
     }
 
     public enum Relations : int

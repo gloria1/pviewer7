@@ -273,6 +273,7 @@ namespace pviewer5
         private void filter_addfilter(object sender, RoutedEventArgs e)
         {
             filters.Filters.Insert(filters.Filters.Count-1,new Filter(filters));
+            return;
         }
 
         private void filter_moveup(object sender, RoutedEventArgs e)
@@ -298,9 +299,15 @@ namespace pviewer5
             self.Parent.Filters.RemoveAt(i);
             return;
         }
-        private void filter_addfilteritem(object sender, RoutedEventArgs e)
+        private void filteritem_addfilteritem(object sender, RoutedEventArgs e)
         {
+            // FilterItems need parent property to find the Filter they belong to
+            Filter parent = ((FilterItem)(((Button)sender).DataContext)).Parent;
+            parent.filterlist.Add(new FilterItem(0, 0, Relations.Equal, parent));
+
+            return;
         }
+        
     }
 
 
