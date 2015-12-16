@@ -26,7 +26,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 namespace pviewer5
 {
     
-    public class MACUtil : INotifyPropertyChanged
+    public class MACUtil
     // class containing:
     //      utility functions related to MAC addresses (value converters, etc.)
     //      global state variables for whether to show aliases
@@ -60,17 +60,6 @@ namespace pviewer5
         {
             return;
         }*/
-
-        // implement INotifyPropertyChanged
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void NotifyPropertyChanged(String propertyName = "")
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
-
 
         [Serializable]
         public class macnamemapclass : Dictionary<ulong, string>

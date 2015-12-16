@@ -6,8 +6,21 @@
         Title="MainWindow">
 
     <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Margin" Value=" 7"/>
+            <Setter Property="FontSize" Value="10"/>
+        </Style>
+        <Style TargetType="TreeView">
+            <Setter Property="MinHeight" Value=" 70"/>
+        </Style>
+        <Style TargetType="GroupBox">
+            <Setter Property="Header" Value=" 10"/>
+        </Style>
+
         <ObjectDataProvider x:Key="GUIUtilKey" ObjectType="{x:Type local:GUIUtil}"/>
         <local:DisplayInfoMVC x:Key="displayinfomvc"/>
+        <local:IP4ConverterNumberOrAlias x:Key="IP4converternumberoralias"/>
+        <local:IP4MultiConverterNumberOrAlias x:Key="IP4multiconverternumberoralias"/>
 
         <DataTemplate DataType="{x:Type local:H}">
             <TextBlock>
@@ -118,7 +131,20 @@
                 <ComboBox ItemsSource="{Binding Source={StaticResource dataFromEnum}}" SelectedItem="{Binding Path=Relation}"/>
                 <TextBox Text=" "/>
                 <TextBlock Text="Value: "/>
-                <TextBox Text="{Binding Path=Value}"/>
+                <TextBox>
+                    <TextBox.Text>
+                        <MultiBinding Converter="{StaticResource IP4multiconverternumberoralias}">
+                            <Binding Path="Value">
+                                <Binding.ValidationRules>
+                                    <local:ValidateIP4Number/>
+                                </Binding.ValidationRules>
+                            </Binding>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                        </MultiBinding>
+
+                    </TextBox.Text>
+                </TextBox>
                 <TextBlock Text=" Mask: "/>
                 <TextBox Text="{Binding Path=Mask}"/>
             </WrapPanel>

@@ -39,10 +39,9 @@ namespace pviewer5
 
 
 
-    public class IP4Util : INotifyPropertyChanged
+    public class IP4Util
     // class containing:
     //      utility functions related to IP4 addresses (value converters, etc.)
-    //      global state variables for whether to show them in hex and whether to show aliases
     // this is implemented as a dynamic class as a Singleton, i.e., there can only ever be one instance
     // this is because static classes cannot implement interfaces (or at least INotifyPropertyChanged)
     {
@@ -61,16 +60,6 @@ namespace pviewer5
         {
             return;
         }*/
-
-        // implement INotifyPropertyChanged
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void NotifyPropertyChanged(String propertyName = "")
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
 
         public uint? StringToIP4(string s)
         // converts string to numerical IP4 value
@@ -282,7 +271,29 @@ namespace pviewer5
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
-            throw new NotSupportedException("Cannot convert back");
+            uint? u;
+            object[] v = new object[1];
+            
+            // first try to parse as a raw IP4 address
+            u = IP4Util.Instance.StringToIP4((string)value);
+            if (u != null)
+            {
+                v[0] = (uint)u;
+                return v;
+            }
+
+            // if that failed, see if string exists in IP4namemap
+            foreach (uint uu in IP4Util.Instance.map.Keys)
+                if ((string)value == IP4Util.Instance.map[uu])
+                {
+                    v[0] = uu;
+                    return v;
+                }
+ 
+            // we should never get to this point, since validation step will not pass unless value is either valid raw IP4 or existing entry in IP4namemap
+            // however, just in case put up a messagebox and return 0
+            MessageBox.Show("ConvertBack could not process as either raw IP4 address or entry in IP4namemap.  Why did this pass validation????");
+            v[0] = 0; return v;
         }
     }
 
