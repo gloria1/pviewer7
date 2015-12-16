@@ -2,6 +2,24 @@
 
 next:
 
+	filter gui behaviors
+		tabs cycle through controls, including textboxes and combo in edit items, and add buttons
+			but excluding teh up/down/delete buttons
+		tabbing into a control puts it in edit mode
+		tabbing out saves changes
+		pressing enter saves changes
+		going into edit mode selects all text
+		text entry:
+			mask and value display as ip4
+			can accept decimal or hex input
+			dot notation is required
+				but tolerate missing elements 
+					e.g., can enter 192.
+					e.g., can enter 192...1
+					missing bits filled with zeros
+
+
+
 	FIGURE OUT HOW TO HANDLE THE PACKET VIEWER WINDOW CLOSING - EITHER PREVENT IT, OR LET THE MAINWINDOW KNOW 
 
 
