@@ -303,7 +303,7 @@ namespace pviewer5
         {
             // FilterItems need parent property to find the Filter they belong to
             Filter parent = ((FilterItem)(((Button)sender).DataContext)).Parent;
-            parent.filterlist.Add(new FilterItem(0, 0, Relations.Equal, parent));
+            parent.filterlist.Insert(parent.filterlist.Count-1, new FilterItem(0, 0, Relations.Equal, parent));
 
             return;
         }

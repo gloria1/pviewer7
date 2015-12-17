@@ -6,6 +6,7 @@
         Title="MainWindow">
 
     <Window.Resources>
+         
         <Style TargetType="Button">
             <Setter Property="Margin" Value=" 7"/>
             <Setter Property="FontSize" Value="10"/>
@@ -107,7 +108,8 @@
 
         <HierarchicalDataTemplate DataType="{x:Type local:Filter}"
                                   ItemsSource="{Binding Path=filterlist}">
-            <WrapPanel Orientation="Horizontal">
+            <WrapPanel Orientation="Horizontal"
+                KeyboardNavigation.TabNavigation="None">
                 <CheckBox IsChecked="{Binding Path=Active}"/>
                 <Label Content="Active"/>
                 <Label Content="{Binding Path=DisplayInfo}"/>
@@ -127,8 +129,9 @@
         </ObjectDataProvider>
 
         <DataTemplate DataType="{x:Type local:FilterItem}">
-            <WrapPanel Orientation="Horizontal">
-                <ComboBox ItemsSource="{Binding Source={StaticResource dataFromEnum}}" SelectedItem="{Binding Path=Relation}"/>
+            <WrapPanel Orientation="Horizontal"
+                KeyboardNavigation.TabNavigation="Cycle">
+                <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnum}}" SelectedItem="{Binding Path=Relation}"/>
                 <TextBox Text=" "/>
                 <TextBlock Text="Value: "/>
                 <TextBox>
@@ -142,7 +145,6 @@
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
                         </MultiBinding>
-
                     </TextBox.Text>
                 </TextBox>
                 <TextBlock Text=" Mask: "/>
@@ -159,7 +161,9 @@
     </Window.Resources>
 
     <Grid Name="grid"
-          Margin="20,20,20,20">
+            KeyboardNavigation.TabNavigation="None"
+            KeyboardNavigation.ControlTabNavigation="None"
+            Margin="20,20,20,20">
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
             <ColumnDefinition/>
@@ -187,10 +191,6 @@
                    Grid.Column="1"
                    Grid.Row="0"
                    Margin="5,5,5,5">
-<!-- QUICKFILTER IS DEPRECATED
-            <Button Content="Quick Filter"
-                    Click="qfbutton"/>
--->
             <Button Content="MAC Aliases"
                     Click="mnmbutton"/>
             <Button Content="IP4 Aliases"
@@ -226,6 +226,7 @@
         </GroupBox>
 
         <GroupBox Header="Filters"
+                  KeyboardNavigation.TabNavigation="Cycle"
                   Name="filterviewbox"
                   Grid.Column="0"
                   Grid.ColumnSpan="2"
@@ -252,7 +253,8 @@
                     
                 </WrapPanel>
                 <TreeView Name="filtertree"
-                        VirtualizingPanel.IsVirtualizing="True"
+                       KeyboardNavigation.TabNavigation="Cycle"
+                       VirtualizingPanel.IsVirtualizing="True"
                         VirtualizingPanel.VirtualizationMode="Recycling"
                         ItemsSource="{Binding Path=filters.Filters}">
                 </TreeView>
@@ -265,7 +267,7 @@
 
 </Window>
 
-        <!--  QUICKFILTER DATAGRID IS DEPRECATED - DELETE IF WE DON'T GO BACK TO USING THIS AFTER NEW FILTER MECHANIC IS IMPLEMENTED
+        <!--  QUICKFILTER DATAGRID IS DEPRECATED - KEEP AS AN EXAMPLE OF DATAGRID PATTERNS
         <GroupBox Header="Packets Excluded by QuickFilter"
                   Name="qfexcldg"
                   Grid.Column="0"  
