@@ -307,7 +307,15 @@ namespace pviewer5
 
             return;
         }
-        
+        private void filteritem_delete(object sender, RoutedEventArgs e)
+        {
+            FilterItem self = (FilterItem)(((Button)sender).DataContext);
+            Filter parent = ((FilterItem)(((Button)sender).DataContext)).Parent;
+            int i = parent.filterlist.IndexOf(self);
+            parent.filterlist.RemoveAt(i);
+            return;
+        }
+
     }
 
 

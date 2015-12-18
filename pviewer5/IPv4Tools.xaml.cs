@@ -25,19 +25,6 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace pviewer5
 {
-    public class IPAddr
-    {
-
-    }
-
-    public class IP4Addr : IPAddr
-    {
-
-    }
-
-
-
-
 
     public class IP4Util
     // class containing:
@@ -109,6 +96,22 @@ namespace pviewer5
             return s;
         }
 
+
+        public string IP4ToStringInverse(uint value)
+        {
+            uint[] b = new uint[4];
+            string s;
+
+            b[0] = ((value & 0xff000000) / 0x1000000);
+            b[1] = ((value & 0xff0000) / 0x10000);
+            b[2] = ((value & 0xff00) / 0x100);
+            b[3] = ((value & 0xff) / 0x1);
+
+            if (GUIUtil.Instance.Hex) s = String.Format("{0:x2}.{1:x2}.{2:x2}.{3:x2}", b[0], b[1], b[2], b[3]);
+            else s = String.Format("{0}.{1}.{2}.{3}", b[0], b[1], b[2], b[3]);
+
+            return s;
+        }
 
         [Serializable]
         public class IP4namemapclass : Dictionary<uint, string>
@@ -257,6 +260,25 @@ namespace pviewer5
         }
     }
 
+    public class IP4ConverterNumberOrAliasInverse : IValueConverter
+    // same as IP4ConverterNumberOrAlias except reflects the inverse of the UseAliases property - to feed tooltips
+    {
+        // converts number to/from display format IP4 address, including translating aliases
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (!GUIUtil.Instance.UseAliases && IP4Util.Instance.map.ContainsKey((uint)value))
+                return IP4Util.Instance.map[(uint)value];
+            else return IP4Util.Instance.IP4ToString((uint)value);
+        }
+
+        public object ConvertBack(object value, Type targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException("Cannot convert back");
+        }
+    }
+
+
     public class IP4MultiConverterNumberOrAlias : IMultiValueConverter
     {
         // converts number to/from display format IP4 address, including translating aliases
@@ -297,6 +319,25 @@ namespace pviewer5
         }
     }
 
+    public class IP4MultiConverterNumberOrAliasInverse : IMultiValueConverter
+    // same as above except respects the inverse of UseAliases
+    {
+        // converts number to/from display format IP4 address, including translating aliases
+        // also takes value of IP4Hex as an argument
+
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (!GUIUtil.Instance.UseAliases && IP4Util.Instance.map.ContainsKey((uint)values[0]))
+                return IP4Util.Instance.map[(uint)values[0]];
+            else return IP4Util.Instance.IP4ToString((uint)values[0]);
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException("Cannot convert back");
+        }
+
+    }
 
 
 

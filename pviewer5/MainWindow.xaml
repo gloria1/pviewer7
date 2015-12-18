@@ -21,7 +21,9 @@
         <ObjectDataProvider x:Key="GUIUtilKey" ObjectType="{x:Type local:GUIUtil}"/>
         <local:DisplayInfoMVC x:Key="displayinfomvc"/>
         <local:IP4ConverterNumberOrAlias x:Key="IP4converternumberoralias"/>
+        <local:IP4ConverterNumberOrAliasInverse x:Key="IP4converternumberoraliasinverse"/>
         <local:IP4MultiConverterNumberOrAlias x:Key="IP4multiconverternumberoralias"/>
+        <local:IP4MultiConverterNumberOrAliasInverse x:Key="IP4multiconverternumberoraliasinverse"/>
 
         <DataTemplate DataType="{x:Type local:H}">
             <TextBlock>
@@ -132,9 +134,8 @@
             <WrapPanel Orientation="Horizontal"
                 KeyboardNavigation.TabNavigation="Cycle">
                 <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnum}}" SelectedItem="{Binding Path=Relation}"/>
-                <TextBox Text=" "/>
-                <TextBlock Text="Value: "/>
-                <TextBox>
+                <TextBlock Text="    Value: "/>
+                <TextBox MinWidth="100">
                     <TextBox.Text>
                         <MultiBinding Converter="{StaticResource IP4multiconverternumberoralias}">
                             <Binding Path="Value">
@@ -146,9 +147,21 @@
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
                         </MultiBinding>
                     </TextBox.Text>
+                    <TextBox.ToolTip>
+                        <MultiBinding Converter="{StaticResource IP4multiconverternumberoraliasinverse}">
+                            <Binding Path="Value">
+                                <Binding.ValidationRules>
+                                    <local:ValidateIP4Number/>
+                                </Binding.ValidationRules>
+                            </Binding>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                        </MultiBinding>
+                    </TextBox.ToolTip>
                 </TextBox>
                 <TextBlock Text=" Mask: "/>
-                <TextBox Text="{Binding Path=Mask}"/>
+                <TextBox  MinWidth="100" Text="{Binding Path=Mask}"/>
+                <Button Content="X" HorizontalAlignment="Right" Click="filteritem_delete"/>
             </WrapPanel>
 
 
