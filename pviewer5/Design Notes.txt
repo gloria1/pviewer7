@@ -3,6 +3,19 @@
 next:
 
 	filter gui behaviors
+		textbox editing behavior
+			hitting enter tries to accept value
+			invalid values make border glow red (thicker than default)
+			if converter cannot return valid value, return "Invalid Value" so that shows up in tooltip
+
+		text entry:
+			mask and value display as ip4
+			can accept decimal or hex input
+			dot notation is required
+				but tolerate missing elements 
+					e.g., can enter 192.
+					e.g., can enter 192...1
+					missing bits filled with zeros
 		tabs cycle through controls, including textboxes and combo in edit items, and add buttons
 			but excluding teh up/down/delete buttons
 		tabbing into a control puts it in edit mode

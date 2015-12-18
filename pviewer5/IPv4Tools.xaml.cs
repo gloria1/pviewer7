@@ -52,7 +52,7 @@ namespace pviewer5
         // converts string to numerical IP4 value
         // returns null if string cannot be parsed
         {
-            string regIP4 = (GUIUtil.Instance.Hex ? "^([a-fA-F0-9]{0,2}.){0,3}[a-fA-F0-9]{0,2}$" : "^([0-9]{0,3}.){0,3}[0-9]{0,3}$");
+            string regIP4 = (GUIUtil.Instance.Hex ? "^(0*[a-fA-F0-9]{0,2}.){0,3}0*[a-fA-F0-9]{0,2}$" : "^([0-9]{0,3}.){0,3}[0-9]{0,3}$");
             NumberStyles style = (GUIUtil.Instance.Hex ? NumberStyles.HexNumber : NumberStyles.Integer);
             string[] IP4bits = new string[4];
 
