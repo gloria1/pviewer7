@@ -315,7 +315,7 @@ namespace pviewer5
             parent.filterlist.RemoveAt(i);
             return;
         }
-
+        
     }
 
 

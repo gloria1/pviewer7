@@ -196,8 +196,11 @@ namespace pviewer5
             if (v != null) return new ValidationResult(true, "Valid IP4 Address");
             // if that failed, see if string exists in IP4namemap
             foreach (uint u in IP4Util.Instance.map.Keys)
+            {
+                string s = IP4Util.Instance.map[u];
                 if ((string)value == IP4Util.Instance.map[u])
                     return new ValidationResult(true, "Valid IP4 Address");
+            }
             return new ValidationResult(false, "Not a valid IP4 address");
         }
     }
@@ -294,13 +297,16 @@ namespace pviewer5
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
             uint? u;
-            object[] v = new object[1];
+            object[] v = new object[3];
+            // copy current values of hex and usealiases into result to be sent back - multi value converter must pass back values for all bindings in the multibinding
+            v[1] = GUIUtil.Instance.Hex;
+            v[2] = GUIUtil.Instance.UseAliases;
 
             // first try to parse as a raw IP4 address
             u = IP4Util.Instance.StringToIP4((string)value);
             if (u != null)
             {
-                v[0] = value;
+                v[0] = u;
                 return v;
             }
 
