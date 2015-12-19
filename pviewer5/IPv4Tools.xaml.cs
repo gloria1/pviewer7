@@ -176,7 +176,7 @@ namespace pviewer5
             uint? v = 0;
 
             // try to parse as a raw IP4 address
-         v = IP4Util.Instance.StringToIP4((string)value);
+            v = IP4Util.Instance.StringToIP4(value.ToString());
             if (v != null) return new ValidationResult(true, "Valid IP4 Address");
             else return new ValidationResult(false, "Not a valid IP4 address");
         }
@@ -295,12 +295,12 @@ namespace pviewer5
         {
             uint? u;
             object[] v = new object[1];
-            
+
             // first try to parse as a raw IP4 address
             u = IP4Util.Instance.StringToIP4((string)value);
             if (u != null)
             {
-                v[0] = (uint)u;
+                v[0] = value;
                 return v;
             }
 
