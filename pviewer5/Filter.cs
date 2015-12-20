@@ -25,9 +25,11 @@ namespace pviewer5
 {
     [Serializable]
     public class FilterSet : INotifyPropertyChanged
-        // a FilterSet is a list of Filters
-        // FilterSet.Include returns true if ANY Filter.Include returns true
-        // FilterSet.Include also returns true if Filters is empty
+    // a FilterSet is a list of Filter objects
+    // FilterSet.Include returns 
+    //      false if ANY filter says to exclude
+    //      else true if ANY filter says to include
+    //      else false by default (if filter list is empty)
     {
         public string Filename { get; set; }
         private bool _changedsincesave;
@@ -55,13 +57,12 @@ namespace pviewer5
         {
             bool include = false;   // the default result is to not include the packet, unless one of the filters says to include it
 
-            if (Filters.Count() == 0) return true;
             foreach (Filter f in Filters)
                 if (f.Active)
                     if (f.Match(pkt))
                     {
-                        include = f.InclusionFilter;
-                        break;
+                        if (f.InclusionFilter == false) return false;   // immediately return false if packet matches on an exclusion filter
+                        else include = true;     // else set include=true but continue through filter list in case another filter causes exclusion
                     }
 
             return include;
@@ -138,20 +139,12 @@ namespace pviewer5
 
     }
 
-    public class FilterAddItem : Filter
-    // special item, of which there will always be exactly one at the end of the filterset
-    // purpose is to have a data template that will show an add button at the end of the filterset list in the gui
-    {
-        public FilterAddItem()
-        {
-            Active = false;   // so it will be ignored in any filter testing
-        }
-    }
 
     [Serializable]
     public class Filter : INotifyPropertyChanged
     // list of FilterItems
     // Filter.Include returns true only if ALL FilterItem.Match calls return true
+    // or if list of filteritems is empty
     {
         private bool _active;
         public bool Active
@@ -190,7 +183,6 @@ namespace pviewer5
         public bool Match(Packet pkt)
         // must match on ALL filter items to return true
         {
-            if (filterlist.Count() == 0) return false;
             foreach (FilterItem fi in filterlist) if (fi.Match(pkt) == false) return false;
             return true;
         }
@@ -208,16 +200,18 @@ namespace pviewer5
 
     }
 
-    public class FilterItemAddItem : FilterItem
+    public class FilterAddItem : Filter
     // special item, of which there will always be exactly one at the end of the filterset
     // purpose is to have a data template that will show an add button at the end of the filterset list in the gui
     {
-        public FilterItemAddItem(Filter parent)
+        public FilterAddItem()
         {
-            Value = 0;   // so it will always return a match in any filter testing
-            Mask = 0;
-            Relation = Relations.Equal;
-            Parent = parent;
+            Active = false;   // so it will be ignored in any filter testing
+        }
+
+        public new bool Match(Packet pkt)
+        {
+            return false;   // always return false, i.e. packet does not match this filter
         }
     }
 
@@ -289,6 +283,25 @@ namespace pviewer5
         GreaterThan = 5,
         GreaterThanOrEqual = 6,
         Undefined = 99999    
+    }
+
+
+    public class FilterItemAddItem : FilterItem
+    // special item, of which there will always be exactly one at the end of the filterset
+    // purpose is to have a data template that will show an add button at the end of the filterset list in the gui
+    {
+        public FilterItemAddItem(Filter parent)
+        {
+            Value = 0;   // so it will always return a match in any filter testing
+            Mask = 0;
+            Relation = Relations.Equal;
+            Parent = parent;
+        }
+
+        public new bool Match(Packet pkt)
+        {
+            return true;
+        }
     }
 
 

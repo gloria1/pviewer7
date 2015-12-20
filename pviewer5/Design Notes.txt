@@ -2,11 +2,22 @@
 
 next:
 
+	filter logic
+		enable inclusion and exclusion filteritems
+		logic is:
+			include if ANY Filter says to include
+			Filter inclusion tests
+				if any exclusion rule is true, then don't include
+				else if any inclusion rule is true, then include
+
+
+
 	filter gui behaviors
 		textbox editing behavior
 			hitting enter tries to accept value
 			invalid values make border glow red (thicker than default)
 			if converter cannot return valid value, return "Invalid Value" so that shows up in tooltip
+
 
 		text entry:
 			mask and value display as ip4

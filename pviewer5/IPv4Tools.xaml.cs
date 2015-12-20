@@ -70,10 +70,15 @@ namespace pviewer5
                     Array.Resize<string>(ref IP4bits, 4);
 
                     for (int i = 0; i < 4; i++) { IP4bits[i] = "0" + IP4bits[i]; }
-                    return uint.Parse(IP4bits[0], style) * 0x0000000001000000 +
+
+                    try
+                    {
+                        return uint.Parse(IP4bits[0], style) * 0x0000000001000000 +
                             uint.Parse(IP4bits[1], style) * 0x0000000000010000 +
                             uint.Parse(IP4bits[2], style) * 0x0000000000000100 +
                             uint.Parse(IP4bits[3], style) * 0x0000000000000001;
+                    }
+                    catch { }
                 }
             }
 

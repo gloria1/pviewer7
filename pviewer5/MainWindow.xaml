@@ -135,9 +135,9 @@
                 KeyboardNavigation.TabNavigation="Cycle">
                 <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnum}}" SelectedItem="{Binding Path=Relation}"/>
                 <TextBlock Text="    Value: "/>
-                <TextBox MinWidth="100">
+                <TextBox MinWidth="100" >
                     <TextBox.Text>
-                        <MultiBinding Converter="{StaticResource IP4multiconverternumberoralias}">
+                        <MultiBinding Converter="{StaticResource IP4multiconverternumberoralias}" UpdateSourceTrigger="PropertyChanged">
                             <MultiBinding.ValidationRules>
                                 <local:ValidateIP4NumberOrAlias/>
                             </MultiBinding.ValidationRules>
@@ -160,8 +160,30 @@
                     </TextBox.ToolTip>
                 </TextBox>
                 <TextBlock Text=" Mask: "/>
-                <TextBox  MinWidth="100" Text="{Binding Path=Mask}"/>
-                <Button Content="X" HorizontalAlignment="Right" Click="filteritem_delete"/>
+                <TextBox MinWidth="100">
+                    <TextBox.Text>
+                        <MultiBinding Converter="{StaticResource IP4multiconverternumberoralias}" UpdateSourceTrigger="PropertyChanged">
+                            <MultiBinding.ValidationRules>
+                                <local:ValidateIP4NumberOrAlias/>
+                            </MultiBinding.ValidationRules>
+                            <Binding Path="Mask" UpdateSourceTrigger="PropertyChanged" Mode="TwoWay">
+                            </Binding>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                        </MultiBinding>
+                    </TextBox.Text>
+                    <TextBox.ToolTip>
+                        <MultiBinding Converter="{StaticResource IP4multiconverternumberoraliasinverse}">
+                            <Binding Path="Value" UpdateSourceTrigger="PropertyChanged">
+                                <Binding.ValidationRules>
+                                    <local:ValidateIP4NumberOrAlias/>
+                                </Binding.ValidationRules>
+                            </Binding>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                        </MultiBinding>
+                    </TextBox.ToolTip>
+                </TextBox>                <Button Content="X" HorizontalAlignment="Right" Click="filteritem_delete"/>
             </WrapPanel>
 
 

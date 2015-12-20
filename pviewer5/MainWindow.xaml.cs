@@ -275,7 +275,6 @@ namespace pviewer5
             filters.Filters.Insert(filters.Filters.Count-1,new Filter(filters));
             return;
         }
-
         private void filter_moveup(object sender, RoutedEventArgs e)
         {
             Filter self = (Filter)(((Button)sender).DataContext);
