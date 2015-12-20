@@ -108,12 +108,19 @@
             </TextBlock>
         </HierarchicalDataTemplate>
 
+        <ObjectDataProvider x:Key="dataFromEnumInclExcl" MethodName="GetValues" ObjectType="{x:Type System:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="local:InclExcl"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
         <HierarchicalDataTemplate DataType="{x:Type local:Filter}"
                                   ItemsSource="{Binding Path=filterlist}">
             <WrapPanel Orientation="Horizontal"
                 KeyboardNavigation.TabNavigation="None">
                 <CheckBox IsChecked="{Binding Path=Active}"/>
                 <Label Content="Active"/>
+                <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumInclExcl}}" SelectedItem="{Binding Path=InclusionFilter}"/>
                 <Label Content="{Binding Path=DisplayInfo}"/>
                 <Button Content="Up" HorizontalAlignment="Right" Click="filter_moveup"/>
                 <Button Content="Dn" HorizontalAlignment="Right" Click="filter_movedown"/>
@@ -124,7 +131,7 @@
             <Button Content="Add Filter" Click="filter_addfilter"/>
         </DataTemplate>
 
-        <ObjectDataProvider x:Key="dataFromEnum" MethodName="GetValues" ObjectType="{x:Type System:Enum}">
+        <ObjectDataProvider x:Key="dataFromEnumReln" MethodName="GetValues" ObjectType="{x:Type System:Enum}">
             <ObjectDataProvider.MethodParameters>
                 <x:Type TypeName="local:Relations"/>
             </ObjectDataProvider.MethodParameters>
@@ -133,13 +140,14 @@
         <DataTemplate DataType="{x:Type local:FilterItem}">
             <WrapPanel Orientation="Horizontal"
                 KeyboardNavigation.TabNavigation="Cycle">
-                <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnum}}" SelectedItem="{Binding Path=Relation}"/>
+                
+                <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumReln}}" SelectedItem="{Binding Path=Relation}"/>
                 <TextBlock Text="    Value: "/>
                 <TextBox MinWidth="100" >
                     <TextBox.Text>
-                        <MultiBinding Converter="{StaticResource IP4multiconverternumberoralias}" UpdateSourceTrigger="PropertyChanged">
+                        <MultiBinding Converter="{StaticResource IP4multiconverternumberoralias}" UpdateSourceTrigger="PropertyChanged" PresentationTraceSources.TraceLevel="High">
                             <MultiBinding.ValidationRules>
-                                <local:ValidateIP4NumberOrAlias/>
+                                <local:ValidateIP4NumberOrAlias ValidationStep="RawProposedValue"/>
                             </MultiBinding.ValidationRules>
                             <Binding Path="Value" UpdateSourceTrigger="PropertyChanged" Mode="TwoWay">
                             </Binding>
@@ -149,7 +157,7 @@
                     </TextBox.Text>
                     <TextBox.ToolTip>
                         <MultiBinding Converter="{StaticResource IP4multiconverternumberoraliasinverse}">
-                            <Binding Path="Value" UpdateSourceTrigger="PropertyChanged">
+                            <Binding Path="Value">
                                 <Binding.ValidationRules>
                                     <local:ValidateIP4NumberOrAlias/>
                                 </Binding.ValidationRules>
@@ -162,9 +170,9 @@
                 <TextBlock Text=" Mask: "/>
                 <TextBox MinWidth="100">
                     <TextBox.Text>
-                        <MultiBinding Converter="{StaticResource IP4multiconverternumberoralias}" UpdateSourceTrigger="PropertyChanged">
+                        <MultiBinding Converter="{StaticResource IP4multiconverternumberoralias}" UpdateSourceTrigger="PropertyChanged" PresentationTraceSources.TraceLevel="High">
                             <MultiBinding.ValidationRules>
-                                <local:ValidateIP4NumberOrAlias/>
+                                <local:ValidateIP4NumberOrAlias ValidationStep="RawProposedValue"/>
                             </MultiBinding.ValidationRules>
                             <Binding Path="Mask" UpdateSourceTrigger="PropertyChanged" Mode="TwoWay">
                             </Binding>

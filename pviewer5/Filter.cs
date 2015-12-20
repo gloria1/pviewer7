@@ -61,7 +61,7 @@ namespace pviewer5
                 if (f.Active)
                     if (f.Match(pkt))
                     {
-                        if (f.InclusionFilter == false) return false;   // immediately return false if packet matches on an exclusion filter
+                        if (f.InclusionFilter == InclExcl.Exclude) return false;   // immediately return false if packet matches on an exclusion filter
                         else include = true;     // else set include=true but continue through filter list in case another filter causes exclusion
                     }
 
@@ -158,7 +158,7 @@ namespace pviewer5
                 if (Parent != null) Parent.ChangedSinceSave = true;
             }
         }
-        public bool InclusionFilter { get; set; }
+        public InclExcl InclusionFilter { get; set; }
         public ObservableCollection<FilterItem> filterlist { get; set; }
         public FilterSet Parent = null;
         public string DisplayInfo
@@ -174,7 +174,7 @@ namespace pviewer5
         public Filter(FilterSet parent)  // this is the master, general constructor
         {
             Active = true;
-            InclusionFilter = true;
+            InclusionFilter = InclExcl.Include;
             filterlist = new ObservableCollection<FilterItem>();
             filterlist.Add(new FilterItemAddItem(this));
             Parent = parent;
@@ -285,6 +285,12 @@ namespace pviewer5
         Undefined = 99999    
     }
 
+    public enum InclExcl : int
+    {
+        Include = 1,
+        Exclude = 2,
+        Undefined = 99999
+    }
 
     public class FilterItemAddItem : FilterItem
     // special item, of which there will always be exactly one at the end of the filterset

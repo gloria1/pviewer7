@@ -196,6 +196,8 @@ namespace pviewer5
         {
             uint? v = 0;
 
+            if (!(value is string)) return new ValidationResult(false, "Not a valid IP4 address");
+ 
             // first try to parse as a raw IP4 address
             v = IP4Util.Instance.StringToIP4((string)value);
             if (v != null) return new ValidationResult(true, "Valid IP4 Address");

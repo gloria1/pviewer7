@@ -197,11 +197,6 @@ namespace pviewer5
                 {
                     pkt = new Packet(fs, pfh);
                     if (filters.Include(pkt)) pkts.Add(pkt);
-
-                    // lines below are from older "Quickfilter" implementation - this may be permanently obsolete
-                    // // NEXT LINE IS TEMPORARY - ONCE QUICKFILTER IS TRUSTED, PACKETS THAT ARE EXCLUDED SHOULD SIMPLY BE DESTROYED
-                    // if (pkt.qfexcluded) exclpkts.Add(pkt);
-                    // else pkts.Add(pkt);
                 }
 
                 foreach (Packet p in pkts)
