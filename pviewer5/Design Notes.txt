@@ -48,6 +48,8 @@ next:
 		src, dest mac
 		protocol (from Protocols enum)
 		port
+		timestamp
+		grouptype - e.g., to filter only http groups
 
 
 
