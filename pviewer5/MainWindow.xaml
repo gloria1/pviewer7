@@ -143,13 +143,13 @@
                 
                 <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumReln}}" SelectedItem="{Binding Path=Relation}"/>
                 <TextBlock Text="    Value: "/>
-                <TextBox MinWidth="100" >
+                <TextBox MinWidth="100" KeyUp="TextBox_UpdateSourceIfEnterKey">
                     <TextBox.Text>
-                        <MultiBinding Converter="{StaticResource IP4multiconverternumberoralias}" UpdateSourceTrigger="PropertyChanged" PresentationTraceSources.TraceLevel="High">
+                        <MultiBinding Converter="{StaticResource IP4multiconverternumberoralias}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
                             <MultiBinding.ValidationRules>
                                 <local:ValidateIP4NumberOrAlias ValidationStep="RawProposedValue"/>
                             </MultiBinding.ValidationRules>
-                            <Binding Path="Value" UpdateSourceTrigger="PropertyChanged" Mode="TwoWay">
+                            <Binding Path="Value" Mode="TwoWay">
                             </Binding>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
@@ -170,11 +170,11 @@
                 <TextBlock Text=" Mask: "/>
                 <TextBox MinWidth="100">
                     <TextBox.Text>
-                        <MultiBinding Converter="{StaticResource IP4multiconverternumberoralias}" UpdateSourceTrigger="PropertyChanged" PresentationTraceSources.TraceLevel="High">
+                        <MultiBinding Converter="{StaticResource IP4multiconverternumberoralias}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
                             <MultiBinding.ValidationRules>
                                 <local:ValidateIP4NumberOrAlias ValidationStep="RawProposedValue"/>
                             </MultiBinding.ValidationRules>
-                            <Binding Path="Mask" UpdateSourceTrigger="PropertyChanged" Mode="TwoWay">
+                            <Binding Path="Mask" Mode="TwoWay">
                             </Binding>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
@@ -182,7 +182,7 @@
                     </TextBox.Text>
                     <TextBox.ToolTip>
                         <MultiBinding Converter="{StaticResource IP4multiconverternumberoraliasinverse}">
-                            <Binding Path="Value" UpdateSourceTrigger="PropertyChanged">
+                            <Binding Path="Value" >
                                 <Binding.ValidationRules>
                                     <local:ValidateIP4NumberOrAlias/>
                                 </Binding.ValidationRules>

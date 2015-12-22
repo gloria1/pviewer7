@@ -102,8 +102,6 @@ namespace pviewer5
 
     // next
     //  filter implementation
-    //      gui - add filter and filteritems to list
-    //      buttons and commands to save/load filtersets
     //      autosave filterset on window close, autoreload on startup
     //      add button to clear filter
     //      commands to apply filters, reload file reflecting filters
@@ -276,8 +274,6 @@ namespace pviewer5
         {
             filters.LoadFromDisk(null);
         }
-
-
         private void filter_addfilter(object sender, RoutedEventArgs e)
         {
             filters.Filters.Insert(filters.Filters.Count-1,new Filter(filters));
@@ -328,7 +324,19 @@ namespace pviewer5
             filters.ChangedSinceApplied = filters.ChangedSinceSave = true;
             return;
         }
-        
+
+        private void TextBox_UpdateSourceIfEnterKey(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                TextBox tBox = (TextBox)sender;
+                DependencyProperty prop = TextBox.TextProperty;
+
+                MultiBindingExpression binding = BindingOperations.GetMultiBindingExpression(tBox, prop);
+                if (binding != null) { binding.UpdateSource(); }
+            }
+        }
+
     }
 
 

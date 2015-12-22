@@ -43,6 +43,14 @@ next:
 					missing bits filled with zeros
 
 
+	add variations of filters
+		src, dest ip
+		src, dest mac
+		protocol (from Protocols enum)
+		port
+
+
+
 
 	FIGURE OUT HOW TO HANDLE THE PACKET VIEWER WINDOW CLOSING - EITHER PREVENT IT, OR LET THE MAINWINDOW KNOW 
 
