@@ -284,9 +284,11 @@
                     <Button
                         Content="Reload PCAP File"
                         IsEnabled="False"/>
-                    <Button Content="Load Filter Set"/>
+                    <Button Content="Load Filter Set" 
+                            Click="filterset_load"/>
                     <Button
                         Content="Save Filter Set"
+                        Click="filterset_save"
                         IsEnabled="{Binding Path=filters.ChangedSinceSave}"/>
                     <Label Content="Current File= "/>
                     <Button Content="Clear Filter Set"/>

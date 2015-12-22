@@ -128,6 +128,7 @@ namespace pviewer5
         }
 
         // implement INotifyPropertyChanged interface
+        [field: NonSerializedAttribute()]
         public event PropertyChangedEventHandler PropertyChanged;
         private void NotifyPropertyChanged(String propertyName = "")
         {
@@ -158,7 +159,11 @@ namespace pviewer5
                 if (Parent != null) Parent.ChangedSinceSave = true;
             }
         }
-        public InclExcl InclusionFilter { get; set; }
+        private InclExcl _inclfilter;
+        public InclExcl InclusionFilter { get { return _inclfilter; } set { _inclfilter = value; if (Parent != null) Parent.ChangedSinceApplied = true;
+                if (Parent != null) Parent.ChangedSinceSave = true;
+            }
+        }
         public ObservableCollection<FilterItem> filterlist { get; set; }
         public FilterSet Parent = null;
         public string DisplayInfo
@@ -188,6 +193,7 @@ namespace pviewer5
         }
 
         // implement INotifyPropertyChanged interface
+        [field:NonSerializedAttribute()]
         public event PropertyChangedEventHandler PropertyChanged;
         private void NotifyPropertyChanged(String propertyName = "")
         {
@@ -200,6 +206,7 @@ namespace pviewer5
 
     }
 
+    [Serializable]
     public class FilterAddItem : Filter
     // special item, of which there will always be exactly one at the end of the filterset
     // purpose is to have a data template that will show an add button at the end of the filterset list in the gui
@@ -219,9 +226,12 @@ namespace pviewer5
     [Serializable]
     public class FilterItem
     {
-        public uint Value {get; set;}
-        public uint Mask { get; set; }     // bit mask applied to Value and to the packet being tested
-        public Relations Relation { get; set; }
+        private uint _value;
+        public uint Value { get { return _value; } set { _value = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
+        private uint _mask;
+        public uint Mask { get { return _mask; } set { _mask = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }     // bit mask applied to Value and to the packet being tested
+        private Relations _relation;
+        public Relations Relation { get { return _relation; } set { _relation = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
         public Filter Parent { get; set; } = null;
         public string DisplayInfo
         {
@@ -274,6 +284,7 @@ namespace pviewer5
         }
     }
 
+    [Serializable]
     public enum Relations : int
     {
         Equal = 1,
@@ -285,6 +296,7 @@ namespace pviewer5
         Undefined = 99999    
     }
 
+    [Serializable]
     public enum InclExcl : int
     {
         Include = 1,
@@ -292,10 +304,12 @@ namespace pviewer5
         Undefined = 99999
     }
 
+    [Serializable]
     public class FilterItemAddItem : FilterItem
     // special item, of which there will always be exactly one at the end of the filterset
     // purpose is to have a data template that will show an add button at the end of the filterset list in the gui
     {
+        public FilterItemAddItem() : this(null) { }
         public FilterItemAddItem(Filter parent)
         {
             Value = 0;   // so it will always return a match in any filter testing

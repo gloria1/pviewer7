@@ -17,6 +17,9 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.IO;
 using Microsoft.Win32;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+
 
 
 
@@ -265,9 +268,61 @@ namespace pviewer5
                 // IF IT IS A PACKET, OPEN PACKET VIEW WINDOW ON IT
         }
 
+        private void filterset_save(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog dlg = new SaveFileDialog();
+            FileStream fs;
+            IFormatter formatter = new BinaryFormatter();
+
+            dlg.InitialDirectory = "c:\\pviewer\\";
+            dlg.DefaultExt = ".filterset";
+            dlg.OverwritePrompt = true;
+
+            if (dlg.ShowDialog() == true)
+            {
+                fs = new FileStream(dlg.FileName, FileMode.OpenOrCreate);
+                formatter.Serialize(fs, filters);
+                filters.ChangedSinceSave = false;
+                fs.Close();
+            }
+
+            return;
+        }
+        private void filterset_load(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog dlg = new OpenFileDialog();
+            FileStream fs;
+            IFormatter formatter = new BinaryFormatter();
+
+            dlg.InitialDirectory = "c:\\pviewer\\";
+            dlg.DefaultExt = ".filterset";
+            dlg.Multiselect = false;
+
+            if (dlg.ShowDialog() == true)
+            {
+                fs = new FileStream(dlg.FileName, FileMode.Open);
+
+                try
+                {
+                    filters = (FilterSet)(formatter.Deserialize(fs));
+                    filters.ChangedSinceSave = false;
+                }
+                catch
+                {
+                    MessageBox.Show("File not read");
+                }
+                finally
+                {
+                    fs.Close();
+                }
+            }
+        }
+
+
         private void filter_addfilter(object sender, RoutedEventArgs e)
         {
             filters.Filters.Insert(filters.Filters.Count-1,new Filter(filters));
+            filters.ChangedSinceApplied = filters.ChangedSinceSave = true;
             return;
         }
         private void filter_moveup(object sender, RoutedEventArgs e)
@@ -276,6 +331,7 @@ namespace pviewer5
             int i = self.Parent.Filters.IndexOf(self);
             if (i == 0) return; // do nothing if already first item
             self.Parent.Filters.Move(i, i - 1);
+            filters.ChangedSinceApplied = filters.ChangedSinceSave = true;
             return;
         }
         private void filter_movedown(object sender, RoutedEventArgs e)
@@ -284,6 +340,7 @@ namespace pviewer5
             int i = self.Parent.Filters.IndexOf(self);
             if (i == self.Parent.Filters.Count-2) return; // do nothing if already the last item
             self.Parent.Filters.Move(i, i + 1);
+            filters.ChangedSinceApplied = filters.ChangedSinceSave = true;
             return;
         }
         private void filter_delete(object sender, RoutedEventArgs e)
@@ -291,6 +348,7 @@ namespace pviewer5
             Filter self = (Filter)(((Button)sender).DataContext);
             int i = self.Parent.Filters.IndexOf(self);
             self.Parent.Filters.RemoveAt(i);
+            filters.ChangedSinceApplied = filters.ChangedSinceSave = true;
             return;
         }
         private void filteritem_addfilteritem(object sender, RoutedEventArgs e)
@@ -298,6 +356,7 @@ namespace pviewer5
             // FilterItems need parent property to find the Filter they belong to
             Filter parent = ((FilterItem)(((Button)sender).DataContext)).Parent;
             parent.filterlist.Insert(parent.filterlist.Count-1, new FilterItem(0, 0, Relations.Equal, parent));
+            filters.ChangedSinceApplied = filters.ChangedSinceSave = true;
 
             return;
         }
@@ -307,6 +366,7 @@ namespace pviewer5
             Filter parent = ((FilterItem)(((Button)sender).DataContext)).Parent;
             int i = parent.filterlist.IndexOf(self);
             parent.filterlist.RemoveAt(i);
+            filters.ChangedSinceApplied = filters.ChangedSinceSave = true;
             return;
         }
         
