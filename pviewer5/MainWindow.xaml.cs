@@ -270,52 +270,11 @@ namespace pviewer5
 
         private void filterset_save(object sender, RoutedEventArgs e)
         {
-            SaveFileDialog dlg = new SaveFileDialog();
-            FileStream fs;
-            IFormatter formatter = new BinaryFormatter();
-
-            dlg.InitialDirectory = "c:\\pviewer\\";
-            dlg.DefaultExt = ".filterset";
-            dlg.OverwritePrompt = true;
-
-            if (dlg.ShowDialog() == true)
-            {
-                fs = new FileStream(dlg.FileName, FileMode.OpenOrCreate);
-                formatter.Serialize(fs, filters);
-                filters.ChangedSinceSave = false;
-                fs.Close();
-            }
-
-            return;
-        }
+            filters.SaveToDisk(null);
+                    }
         private void filterset_load(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog dlg = new OpenFileDialog();
-            FileStream fs;
-            IFormatter formatter = new BinaryFormatter();
-
-            dlg.InitialDirectory = "c:\\pviewer\\";
-            dlg.DefaultExt = ".filterset";
-            dlg.Multiselect = false;
-
-            if (dlg.ShowDialog() == true)
-            {
-                fs = new FileStream(dlg.FileName, FileMode.Open);
-
-                try
-                {
-                    filters = (FilterSet)(formatter.Deserialize(fs));
-                    filters.ChangedSinceSave = false;
-                }
-                catch
-                {
-                    MessageBox.Show("File not read");
-                }
-                finally
-                {
-                    fs.Close();
-                }
-            }
+            filters.LoadFromDisk(null);
         }
 
 
