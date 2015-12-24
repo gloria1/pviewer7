@@ -69,28 +69,35 @@ namespace pviewer5
         }
 
         public void SaveToDisk(string fn)
-        // if filename argument is null, open a save as dialog
+        // save to file fn - if fn is null, do nothing
+        // DOES NOT ASK TO OVERWRITE
         {
-            SaveFileDialog dlg;
             FileStream fs;
             IFormatter formatter = new BinaryFormatter();
 
-            if (fn == null)
-            {
-                dlg = new SaveFileDialog();
-                dlg.InitialDirectory = "c:\\pviewer\\";
-                dlg.DefaultExt = ".filterset";
-                dlg.OverwritePrompt = true;
-                if (dlg.ShowDialog() == false) return;
-                else Filename = dlg.FileName;
-            }
-            else Filename = fn;
+            if (fn == null) return;
+
+            Filename = fn;
+
             fs = new FileStream(Filename, FileMode.OpenOrCreate);
             formatter.Serialize(fs, Filters);
             fs.Close();
             ChangedSinceSave = false;
         }
+        public void SaveAsToDisk()
+        {
+            SaveFileDialog dlg;
 
+            dlg = new SaveFileDialog();
+            dlg.InitialDirectory = "c:\\pviewer\\";
+            if (Filename != null) dlg.FileName = Filename;
+            dlg.DefaultExt = ".filterset";
+            dlg.OverwritePrompt = true;
+            if (dlg.ShowDialog() == false) return;
+            Filename = dlg.FileName;
+
+            SaveToDisk(Filename);
+        }
         public void LoadFromDisk(string fn)
         // if filename is null, open an openfiledialog
         {
@@ -108,6 +115,7 @@ namespace pviewer5
                 if (dlg.ShowDialog() == true) Filename = dlg.FileName;
                 else return;
             }
+            else Filename = fn;
 
             fs = new FileStream(Filename, FileMode.Open);
 
@@ -226,63 +234,83 @@ namespace pviewer5
     [Serializable]
     public class FilterItem
     {
-        private uint _value;
-        public uint Value { get { return _value; } set { _value = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
-        private uint _mask;
-        public uint Mask { get { return _mask; } set { _mask = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }     // bit mask applied to Value and to the packet being tested
-        private Relations _relation;
-        public Relations Relation { get { return _relation; } set { _relation = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
         public Filter Parent { get; set; } = null;
-        public string DisplayInfo
+
+        public virtual bool Match(Packet pkt)
         {
-            get
+            return false;
+        }
+
+    }
+
+
+    [Serializable]
+    public class FilterItemIP4 : FilterItem
+    {
+        private SrcDest _srcdest = SrcDest.Either;
+        public SrcDest Srcdest{ get { return _srcdest; } set { _srcdest= value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
+        private uint _value = 0;
+        public uint Value { get { return _value; } set { _value = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
+        private uint _mask = 0xffffffff;
+        public uint Mask { get { return _mask; } set { _mask = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }     // bit mask applied to Value and to the packet being tested
+        private Relations _relation = Relations.Equal;
+        public Relations Relation { get { return _relation; } set { _relation = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
+
+        public override bool Match(Packet pkt)
+        {
+            bool result = false; // default result is to return no match
+
+            uint maskedval;
+
+            if ((Srcdest == SrcDest.Source) || (Srcdest == SrcDest.Either))
             {
-                string r;
-                switch(Relation)
+                maskedval = (pkt.SrcIP4 & Mask);
+                switch (Relation)
                 {
-                    case Relations.Equal: r = "="; break;
-                    case Relations.NotEqual: r = "!="; break;
-                    case Relations.LessThan: r = "<"; break;
-                    case Relations.LessThanOrEqual: r = "<="; break;
-                    case Relations.GreaterThan: r = ">"; break;
-                    case Relations.GreaterThanOrEqual: r = ">="; break;
-                    default: r = "invalid relation"; break;
+                    case Relations.Equal: result = (maskedval == Value); break;
+                    case Relations.NotEqual: result = (maskedval != Value); break;
+                    case Relations.LessThan: result = (maskedval < Value); break;
+                    case Relations.LessThanOrEqual: result = (maskedval <= Value); break;
+                    case Relations.GreaterThan: result = (maskedval > Value); break;
+                    case Relations.GreaterThanOrEqual: result = (maskedval >= Value); break;
+                    default: break;  // retain previously set value of result
                 }
-
-                return "IPv4 Source " + r + IP4Util.Instance.IP4ToString(Value) + ", Mask=" + IP4Util.Instance.IP4ToString(Mask);
             }
-        }
-
-        public bool Match(Packet pkt)
-        {
-            uint mval;
-
-            mval = (pkt.SrcIP4 & Mask);
-            switch (Relation)
+            if ((Srcdest == SrcDest.Dest) || (Srcdest == SrcDest.Either))
             {
-                case Relations.Equal: return (mval == Value);
-                case Relations.NotEqual: return (mval != Value);
-                case Relations.LessThan: return (mval < Value);
-                case Relations.LessThanOrEqual: return (mval <= Value);
-                case Relations.GreaterThan: return (mval > Value);
-                case Relations.GreaterThanOrEqual: return (mval >= Value);
-                case Relations.Undefined:
-                default:
-                    return false;
+                maskedval = (pkt.DestIP4 & Mask);
+                switch (Relation)
+                {
+                    case Relations.Equal: result = (maskedval == Value); break;
+                    case Relations.NotEqual: result = (maskedval != Value); break;
+                    case Relations.LessThan: result = (maskedval < Value); break;
+                    case Relations.LessThanOrEqual: result = (maskedval <= Value); break;
+                    case Relations.GreaterThan: result = (maskedval > Value); break;
+                    case Relations.GreaterThanOrEqual: result = (maskedval >= Value); break;
+                    default: break;  // retain previously set value of result
+                }
             }
-
-
+            return result;
         }
 
-        public FilterItem() : this(0, 0, Relations.Undefined, null) { }
-        public FilterItem(uint value, uint mask, Relations rel, Filter parent)
+        public FilterItemIP4() : this(null) { }
+        public FilterItemIP4(Filter parent)
         {
-            Value = value;
-            Mask = mask;
-            Relation = rel;
             Parent = parent;
         }
     }
+
+
+    [Serializable]
+    public enum SrcDest : int
+    {
+        Source = 1,
+        Dest = 2,
+        Either = 3,
+        Undefined = 99999
+    }
+
+
 
     [Serializable]
     public enum Relations : int
@@ -304,6 +332,7 @@ namespace pviewer5
         Undefined = 99999
     }
 
+
     [Serializable]
     public class FilterItemAddItem : FilterItem
     // special item, of which there will always be exactly one at the end of the filterset
@@ -312,13 +341,10 @@ namespace pviewer5
         public FilterItemAddItem() : this(null) { }
         public FilterItemAddItem(Filter parent)
         {
-            Value = 0;   // so it will always return a match in any filter testing
-            Mask = 0;
-            Relation = Relations.Equal;
             Parent = parent;
         }
 
-        public new bool Match(Packet pkt)
+        public override bool Match(Packet pkt)
         {
             return true;
         }

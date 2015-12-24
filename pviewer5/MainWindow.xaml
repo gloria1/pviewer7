@@ -131,16 +131,24 @@
             <Button Content="Add Filter" Click="filter_addfilter"/>
         </DataTemplate>
 
+        <ObjectDataProvider x:Key="dataFromEnumSrcDest" MethodName="GetValues" ObjectType="{x:Type System:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="local:SrcDest"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
         <ObjectDataProvider x:Key="dataFromEnumReln" MethodName="GetValues" ObjectType="{x:Type System:Enum}">
             <ObjectDataProvider.MethodParameters>
                 <x:Type TypeName="local:Relations"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
 
-        <DataTemplate DataType="{x:Type local:FilterItem}">
+        <DataTemplate DataType="{x:Type local:FilterItemIP4}">
             <WrapPanel Orientation="Horizontal"
                 KeyboardNavigation.TabNavigation="Cycle">
-                
+
+                <Label Content="IPv4 filter: "/>
+                <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumSrcDest}}" SelectedItem="{Binding Path=Srcdest}"/>
                 <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumReln}}" SelectedItem="{Binding Path=Relation}"/>
                 <TextBlock Text="    Value: "/>
                 <TextBox MinWidth="100" KeyUp="TextBox_UpdateSourceIfEnterKey">

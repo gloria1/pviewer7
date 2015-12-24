@@ -2,13 +2,30 @@
 
 next:
 
-	filter logic
-		enable inclusion and exclusion filteritems
-		logic is:
-			include if ANY Filter says to include
-			Filter inclusion tests
-				if any exclusion rule is true, then don't include
-				else if any inclusion rule is true, then include
+	other types of filters
+		timestamp
+		src, dest ip
+		src, dest mac
+		src, dest port
+		protocol
+		grouptype
+			when would/could this be applied?
+				group type is determined when packets load, but in a separate pass after all the packets are loaded
+				want to have filters apply during packet load, to avoid having to do expensive gropu processing on bulks of packets that will be discarded based on simple mac or ip filters
+				maybe ignore grouptype filters in the packet load pass, then apply the filters again during the group determinatino pass?
+				add "GroupType" property to Packet - set to null until group determination pass is done
+
+
+	enhance load/save behavior
+		append filter
+		apply current filter to previously loaded file (without reloading)
+		re-load current file
+
+
+	make custom TextBox to get editing/navigation behavior I want
+		- while in "edit mode", validate on every key press, but do not do value conversion - want to keep string exactly as user is editing it
+		- when user hits enter, try to get out of "edit mode" - apply value conversion
+		- if hit enter while invalid, revert to previous valid value
 
 
 

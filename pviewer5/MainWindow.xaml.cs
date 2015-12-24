@@ -119,6 +119,12 @@ namespace pviewer5
             pkts = new ObservableCollection<Packet>();
 
             filters = new FilterSet();
+            try
+            {
+                filters.LoadFromDisk("c:\\pviewer\\autosave.filterset");
+            }
+            catch { }
+            filters.Filename = null;    // reset the filename to null after loading from autosave file
 
             grouplistlist = new ObservableCollection<GList>();
             grouplistlist.Add(new DNSGList("DNS Groups"));
@@ -155,6 +161,13 @@ namespace pviewer5
 
         void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            if (filters.ChangedSinceSave)
+                if (MessageBox.Show("Save Filter?", "Save Filter to " + filters.Filename, MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                    if (filters.Filename != null) filters.SaveToDisk(filters.Filename);
+                    else filters.SaveAsToDisk();
+
+            filters.SaveToDisk("c:\\pviewer\\autosave.filterset");
+
             Properties.Settings.Default.WindowPositionMain = this.RestoreBounds;
             Properties.Settings.Default.Hex = GUIUtil.Instance.Hex;
             Properties.Settings.Default.UseAliases = GUIUtil.Instance.UseAliases;
@@ -310,7 +323,7 @@ namespace pviewer5
         {
             // FilterItems need parent property to find the Filter they belong to
             Filter parent = ((FilterItem)(((Button)sender).DataContext)).Parent;
-            parent.filterlist.Insert(parent.filterlist.Count-1, new FilterItem(0, 0, Relations.Equal, parent));
+            parent.filterlist.Insert(parent.filterlist.Count-1, new FilterItemIP4(parent));
             filters.ChangedSinceApplied = filters.ChangedSinceSave = true;
 
             return;
