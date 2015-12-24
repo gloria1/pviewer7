@@ -2,9 +2,21 @@
 
 next:
 
+	enable "apply filter" button - so don't have to keep reloading file
+	enable "reload pcap file" button - so don't have to keep doing file dialog
+
+	window state management
+		when load packet file, close packet viewer
+		when apply filter, close packet viewer
+
+	test filter behavior
+		src/dest/either
+		masks
+		exlude not working?
+		inactive not working?
+
 	other types of filters
 		timestamp
-		src, dest ip
 		src, dest mac
 		src, dest port
 		protocol
