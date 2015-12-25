@@ -2,12 +2,48 @@
 
 next:
 
+RE-WORK FILTER LOGIC
+
+	ok try this:
+		all tests are for inclusion - i.e., if packet matches criteria, that helps it be included - use "not equal" in a crtierion to exclude
+		outer list tests are ANDed
+		inner list tests are ORed
+
+		use cases:
+			use case 1 - load all packets, then incrementally exclude various tranches
+			use case 2 - start with a specific selection e.g., src ip = some specific ip
+
+
+
+	- USE CASES:
+		1)
+			load all packets
+			exclude local traffic: (srcip != 192.168.11.x) AND (destip != 192.168.11.x)
+			exclude onedrive
+
+
+	- NO MORE INCLUDE/EXCLUDE - ALL FILTERS ARE INCLUSION CHECKS - USE "NOT EQUAL" FILTERS TO BROADLY EXCLUDE
+	- INSTEAD HAVE "AND" AND "OR" FILTERS - MUST MATCH ALL ANDS AND AT LEAST ONE OR (IF THERE ARE ANY ORS)
+	- HAVE A FILTER TYPE THAT IS "INCLUDE ALL"
+	- EMPTY FILTER LIST WILL INCLUDE NOTHING
+
+
 	enable "apply filter" button - so don't have to keep reloading file
 	enable "reload pcap file" button - so don't have to keep doing file dialog
+		methods needed:
+			apply filter to packet list already loaded
+			load pcap file and apply filter
+				test for match when packet first loaded - many will be discarded based on properties of that packet only
+				test again after grouping pass - match algorithm can consider only grouptype criteria, assuming packet is a match based on packet criteria
+			HOW DO WE GET A FILTER THAT SAYS "EXCLUDE IPxxxx EXCEPT INCLUDE HTTP GROUPS"????
+
+	maintain count of excluded packets - display it in filter view area
+
 
 	window state management
 		when load packet file, close packet viewer
 		when apply filter, close packet viewer
+		when close packet viewer, make it re-open when another packet is selected
 
 	test filter behavior
 		src/dest/either
@@ -16,6 +52,7 @@ next:
 		inactive not working?
 
 	other types of filters
+		include all
 		timestamp
 		src, dest mac
 		src, dest port

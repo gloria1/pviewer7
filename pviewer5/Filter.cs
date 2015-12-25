@@ -26,10 +26,8 @@ namespace pviewer5
     [Serializable]
     public class FilterSet : INotifyPropertyChanged
     // a FilterSet is a list of Filter objects
-    // FilterSet.Include returns 
-    //      false if ANY filter says to exclude
-    //      else true if ANY filter says to include
-    //      else false by default (if filter list is empty)
+    // FilterSet.Include returns true if ANY Filter returns true
+    // FilterSet.Include returns false if list is empty
     {
         public string Filename { get; set; }
         private bool _changedsincesave;
