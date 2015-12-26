@@ -270,6 +270,49 @@ namespace pviewer5
     }
 
 
+
+    [Serializable]
+    public enum FilterType: int
+    {
+        TimeStamp = 1,
+        IPv4 = 2,
+        MAC = 3,
+        Port = 4,
+        Protocol = 5,
+        GroupType = 6,
+        Undefined = 99999
+    }
+
+    [Serializable]
+    public enum SrcDest : int
+    {
+        Source = 1,
+        Dest = 2,
+        Either = 3,
+        Undefined = 99999
+    }
+
+    [Serializable]
+    public enum Relations : int
+    {
+        Equal = 1,
+        NotEqual = 2,
+        LessThan = 3,
+        LessThanOrEqual = 4,
+        GreaterThan = 5,
+        GreaterThanOrEqual = 6,
+        Undefined = 99999    
+    }
+
+    [Serializable]
+    public enum InclExcl : int
+    {
+        Include = 1,
+        Exclude = 2,
+        Undefined = 99999
+    }
+
+
     [Serializable]
     public class FilterItemIP4 : FilterItem
     {
@@ -329,7 +372,6 @@ namespace pviewer5
         }
     }
 
-
     [Serializable]
     public class FilterItemMAC : FilterItem
     {
@@ -388,54 +430,6 @@ namespace pviewer5
             Parent = parent;
         }
     }
-
-
-
-    [Serializable]
-    public enum FilterType: int
-    {
-        TimeStamp = 1,
-        IPv4 = 2,
-        MAC = 3,
-        Port = 4,
-        Protocol = 5,
-        GroupType = 6,
-        Undefined = 99999
-    }
-
-
-
-    [Serializable]
-    public enum SrcDest : int
-    {
-        Source = 1,
-        Dest = 2,
-        Either = 3,
-        Undefined = 99999
-    }
-
-
-
-    [Serializable]
-    public enum Relations : int
-    {
-        Equal = 1,
-        NotEqual = 2,
-        LessThan = 3,
-        LessThanOrEqual = 4,
-        GreaterThan = 5,
-        GreaterThanOrEqual = 6,
-        Undefined = 99999    
-    }
-
-    [Serializable]
-    public enum InclExcl : int
-    {
-        Include = 1,
-        Exclude = 2,
-        Undefined = 99999
-    }
-
 
     [Serializable]
     public class FilterItemAddItem : FilterItem

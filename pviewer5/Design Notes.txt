@@ -2,30 +2,20 @@
 
 next:
 
-RE-WORK FILTER LOGIC
-
-	ok try this:
-		all tests are for inclusion - i.e., if packet matches criteria, that helps it be included - use "not equal" in a crtierion to exclude
-		outer list tests are ANDed
-		inner list tests are ORed
-
-		use cases:
-			use case 1 - load all packets, then incrementally exclude various tranches
-			use case 2 - start with a specific selection e.g., src ip = some specific ip
+	what is data model for packets loaded into memory then excduded via subsequent filtering?
+		each packet will have a state variable "show"
+			show is set true when packet file is loaded
+			show is set false if a subsequent filter application results in !match
+				two versions of apply operation - apply and re-include if packet no longer fails, apply only to packets still shown
+		use Filter on the View to update treeview to only show packets where show==true
 
 
+	enable quick ways to add filters based on packets shown
+		e.g. specialized label for ip4 address
+			tooltip that shows the alias/raw version
+			right-click command to add filteritem based on this item
+		add up/down buttons on filteritems that can make them traverse filters - action would be to right-click an ip4, then use up/down buttons to move into place in filter list
 
-	- USE CASES:
-		1)
-			load all packets
-			exclude local traffic: (srcip != 192.168.11.x) AND (destip != 192.168.11.x)
-			exclude onedrive
-
-
-	- NO MORE INCLUDE/EXCLUDE - ALL FILTERS ARE INCLUSION CHECKS - USE "NOT EQUAL" FILTERS TO BROADLY EXCLUDE
-	- INSTEAD HAVE "AND" AND "OR" FILTERS - MUST MATCH ALL ANDS AND AT LEAST ONE OR (IF THERE ARE ANY ORS)
-	- HAVE A FILTER TYPE THAT IS "INCLUDE ALL"
-	- EMPTY FILTER LIST WILL INCLUDE NOTHING
 
 
 	enable "apply filter" button - so don't have to keep reloading file
@@ -54,8 +44,6 @@ RE-WORK FILTER LOGIC
 	other types of filters
 		include all
 		timestamp
-		src, dest mac
-		src, dest port
 		protocol
 		grouptype
 			when would/could this be applied?
@@ -109,16 +97,6 @@ RE-WORK FILTER LOGIC
 					missing bits filled with zeros
 
 
-	add variations of filters
-		src, dest ip
-		src, dest mac
-		protocol (from Protocols enum)
-		port
-		timestamp
-		grouptype - e.g., to filter only http groups
-
-
-
 
 	FIGURE OUT HOW TO HANDLE THE PACKET VIEWER WINDOW CLOSING - EITHER PREVENT IT, OR LET THE MAINWINDOW KNOW 
 
@@ -140,37 +118,9 @@ RE-WORK FILTER LOGIC
 		allow toggle between view by group and view by packet
 			view by packet should be a datagrid, which can be sorted by sequence number, time, protocol, port, etc
 			view by group should also be datagrid, which can be sorted by group type, time of first or last packet, etc.
-			
-		filtering
-			main window will have a "filterset", which will be a list of "filters", which in turn consist of "filteritems"
-			brand new main window will have a filterset with one filter that will include all packets (otherwise, all packets would be excluded per the logic below)
-			when a file is loaded, packets that do not pass the filterset will not even be loaded
-			when MainWindow closes, trigger saves of all the filters, and save the list of filters with the stored window properties
-			when MainWindow opens, load from list of saved filters and open FilterViews for each
-			the packet CollectionView will be filtered based on the filterset, so if the filterset changes, the packet view will be re-filtered
-				(this may be either automatic, or manually triggered with a "refresh" button, depending on how fast it is)
-			filtersets can be saved/loaded to/from disk
-			last filterset open will be saved in mainwindow properties
-			logic for testing inclusion:
-				packet will be tested against filters in order - the first one that matches determines the outcome
-				each filter will have a flag for inclusion vs. exclusion
-				if packet matches an exclusion filter , it is excluded
-				if packet matches an inclusion filter , it is included
-				else, packet is excluded
-				==> in order for a filter to match a packet, it must match on ALL the filteritems within it - this iwll allow for logical and constraints
 
-			types of filteritems
-				ip4
-				ip6
-				mac
-				protocol
-				port
-				timestamp
-				grouptype
-				includeall - always returns true for inclusion - this will be an easy way to say everything is includes unless specifically excluded
-			filteritems will include a mask value, a test value and a relation (<, =, <> or >)
-				the data type for mask and test value will depend on the filter type
-				support mac and ip aliases
+
+
 
 
 	add http/https

@@ -107,9 +107,12 @@ namespace pviewer5
     //      commands to apply filters, reload file reflecting filters
 
 
-	public partial class MainWindow : Window
+	public partial class MainWindow : Window, INotifyPropertyChanged
 	{
         public PacketViewer pview;
+        private string _packetfilename = null;
+        public string PacketFileName { get { return _packetfilename; } set { _packetfilename = value; NotifyPropertyChanged(); } }
+        public bool FileLoaded { get; set; } = false;
         public ObservableCollection<Packet> pkts { get; set; }
         public FilterSet filters { get; set; }
         public ObservableCollection<GList> grouplistlist { get; set; }
@@ -156,16 +159,27 @@ namespace pviewer5
 
             Closing += MainWindow_Closing;   // add handler for Closing event, to save window state
 
-		}
+    }
 
+        // implement INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged(String propertyName = "")
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
 
         void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (filters.ChangedSinceSave)
+            // if user has a named filter file loaded and it has changed, offer to save
+            if ((filters.ChangedSinceSave) && (filters.Filename != null))
                 if (MessageBox.Show("Save Filter?", "Save Filter to " + filters.Filename, MessageBoxButton.YesNo) == MessageBoxResult.Yes)
                     if (filters.Filename != null) filters.SaveToDisk(filters.Filename);
                     else filters.SaveAsToDisk();
 
+            // save current filter in autosave file
             filters.SaveToDisk("c:\\pviewer\\autosave.filterset");
 
             Properties.Settings.Default.WindowPositionMain = this.RestoreBounds;
@@ -202,8 +216,9 @@ namespace pviewer5
 				//qfexcluded.pkts.Clear();
                 Properties.Settings.Default.LastDirectory = dlg.InitialDirectory;
                 Properties.Settings.Default.LastFile = dlg.FileName;
-				filename.Content = dlg.FileName;
 				fs = new FileStream(dlg.FileName, FileMode.Open);
+                PacketFileName = dlg.FileName;
+                FileLoaded = true;
 
                 pfh = new PcapFile(fs);
 
@@ -227,8 +242,18 @@ namespace pviewer5
                 fs.Close();
 			}
 		}
+        private void ApplyFilterToView(object sender, RoutedEventArgs e)
+        {
+            for (int i = pkts.Count; i < pkts.Count; i++)
+            {
+                // if (!filters.Include(pkts[i])) pkts.RemoveAt(i);
+            }
 
-		private void qfbutton(object sender, RoutedEventArgs e)
+        }
+        private void ReloadFile(object sender, RoutedEventArgs e)
+        { }
+
+        private void qfbutton(object sender, RoutedEventArgs e)
 		{
 			Window qfd = new QuickFilterDialog();
 			qfd.ShowDialog();
