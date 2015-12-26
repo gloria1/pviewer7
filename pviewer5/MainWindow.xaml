@@ -108,19 +108,12 @@
             </TextBlock>
         </HierarchicalDataTemplate>
 
-        <ObjectDataProvider x:Key="dataFromEnumInclExcl" MethodName="GetValues" ObjectType="{x:Type System:Enum}">
-            <ObjectDataProvider.MethodParameters>
-                <x:Type TypeName="local:InclExcl"/>
-            </ObjectDataProvider.MethodParameters>
-        </ObjectDataProvider>
-
         <HierarchicalDataTemplate DataType="{x:Type local:Filter}"
                                   ItemsSource="{Binding Path=filterlist}">
             <WrapPanel Orientation="Horizontal"
                 KeyboardNavigation.TabNavigation="None">
                 <CheckBox IsChecked="{Binding Path=Active}"/>
                 <Label Content="Active"/>
-                <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumInclExcl}}" SelectedItem="{Binding Path=InclusionFilter}"/>
                 <Label Content="{Binding Path=DisplayInfo}"/>
                 <Button Content="Up" HorizontalAlignment="Right" Click="filter_moveup"/>
                 <Button Content="Dn" HorizontalAlignment="Right" Click="filter_movedown"/>

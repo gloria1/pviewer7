@@ -26,8 +26,8 @@ namespace pviewer5
     [Serializable]
     public class FilterSet : INotifyPropertyChanged
     // a FilterSet is a list of Filter objects
-    // FilterSet.Include returns true if ANY Filter returns true
-    // FilterSet.Include returns false if list is empty
+    // FilterSet.Include returns true only if ALL Filters return true (or if list is empty)
+    // FilterSet.Include returns true if list is empty
     {
         public string Filename { get; set; }
         private bool _changedsincesave;
@@ -53,17 +53,11 @@ namespace pviewer5
 
         public bool Include(Packet pkt)  // returns true if packet should be included based on this filterset
         {
-            bool include = false;   // the default result is to not include the packet, unless one of the filters says to include it
-
             foreach (Filter f in Filters)
                 if (f.Active)
-                    if (f.Match(pkt))
-                    {
-                        if (f.InclusionFilter == InclExcl.Exclude) return false;   // immediately return false if packet matches on an exclusion filter
-                        else include = true;     // else set include=true but continue through filter list in case another filter causes exclusion
-                    }
+                    if (!f.Match(pkt)) return false;
 
-            return include;
+            return true;  // the default result is to include the packet, unless one of the filters says to not include it
         }
 
         public void SaveToDisk(string fn)
@@ -165,11 +159,6 @@ namespace pviewer5
                 if (Parent != null) Parent.ChangedSinceSave = true;
             }
         }
-        private InclExcl _inclfilter;
-        public InclExcl InclusionFilter { get { return _inclfilter; } set { _inclfilter = value; if (Parent != null) Parent.ChangedSinceApplied = true;
-                if (Parent != null) Parent.ChangedSinceSave = true;
-            }
-        }
         public ObservableCollection<FilterItem> filterlist { get; set; }
         public FilterSet Parent = null;
         public string DisplayInfo
@@ -185,17 +174,16 @@ namespace pviewer5
         public Filter(FilterSet parent)  // this is the master, general constructor
         {
             Active = true;
-            InclusionFilter = InclExcl.Include;
             filterlist = new ObservableCollection<FilterItem>();
             filterlist.Add(new FilterItemAddItem(this));
             Parent = parent;
         }
 
         public bool Match(Packet pkt)
-        // must match on ALL filter items to return true
+        // returns true if ANY FilterItems match
         {
-            foreach (FilterItem fi in filterlist) if (fi.Match(pkt) == false) return false;
-            return true;
+            foreach (FilterItem fi in filterlist) if (fi.Match(pkt) == true) return true;
+            return false;
         }
 
         // implement INotifyPropertyChanged interface
@@ -224,14 +212,17 @@ namespace pviewer5
 
         public new bool Match(Packet pkt)
         {
-            return false;   // always return false, i.e. packet does not match this filter
+            return true;   // always return true - Filter.Match should return true if list is empty of actual filters (i.e., FilterAddItem is the only item) or if the list is not empty and the testing has reached this item because all previous filters returned true
         }
     }
 
 
     [Serializable]
     public class FilterItem
+    // the generic template for specific filter item types
     {
+        protected FilterType _type = FilterType.Undefined;
+        public virtual FilterType Type { get { return _type; } set { _type = value; } }
         public Filter Parent { get; set; } = null;
 
         public virtual bool Match(Packet pkt)
@@ -245,8 +236,28 @@ namespace pviewer5
     [Serializable]
     public class FilterItemIP4 : FilterItem
     {
+        public override FilterType Type
+        {
+            get { return _type; }
+            set
+            {
+                if (_type != value)
+                {
+                    int i = Parent.filterlist.IndexOf(this);
+                    FilterItem newitem;
+                    switch(value)
+                    {
+                        case FilterType.IPv4: newitem = new FilterItemIP4(); break;
+                        default: newitem = new FilterItem(); break;
+                    }
+                    Parent.filterlist.Insert(i + 1, newitem);
+                    Parent.filterlist.RemoveAt(i);
+                }
+            }
+        }
+
         private SrcDest _srcdest = SrcDest.Either;
-        public SrcDest Srcdest{ get { return _srcdest; } set { _srcdest= value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
+        public SrcDest Srcdest{ get { return _srcdest; } set { _srcdest = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
         private uint _value = 0;
         public uint Value { get { return _value; } set { _value = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
         private uint _mask = 0xffffffff;
@@ -294,9 +305,24 @@ namespace pviewer5
         public FilterItemIP4() : this(null) { }
         public FilterItemIP4(Filter parent)
         {
+            Type = FilterType.IPv4;
             Parent = parent;
         }
     }
+
+
+    [Serializable]
+    public enum FilterType: int
+    {
+        TimeStamp = 1,
+        IPv4 = 2,
+        MAC = 3,
+        Port = 4,
+        Protocol = 5,
+        GroupType = 6,
+        Undefined = 99999
+    }
+
 
 
     [Serializable]
@@ -344,7 +370,7 @@ namespace pviewer5
 
         public override bool Match(Packet pkt)
         {
-            return true;
+            return false;  // match logic returns true if any FilterItem matches, so this stub item should not indicate a match
         }
     }
 
