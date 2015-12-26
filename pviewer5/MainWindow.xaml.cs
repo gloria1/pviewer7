@@ -287,6 +287,13 @@ namespace pviewer5
         {
             filters.LoadFromDisk(null);
         }
+        private void filterset_clear(object sender, RoutedEventArgs e)
+        {
+            filters.Filters.Clear();
+            filters.Filters.Add(new FilterAddItem());
+            filters.ChangedSinceApplied = filters.ChangedSinceApplied = false;
+            filters.Filename = null;
+        }
         private void filter_addfilter(object sender, RoutedEventArgs e)
         {
             filters.Filters.Insert(filters.Filters.Count-1,new Filter(filters));

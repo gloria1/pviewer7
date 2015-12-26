@@ -124,6 +124,13 @@
             <Button Content="Add Filter" Click="filter_addfilter"/>
         </DataTemplate>
 
+        <ObjectDataProvider x:Key="dataFromEnumFilterType" MethodName="GetValues" ObjectType="{x:Type System:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="local:FilterType"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+
         <ObjectDataProvider x:Key="dataFromEnumSrcDest" MethodName="GetValues" ObjectType="{x:Type System:Enum}">
             <ObjectDataProvider.MethodParameters>
                 <x:Type TypeName="local:SrcDest"/>
@@ -141,6 +148,7 @@
                 KeyboardNavigation.TabNavigation="Cycle">
 
                 <Label Content="IPv4 filter: "/>
+                <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumFilterType}}" SelectedItem="{Binding Path=Type}"/>
                 <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumSrcDest}}" SelectedItem="{Binding Path=Srcdest}"/>
                 <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumReln}}" SelectedItem="{Binding Path=Relation}"/>
                 <TextBlock Text="    Value: "/>
@@ -291,8 +299,9 @@
                         Content="Save Filter Set"
                         Click="filterset_save"
                         IsEnabled="{Binding Path=filters.ChangedSinceSave}"/>
+                    <Button Content="Clear Filter Set"
+                            Click="filterset_clear"/>
                     <Label Content="Current File= "/>
-                    <Button Content="Clear Filter Set"/>
                     <Label Name="filtersetfilename"
                            Content="{Binding Path=filters.Filename}"
                         MinWidth="100"/>

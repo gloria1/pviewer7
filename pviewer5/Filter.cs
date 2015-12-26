@@ -221,9 +221,42 @@ namespace pviewer5
     public class FilterItem
     // the generic template for specific filter item types
     {
-        protected FilterType _type = FilterType.Undefined;
-        public virtual FilterType Type { get { return _type; } set { _type = value; } }
+        private FilterType _type = FilterType.Undefined;
+        public FilterType Type
+        {
+            get { return _type; }
+            set
+            {
+                if (_type != value)
+                {
+                    _type = value;
+
+                    if (Parent == null) return;
+
+                    Parent.Parent.ChangedSinceApplied = true;
+                    Parent.Parent.ChangedSinceSave = true;
+                    int i = Parent.filterlist.IndexOf(this);
+
+                    if (i < 0) return;  // i can be <0 if this setter is called during filteritem construction, before it has been placed in the list
+
+                    FilterItem newitem;
+                    switch (value)
+                    {
+                        case FilterType.IPv4: newitem = new FilterItemIP4(); break;
+                        default: newitem = new FilterItem(this.Parent); break;
+                    }
+                    Parent.filterlist.Insert(i + 1, newitem);
+                    Parent.filterlist.RemoveAt(i);
+                }
+            }
+        }
+
         public Filter Parent { get; set; } = null;
+
+        public FilterItem(Filter parent)
+        {
+            Parent = parent;
+        }
 
         public virtual bool Match(Packet pkt)
         {
@@ -236,26 +269,6 @@ namespace pviewer5
     [Serializable]
     public class FilterItemIP4 : FilterItem
     {
-        public override FilterType Type
-        {
-            get { return _type; }
-            set
-            {
-                if (_type != value)
-                {
-                    int i = Parent.filterlist.IndexOf(this);
-                    FilterItem newitem;
-                    switch(value)
-                    {
-                        case FilterType.IPv4: newitem = new FilterItemIP4(); break;
-                        default: newitem = new FilterItem(); break;
-                    }
-                    Parent.filterlist.Insert(i + 1, newitem);
-                    Parent.filterlist.RemoveAt(i);
-                }
-            }
-        }
-
         private SrcDest _srcdest = SrcDest.Either;
         public SrcDest Srcdest{ get { return _srcdest; } set { _srcdest = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
         private uint _value = 0;
@@ -303,7 +316,7 @@ namespace pviewer5
         }
 
         public FilterItemIP4() : this(null) { }
-        public FilterItemIP4(Filter parent)
+        public FilterItemIP4(Filter parent) : base(parent)
         {
             Type = FilterType.IPv4;
             Parent = parent;
@@ -363,7 +376,7 @@ namespace pviewer5
     // purpose is to have a data template that will show an add button at the end of the filterset list in the gui
     {
         public FilterItemAddItem() : this(null) { }
-        public FilterItemAddItem(Filter parent)
+        public FilterItemAddItem(Filter parent) : base(parent)
         {
             Parent = parent;
         }
