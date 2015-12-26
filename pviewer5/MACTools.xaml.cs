@@ -29,7 +29,6 @@ namespace pviewer5
     public class MACUtil
     // class containing:
     //      utility functions related to MAC addresses (value converters, etc.)
-    //      global state variables for whether to show aliases
     // this is implemented as a dynamic class as a Singleton, i.e., there can only ever be one instance
     // this is because static classes cannot implement interfaces (or at least INotifyPropertyChanged)
     {
@@ -60,6 +59,60 @@ namespace pviewer5
         {
             return;
         }*/
+
+        public ulong? StringToMAC(string s)
+        // returns null if string cannot be parsed
+        {
+            string regmac = "^([a-fA-F0-9]{0,2}[-:]){0,5}[a-fA-F0-9]{0,2}$";
+            string[] macbits = new string[6];
+
+            try
+            {
+                return ulong.Parse(s, NumberStyles.HexNumber);
+            }
+            catch (FormatException ex)
+            {
+                if (Regex.IsMatch(s, regmac))
+                {
+                    macbits = Regex.Split(s, "[:-]");
+                    // resize array to 6 - we want to tolerate missing colons, i.e., user entering less than 6 segments,
+                    // split will produce array with number of elements equal to nmber of colons + 1
+                    Array.Resize<string>(ref macbits, 6);
+
+                    for (int i = 0; i < 6; i++) { macbits[i] = "0" + macbits[i]; }
+
+                    try
+                    {
+                        return ulong.Parse(macbits[0], NumberStyles.HexNumber) * 0x0000010000000000 +
+                                ulong.Parse(macbits[1], NumberStyles.HexNumber) * 0x0000000100000000 +
+                                ulong.Parse(macbits[2], NumberStyles.HexNumber) * 0x0000000001000000 +
+                                ulong.Parse(macbits[3], NumberStyles.HexNumber) * 0x0000000000010000 +
+                                ulong.Parse(macbits[4], NumberStyles.HexNumber) * 0x0000000000000100 +
+                                ulong.Parse(macbits[5], NumberStyles.HexNumber) * 0x0000000000000001;
+                    }
+                    catch { }
+                }
+            }
+
+            return null;
+        }
+
+        public string MACToString(ulong value)
+        {
+            ulong[] b = new ulong[6];
+            string s;
+
+            b[0] = ((value & 0xff0000000000) / 0x10000000000);
+            b[1] = ((value & 0xff00000000) / 0x100000000);
+            b[2] = ((value & 0xff000000) / 0x1000000);
+            b[3] = ((value & 0xff0000) / 0x10000);
+            b[4] = ((value & 0xff00) / 0x100);
+            b[5] = ((value & 0xff) / 0x1);
+
+            s = String.Format("{0:x2}:{1:x2}:{2:x2}:{3:x2}:{4:x2}:{5:x2}", b[0], b[1], b[2], b[3], b[4], b[5]);
+            return s;
+        }
+
 
         [Serializable]
         public class macnamemapclass : Dictionary<ulong, string>
@@ -110,54 +163,7 @@ namespace pviewer5
             }
         }
 
-        public ulong? StringToMAC(string s)
-        {
-            // returns null if string cannot be parsed
-
-
-            string regmac = "^([a-fA-F0-9]{0,2}[-:]){0,5}[a-fA-F0-9]{0,2}$";
-            string[] macbits = new string[6];
-
-            try
-            {
-                return ulong.Parse(s, NumberStyles.HexNumber);
-            }
-            catch (FormatException ex)
-            {
-                if (Regex.IsMatch(s, regmac))
-                {
-                    macbits = Regex.Split(s, "[:-]");
-                    // resize array to 6 - we want to tolerate missing colons, i.e., user entering less than 6 segments,
-                    // split will produce array with number of elements equal to nmber of colons + 1
-                    Array.Resize<string>(ref macbits, 6);
-
-                    for (int i = 0; i < 6; i++) { macbits[i] = "0" + macbits[i]; }
-                    return ulong.Parse(macbits[0], NumberStyles.HexNumber) * 0x0000010000000000 +
-                            ulong.Parse(macbits[1], NumberStyles.HexNumber) * 0x0000000100000000 +
-                            ulong.Parse(macbits[2], NumberStyles.HexNumber) * 0x0000000001000000 +
-                            ulong.Parse(macbits[3], NumberStyles.HexNumber) * 0x0000000000010000 +
-                            ulong.Parse(macbits[4], NumberStyles.HexNumber) * 0x0000000000000100 +
-                            ulong.Parse(macbits[5], NumberStyles.HexNumber) * 0x0000000000000001;
-                }
-            }
-
-            return null;
-        }
-        public string MACToString(ulong value)
-        {
-            ulong[] b = new ulong[6];
-            string s;
-
-            b[0] = ((value & 0xff0000000000) / 0x10000000000);
-            b[1] = ((value & 0xff00000000) / 0x100000000);
-            b[2] = ((value & 0xff000000) / 0x1000000);
-            b[3] = ((value & 0xff0000) / 0x10000);
-            b[4] = ((value & 0xff00) / 0x100);
-            b[5] = ((value & 0xff) / 0x1);
-
-            s = String.Format("{0:x2}:{1:x2}:{2:x2}:{3:x2}:{4:x2}:{5:x2}", b[0], b[1], b[2], b[3], b[4], b[5]);
-            return s;
-        }
+ 
     }
 
     public class ValidateMACNumber : ValidationRule
@@ -182,6 +188,8 @@ namespace pviewer5
         public override ValidationResult Validate(object value, System.Globalization.CultureInfo cultureInfo)
         {
             ulong? v = 0;
+
+            if (!(value is string)) return new ValidationResult(false, "Not a valid MAC address");
 
             // first try to parse as a raw mac address
             v = MACUtil.Instance.StringToMAC((string)value);
@@ -248,7 +256,69 @@ namespace pviewer5
         }
     }
 
+    public class MACConverterNumberOrAliasInverse : IValueConverter
+    {
+        // converts number to/from display format mac address, including translating aliases
+        // uses inverse of GUIUtil.UseAliases property - to feed tooltip
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (!GUIUtil.Instance.UseAliases && MACUtil.Instance.map.ContainsKey((ulong)value)) return MACUtil.Instance.map[(ulong)value];
+            else return MACUtil.Instance.MACToString((ulong)value);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException("Cannot convert back");
+        }
+    }
+
     public class MACMultiConverterNumberOrAlias : IMultiValueConverter
+    {
+        // converts number to/from display format MAC address, including translating aliases
+        // also takes value of UseAliases as an argument
+
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (GUIUtil.Instance.UseAliases && MACUtil.Instance.map.ContainsKey((ulong)values[0]))
+                return MACUtil.Instance.map[(ulong)values[0]];
+            else return MACUtil.Instance.MACToString((ulong)values[0]);
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            ulong? u;
+            object[] v = new object[3];
+            // copy current values of hex and usealiases into result to be sent back - multi value converter must pass back values for all bindings in the multibinding
+            v[1] = GUIUtil.Instance.Hex;
+            v[2] = GUIUtil.Instance.UseAliases;
+
+            // first try to parse as a raw IP4 address
+            u = MACUtil.Instance.StringToMAC((string)value);
+            if (u != null)
+            {
+                v[0] = u;
+                return v;
+            }
+
+            // if that failed, see if string exists in IP4namemap
+            foreach (ulong uu in MACUtil.Instance.map.Keys)
+                if ((string)value == MACUtil.Instance.map[uu])
+                {
+                    v[0] = uu;
+                    return v;
+                }
+
+            // we should never get to this point, since validation step will not pass unless value is either valid raw IP4 or existing entry in IP4namemap
+            // however, just in case put up a messagebox and return 0
+            MessageBox.Show("ConvertBack could not process as either raw IP4 address or entry in IP4namemap.  Why did this pass validation????");
+            v[0] = 0; return v;
+        }
+
+    }
+
+    public class MACMultiConverterNumberOrAliasInverse : IMultiValueConverter
+    // same as above except respects inverse of UseAliases, to feed tooltip
     {
         // converts number to/from display format MAC address, including translating aliases
         // also takes value of UseAliases as an argument

@@ -24,6 +24,10 @@
         <local:IP4ConverterNumberOrAliasInverse x:Key="IP4converternumberoraliasinverse"/>
         <local:IP4MultiConverterNumberOrAlias x:Key="IP4multiconverternumberoralias"/>
         <local:IP4MultiConverterNumberOrAliasInverse x:Key="IP4multiconverternumberoraliasinverse"/>
+        <local:MACConverterNumberOrAlias x:Key="MACconverternumberoralias"/>
+        <local:MACConverterNumberOrAliasInverse x:Key="MACconverternumberoraliasinverse"/>
+        <local:MACMultiConverterNumberOrAlias x:Key="MACmulticonverternumberoralias"/>
+        <local:MACMultiConverterNumberOrAliasInverse x:Key="MACmulticonverternumberoraliasinverse"/>
 
         <DataTemplate DataType="{x:Type local:H}">
             <TextBlock>
@@ -120,31 +124,27 @@
                 <Button Content="X" HorizontalAlignment="Right" Click="filter_delete"/>
             </WrapPanel>
         </HierarchicalDataTemplate>
+        <DataTemplate DataType="{x:Type local:FilterAddItem}">
+            <Button Content="Add Filter" Click="filter_addfilter"/>
+        </DataTemplate>
 
         <ObjectDataProvider x:Key="dataFromEnumFilterType" MethodName="GetValues" ObjectType="{x:Type System:Enum}">
             <ObjectDataProvider.MethodParameters>
                 <x:Type TypeName="local:FilterType"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
-
-
         <ObjectDataProvider x:Key="dataFromEnumSrcDest" MethodName="GetValues" ObjectType="{x:Type System:Enum}">
             <ObjectDataProvider.MethodParameters>
                 <x:Type TypeName="local:SrcDest"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
-
         <ObjectDataProvider x:Key="dataFromEnumReln" MethodName="GetValues" ObjectType="{x:Type System:Enum}">
             <ObjectDataProvider.MethodParameters>
                 <x:Type TypeName="local:Relations"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
 
-        <DataTemplate DataType="{x:Type local:FilterAddItem}">
-            <Button Content="Add Filter" Click="filter_addfilter"/>
-        </DataTemplate>
-
-       <DataTemplate DataType="{x:Type local:FilterItem}">
+        <DataTemplate DataType="{x:Type local:FilterItem}">
             <WrapPanel Orientation="Horizontal">
                 <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumFilterType}}" SelectedItem="{Binding Path=Type}"/>
                 <Button Content="X" Click="filteritem_delete"/>
@@ -212,10 +212,72 @@
                 </TextBox>
                 <Button Content="X" HorizontalAlignment="Right" Click="filteritem_delete"/>
             </WrapPanel>
-
-
-            
         </DataTemplate>
+
+        <DataTemplate DataType="{x:Type local:FilterItemMAC}">
+                <WrapPanel Orientation="Horizontal"
+                KeyboardNavigation.TabNavigation="Cycle">
+
+                    <Label Content="MAC filter: "/>
+                    <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumFilterType}}" SelectedItem="{Binding Path=Type}"/>
+                    <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumSrcDest}}" SelectedItem="{Binding Path=Srcdest}"/>
+                    <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumReln}}" SelectedItem="{Binding Path=Relation}"/>
+                    <TextBlock Text="    Value: "/>
+                    <TextBox MinWidth="100" KeyUp="TextBox_UpdateSourceIfEnterKey">
+                        <TextBox.Text>
+                            <MultiBinding Converter="{StaticResource MACmulticonverternumberoralias}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
+                                <MultiBinding.ValidationRules>
+                                    <local:ValidateMACNumberOrAlias ValidationStep="RawProposedValue"/>
+                                </MultiBinding.ValidationRules>
+                                <Binding Path="Value" Mode="TwoWay">
+                                </Binding>
+                                <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
+                                <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                            </MultiBinding>
+                        </TextBox.Text>
+                        <TextBox.ToolTip>
+                            <MultiBinding Converter="{StaticResource MACmulticonverternumberoraliasinverse}">
+                                <Binding Path="Value">
+                                    <Binding.ValidationRules>
+                                        <local:ValidateMACNumberOrAlias/>
+                                    </Binding.ValidationRules>
+                                </Binding>
+                                <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
+                                <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                            </MultiBinding>
+                        </TextBox.ToolTip>
+                    </TextBox>
+                    <TextBlock Text=" Mask: "/>
+                    <TextBox MinWidth="100">
+                        <TextBox.Text>
+                            <MultiBinding Converter="{StaticResource MACmulticonverternumberoralias}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
+                                <MultiBinding.ValidationRules>
+                                    <local:ValidateMACNumberOrAlias ValidationStep="RawProposedValue"/>
+                                </MultiBinding.ValidationRules>
+                                <Binding Path="Mask" Mode="TwoWay">
+                                </Binding>
+                                <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
+                                <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                            </MultiBinding>
+                        </TextBox.Text>
+                        <TextBox.ToolTip>
+                            <MultiBinding Converter="{StaticResource MACmulticonverternumberoraliasinverse}">
+                                <Binding Path="Value" >
+                                    <Binding.ValidationRules>
+                                        <local:ValidateMACNumberOrAlias/>
+                                    </Binding.ValidationRules>
+                                </Binding>
+                                <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
+                                <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                            </MultiBinding>
+                        </TextBox.ToolTip>
+                    </TextBox>
+                    <Button Content="X" HorizontalAlignment="Right" Click="filteritem_delete"/>
+                </WrapPanel>
+
+
+
+            </DataTemplate>
         <DataTemplate DataType="{x:Type local:FilterItemAddItem}">
             <Button Content="Add Filter Item" Click="filteritem_addfilteritem"/>
         </DataTemplate>

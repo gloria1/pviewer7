@@ -244,7 +244,8 @@ namespace pviewer5
                     FilterItem newitem;
                     switch (value)
                     {
-                        case FilterType.IPv4: newitem = new FilterItemIP4(); break;
+                        case FilterType.IPv4: newitem = new FilterItemIP4(Parent); break;
+                        case FilterType.MAC: newitem = new FilterItemMAC(Parent); break;
                         default: newitem = new FilterItem(Parent); break;
                     }
                     Parent.filterlist.Insert(i + 1, newitem);
@@ -301,6 +302,8 @@ namespace pviewer5
                     default: break;  // retain previously set value of result
                 }
             }
+            if (result == true) return true;
+
             if ((Srcdest == SrcDest.Dest) || (Srcdest == SrcDest.Either))
             {
                 maskedval = (pkt.DestIP4 & Mask);
@@ -325,6 +328,67 @@ namespace pviewer5
             Parent = parent;
         }
     }
+
+
+    [Serializable]
+    public class FilterItemMAC : FilterItem
+    {
+        private SrcDest _srcdest = SrcDest.Either;
+        public SrcDest Srcdest { get { return _srcdest; } set { _srcdest = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
+        private ulong _value = 0;
+        public ulong Value { get { return _value; } set { _value = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
+        private ulong _mask = 0xffffffff;
+        public ulong Mask { get { return _mask; } set { _mask = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }     // bit mask applied to Value and to the packet being tested
+        private Relations _relation = Relations.Equal;
+        public Relations Relation { get { return _relation; } set { _relation = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
+
+        public override bool Match(Packet pkt)
+        {
+            bool result = false; // default result is to return no match
+
+            ulong maskedval;
+
+            if ((Srcdest == SrcDest.Source) || (Srcdest == SrcDest.Either))
+            {
+                maskedval = (pkt.SrcMAC & Mask);
+                switch (Relation)
+                {
+                    case Relations.Equal: result = (maskedval == Value); break;
+                    case Relations.NotEqual: result = (maskedval != Value); break;
+                    case Relations.LessThan: result = (maskedval < Value); break;
+                    case Relations.LessThanOrEqual: result = (maskedval <= Value); break;
+                    case Relations.GreaterThan: result = (maskedval > Value); break;
+                    case Relations.GreaterThanOrEqual: result = (maskedval >= Value); break;
+                    default: break;  // retain previously set value of result
+                }
+            }
+            if (result == true) return true;
+
+            if ((Srcdest == SrcDest.Dest) || (Srcdest == SrcDest.Either))
+            {
+                maskedval = (pkt.DestMAC & Mask);
+                switch (Relation)
+                {
+                    case Relations.Equal: result = (maskedval == Value); break;
+                    case Relations.NotEqual: result = (maskedval != Value); break;
+                    case Relations.LessThan: result = (maskedval < Value); break;
+                    case Relations.LessThanOrEqual: result = (maskedval <= Value); break;
+                    case Relations.GreaterThan: result = (maskedval > Value); break;
+                    case Relations.GreaterThanOrEqual: result = (maskedval >= Value); break;
+                    default: break;  // retain previously set value of result
+                }
+            }
+            return result;
+        }
+
+        public FilterItemMAC() : this(null) { }
+        public FilterItemMAC(Filter parent) : base(parent)
+        {
+            Type = FilterType.MAC;
+            Parent = parent;
+        }
+    }
+
 
 
     [Serializable]
