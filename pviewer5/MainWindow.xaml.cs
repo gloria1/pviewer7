@@ -282,7 +282,7 @@ namespace pviewer5
         private void filterset_save(object sender, RoutedEventArgs e)
         {
             filters.SaveToDisk(null);
-                    }
+        }
         private void filterset_load(object sender, RoutedEventArgs e)
         {
             filters.LoadFromDisk(null);
@@ -302,27 +302,27 @@ namespace pviewer5
         }
         private void filter_moveup(object sender, RoutedEventArgs e)
         {
-            Filter self = (Filter)(((Button)sender).DataContext);
-            int i = self.Parent.Filters.IndexOf(self);
+            Filter thisfilter = (Filter)(((Button)sender).DataContext);
+            int i = thisfilter.Parent.Filters.IndexOf(thisfilter);
             if (i == 0) return; // do nothing if already first item
-            self.Parent.Filters.Move(i, i - 1);
+            thisfilter.Parent.Filters.Move(i, i - 1);
             filters.ChangedSinceApplied = filters.ChangedSinceSave = true;
             return;
         }
         private void filter_movedown(object sender, RoutedEventArgs e)
         {
-            Filter self = (Filter)(((Button)sender).DataContext);
-            int i = self.Parent.Filters.IndexOf(self);
-            if (i == self.Parent.Filters.Count-2) return; // do nothing if already the last item
-            self.Parent.Filters.Move(i, i + 1);
+            Filter thisfilter = (Filter)(((Button)sender).DataContext);
+            int i = thisfilter.Parent.Filters.IndexOf(thisfilter);
+            if (i == thisfilter.Parent.Filters.Count-2) return; // do nothing if already the last item
+            thisfilter.Parent.Filters.Move(i, i + 1);
             filters.ChangedSinceApplied = filters.ChangedSinceSave = true;
             return;
         }
         private void filter_delete(object sender, RoutedEventArgs e)
         {
-            Filter self = (Filter)(((Button)sender).DataContext);
-            int i = self.Parent.Filters.IndexOf(self);
-            self.Parent.Filters.RemoveAt(i);
+            Filter thisfilter = (Filter)(((Button)sender).DataContext);
+            int i = thisfilter.Parent.Filters.IndexOf(thisfilter);
+            thisfilter.Parent.Filters.RemoveAt(i);
             filters.ChangedSinceApplied = filters.ChangedSinceSave = true;
             return;
         }
@@ -337,9 +337,9 @@ namespace pviewer5
         }
         private void filteritem_delete(object sender, RoutedEventArgs e)
         {
-            FilterItem self = (FilterItem)(((Button)sender).DataContext);
+            FilterItem thisfilteritem = (FilterItem)(((Button)sender).DataContext);
             Filter parent = ((FilterItem)(((Button)sender).DataContext)).Parent;
-            int i = parent.filterlist.IndexOf(self);
+            int i = parent.filterlist.IndexOf(thisfilteritem);
             parent.filterlist.RemoveAt(i);
             filters.ChangedSinceApplied = filters.ChangedSinceSave = true;
             return;

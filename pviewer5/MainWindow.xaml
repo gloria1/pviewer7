@@ -120,9 +120,6 @@
                 <Button Content="X" HorizontalAlignment="Right" Click="filter_delete"/>
             </WrapPanel>
         </HierarchicalDataTemplate>
-        <DataTemplate DataType="{x:Type local:FilterAddItem}">
-            <Button Content="Add Filter" Click="filter_addfilter"/>
-        </DataTemplate>
 
         <ObjectDataProvider x:Key="dataFromEnumFilterType" MethodName="GetValues" ObjectType="{x:Type System:Enum}">
             <ObjectDataProvider.MethodParameters>
@@ -142,6 +139,18 @@
                 <x:Type TypeName="local:Relations"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
+
+        <DataTemplate DataType="{x:Type local:FilterAddItem}">
+            <Button Content="Add Filter" Click="filter_addfilter"/>
+        </DataTemplate>
+
+       <DataTemplate DataType="{x:Type local:FilterItem}">
+            <WrapPanel Orientation="Horizontal">
+                <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumFilterType}}" SelectedItem="{Binding Path=Type}"/>
+                <Button Content="X" Click="filteritem_delete"/>
+            </WrapPanel>
+        </DataTemplate>
+
 
         <DataTemplate DataType="{x:Type local:FilterItemIP4}">
             <WrapPanel Orientation="Horizontal"
@@ -200,7 +209,8 @@
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
                         </MultiBinding>
                     </TextBox.ToolTip>
-                </TextBox>                <Button Content="X" HorizontalAlignment="Right" Click="filteritem_delete"/>
+                </TextBox>
+                <Button Content="X" HorizontalAlignment="Right" Click="filteritem_delete"/>
             </WrapPanel>
 
 

@@ -170,7 +170,7 @@ namespace pviewer5
         }
 
         // constructors
-        public Filter() : this(null) { }
+        public Filter() : this(null) { }   // empty constructor, needed for deserialization
         public Filter(FilterSet parent)  // this is the master, general constructor
         {
             Active = true;
@@ -212,6 +212,7 @@ namespace pviewer5
 
         public new bool Match(Packet pkt)
         {
+            // below should be redundant, since Active is set to false in the constructor....
             return true;   // always return true - Filter.Match should return true if list is empty of actual filters (i.e., FilterAddItem is the only item) or if the list is not empty and the testing has reached this item because all previous filters returned true
         }
     }
@@ -232,6 +233,7 @@ namespace pviewer5
                     _type = value;
 
                     if (Parent == null) return;
+                    if (Parent.Parent == null) return;
 
                     Parent.Parent.ChangedSinceApplied = true;
                     Parent.Parent.ChangedSinceSave = true;
@@ -243,7 +245,7 @@ namespace pviewer5
                     switch (value)
                     {
                         case FilterType.IPv4: newitem = new FilterItemIP4(); break;
-                        default: newitem = new FilterItem(this.Parent); break;
+                        default: newitem = new FilterItem(Parent); break;
                     }
                     Parent.filterlist.Insert(i + 1, newitem);
                     Parent.filterlist.RemoveAt(i);
@@ -253,6 +255,7 @@ namespace pviewer5
 
         public Filter Parent { get; set; } = null;
 
+        public FilterItem() : this(null) { }
         public FilterItem(Filter parent)
         {
             Parent = parent;
