@@ -92,12 +92,6 @@ namespace pviewer5
             // add to header list
             pkt.phlist.Add(this);
             
-            if (QuickFilterTools.QFIP4.Exclude(DestIP4) || QuickFilterTools.QFIP4.Exclude(SrcIP4))
-            {
-                pkt.qfexcluded = true;
-                return;
-            }
-
             switch (Prot)
             {
                 case 0x01: //L4Protocol = Protocols.ICMP;

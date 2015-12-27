@@ -67,6 +67,15 @@ namespace pviewer5
         public ObservableCollection<Packet> L { get; set; }  // list items are individual packets
         public override string displayinfo { get { return String.Format("Generic group, Count = {0}", L.Count); } }
         
+        public bool AnyVisiblePackets
+        {
+            get
+            {
+                foreach (Packet p in L) if (p.FilterMatched) return true;
+                return false;
+            }
+        }
+
         public G()      // need parameter-less constructor needs to exist for sub-classes for some reason
         { }
 
@@ -82,6 +91,8 @@ namespace pviewer5
             FirstTime = LastTime = ph.Time;
             L = new ObservableCollection<Packet>();
             L.Add(pkt);
+            ((ICollectionView)(CollectionViewSource.GetDefaultView(L))).Filter = delegate (object item) { return ((Packet)item).FilterMatched; };
+
         }
         public virtual bool Belongs(Packet pkt, H h)         // returns true if pkt belongs in this group, also turns Complete to true if this packet will complete the group
         {
@@ -109,8 +120,13 @@ namespace pviewer5
         public GList(string n)
         {
             name = n;
+
             groups = new ObservableCollection<G>();
+
+            ((ICollectionView)(CollectionViewSource.GetDefaultView(groups))).Filter = delegate (object item) { return ((G)item).AnyVisiblePackets; };
+
         }
+
 
         public bool GroupPacket(Packet pkt)         // first checks whether packet can be added to a group already in the list
         {                                           // then checks whether packet can start a new group of this type

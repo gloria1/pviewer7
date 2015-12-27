@@ -74,7 +74,7 @@ namespace pviewer5
         public byte[] PData;
         public uint Len;
 
-        public bool qfexcluded;		// true if packet was excluded due to quickfilter - can drop once we transition to simply deleting quickfilter'ed packets
+        public bool FilterMatched { get; set; } = true;   // set based on application of filterset, feeds an ICollectionView.Filter
 
         public Packet() // empty constructor, constructs a packet with no data or headers
         {
@@ -100,13 +100,6 @@ namespace pviewer5
 
 
 
-    // next
-    //  filter implementation
-    //      autosave filterset on window close, autoreload on startup
-    //      add button to clear filter
-    //      commands to apply filters, reload file reflecting filters
-
-
 	public partial class MainWindow : Window, INotifyPropertyChanged
 	{
         public PacketViewer pview;
@@ -116,9 +109,9 @@ namespace pviewer5
         public ObservableCollection<Packet> pkts { get; set; }
         public FilterSet filters { get; set; }
         public ObservableCollection<GList> grouplistlist { get; set; }
-        
-		public MainWindow()
-		{
+
+        public MainWindow()
+        {
             pkts = new ObservableCollection<Packet>();
 
             filters = new FilterSet();
@@ -136,7 +129,9 @@ namespace pviewer5
             grouplistlist.Add(new UDPGList("UDP Groups"));
             grouplistlist.Add(new ARPGList("ARP Groups"));
             grouplistlist.Add(new GList("Ungrouped Packets"));
-            
+
+
+
             InitializeComponent();
             
 
@@ -207,13 +202,8 @@ namespace pviewer5
 			if (result == true)
 			{
                 pkts.Clear();
-                // deprecated:  exclpkts.Clear();
                 foreach (GList gl in grouplistlist) gl.groups.Clear();
 
-				QuickFilterTools.QFMAC.ResetCounters();
-				QuickFilterTools.QFIP4.ResetCounters();
-				//foreach (PktSet set in setlist.sets) set.pkts.Clear();
-				//qfexcluded.pkts.Clear();
                 Properties.Settings.Default.LastDirectory = dlg.InitialDirectory;
                 Properties.Settings.Default.LastFile = dlg.FileName;
 				fs = new FileStream(dlg.FileName, FileMode.Open);
@@ -225,7 +215,8 @@ namespace pviewer5
                 while (fs.Position < fs.Length)
                 {
                     pkt = new Packet(fs, pfh);
-                    if (filters.Include(pkt)) pkts.Add(pkt);
+                    pkt.FilterMatched = filters.Include(pkt); pkts.Add(pkt);
+                    // if (filters.Include(pkt)) pkts.Add(pkt);
                 }
 
                 foreach (Packet p in pkts)

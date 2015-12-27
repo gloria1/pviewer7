@@ -103,6 +103,8 @@ namespace pviewer5
             SrcPort = pkt.SrcPort;
             DestIP4 = pkt.DestIP4;
             DestPort = pkt.DestPort;
+
+
         }
 
         public override bool Belongs(Packet pkt, H h)        // returns true if pkt belongs to group

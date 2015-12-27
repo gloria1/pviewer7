@@ -51,12 +51,6 @@ namespace pviewer5
 
             pkt.phlist.Add(this);
 
-            if (QuickFilterTools.QFMAC.Exclude(DestMAC) || QuickFilterTools.QFMAC.Exclude(SrcMAC))
-            {
-                pkt.qfexcluded = true;
-                return;
-            }
-
             switch (TypeLen)
             {
                 case 0x800: //L3Protocol = Protocols.IP4;
