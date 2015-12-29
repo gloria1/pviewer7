@@ -110,6 +110,8 @@ namespace pviewer5
         public FilterSet filters { get; set; }
         public ObservableCollection<GList> grouplistlist { get; set; }
 
+        public UDPGList udplisttemp;
+
         public MainWindow()
         {
             pkts = new ObservableCollection<Packet>();
@@ -129,6 +131,8 @@ namespace pviewer5
             grouplistlist.Add(new UDPGList("UDP Groups"));
             grouplistlist.Add(new ARPGList("ARP Groups"));
             grouplistlist.Add(new GList("Ungrouped Packets"));
+
+            udplisttemp = (UDPGList)grouplistlist[3];
 
 
 
@@ -317,7 +321,7 @@ namespace pviewer5
 
 
             CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(grouptree.ItemsSource);
-
+            CollectionView viewudp2 = (CollectionView)CollectionViewSource.GetDefaultView(udplisttemp.groups);
 
 
             filters.ChangedSinceApplied = filters.ChangedSinceSave = true;
