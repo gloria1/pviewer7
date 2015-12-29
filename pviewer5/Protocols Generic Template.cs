@@ -59,13 +59,13 @@ namespace pviewer5
         }
     }
 
-    public class G : PVDisplayObject
+    public class G : PVDisplayObject, IEditableObject
     {
         public bool Complete = false;
         public DateTime FirstTime, LastTime;   // earliest and latest timestamp in this group
 
         public ObservableCollection<Packet> L { get; set; }  // list items are individual packets
-        public CollectionView Lview;
+        public ListCollectionView Lview;
         public override string displayinfo {
             get
             {
@@ -99,10 +99,11 @@ namespace pviewer5
             FirstTime = LastTime = ph.Time;
             L = new ObservableCollection<Packet>();
 
-            Lview = (CollectionView)CollectionViewSource.GetDefaultView(L);
+            Lview = (ListCollectionView)CollectionViewSource.GetDefaultView(L);
             Lview.Filter = new Predicate<object>(GLFilter);
 
             L.Add(pkt);
+            pkt.parent = this;
             ((ICollectionView)(CollectionViewSource.GetDefaultView(L))).Filter = delegate (object item) { return ((Packet)item).FilterMatched; };
 
         }
@@ -125,13 +126,21 @@ namespace pviewer5
             return ((Packet)p).FilterMatched;
         }
 
+        // implement IEditableObject interface
+        // see
+        //  http://www.codeproject.com/Articles/61316/Tuning-Up-The-TreeView-Part
+        //  http://drwpf.com/blog/2008/10/20/itemscontrol-e-is-for-editable-collection/
+        public void BeginEdit() { }
+        public void CancelEdit() { }
+        public void EndEdit() { }
+
     }
     
-    public class GList : PVDisplayObject
+    public class GList : PVDisplayObject, IEditableObject
     {
         public string name;
         public ObservableCollection<G> groups { get; set; }
-        public CollectionView GLview;
+        public ListCollectionView GLview;
         public virtual Protocols headerselector { get; set; }   // used by G.GroupPacket to pull the header for the relevant protocol out of the packet, to pass into the Belongs and StartNewGroup functions
 
         public override string displayinfo {
@@ -148,7 +157,7 @@ namespace pviewer5
             name = n;
 
             groups = new ObservableCollection<G>();
-            GLview = (CollectionView)CollectionViewSource.GetDefaultView(groups);
+            GLview = (ListCollectionView)CollectionViewSource.GetDefaultView(groups);
             GLview.Filter = new Predicate<object>(GGLFilter);
 
             ((ICollectionView)(CollectionViewSource.GetDefaultView(groups))).Filter = delegate (object item) { return ((G)item).AnyVisiblePackets; };
@@ -178,6 +187,7 @@ namespace pviewer5
                 {
                     PcapH ph = pkt.phlist[0] as PcapH;
                     g.L.Add(pkt);
+                    pkt.parent = g;
                     g.FirstTime = (g.FirstTime < ph.Time) ? g.FirstTime : ph.Time;          // adjust group timestamps
                     g.LastTime = (g.LastTime < ph.Time) ? ph.Time : g.LastTime;             // adjust group timestamps
                     return true;
@@ -201,6 +211,15 @@ namespace pviewer5
         {
             return ((G)g).AnyVisiblePackets;
         }
+
+        // implement IEditableObject interface
+        // see
+        //  http://www.codeproject.com/Articles/61316/Tuning-Up-The-TreeView-Part
+        //  http://drwpf.com/blog/2008/10/20/itemscontrol-e-is-for-editable-collection/
+        public void BeginEdit() { }
+        public void CancelEdit() { }
+        public void EndEdit() { }
+
 
         public virtual G StartNewGroup(Packet pkt, H h)   // starts a new group if this packet can be the basis for a new group of this type
         {

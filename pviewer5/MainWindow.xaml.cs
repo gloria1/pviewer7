@@ -68,14 +68,14 @@ namespace pviewer5
         public IP4H ip4hdr = null;
         public TCPH tcphdr = null;
         public H groupprotoheader { get; set; }     // packet group logic will set this to point to the header of the protocol relevant to that group type
-
+        public G parent { get; set; } = null;
         public override string displayinfo { get { return "Packet innermost header is: " + phlist[phlist.Count - 1].displayinfo; } }
 
         public byte[] PData;
         public uint Len;
 
-        public bool FilterMatched { get; set; } = true;   // set based on application of filterset, feeds an ICollectionView.Filter
-
+        public bool FilterMatched { get; set; } = true;      // set based on application of filterset, feeds an ICollectionView.Filter
+        
         public Packet() // empty constructor, constructs a packet with no data or headers
         {
             phlist = new List<H>();
@@ -96,11 +96,16 @@ namespace pviewer5
             if (pfh.Type == PcapFile.PcapFileTypes.PcapNG)
                 fs.Seek((long)(pch.NGBlockLen - 0x1c - pch.CapLen), SeekOrigin.Current);       // skip over any padding bytes, options and trailing block length field
         }
+
+        // implement INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+    
+
     }
 
 
 
-	public partial class MainWindow : Window, INotifyPropertyChanged
+    public partial class MainWindow : Window, INotifyPropertyChanged
 	{
         public PacketViewer pview;
         private string _packetfilename = null;
@@ -109,6 +114,7 @@ namespace pviewer5
         public ObservableCollection<Packet> pkts { get; set; }
         public FilterSet filters { get; set; }
         public ObservableCollection<GList> grouplistlist { get; set; }
+        public ListCollectionView gllview;
 
         public UDPGList udplisttemp;
 
@@ -125,6 +131,7 @@ namespace pviewer5
             filters.Filename = null;    // reset the filename to null after loading from autosave file
 
             grouplistlist = new ObservableCollection<GList>();
+            gllview = (ListCollectionView)CollectionViewSource.GetDefaultView(grouplistlist);
             grouplistlist.Add(new DNSGList("DNS Groups"));
             grouplistlist.Add(new DHCP4GList("DHCP4 Groups"));
             grouplistlist.Add(new TCPGList("TCP Groups"));
@@ -132,13 +139,8 @@ namespace pviewer5
             grouplistlist.Add(new ARPGList("ARP Groups"));
             grouplistlist.Add(new GList("Ungrouped Packets"));
 
-            udplisttemp = (UDPGList)grouplistlist[3];
-
-
-
             InitializeComponent();
             
-
 			grid.DataContext = this;
 
             // try to restore window position and other settings - see "Programing WPF Second Edition" page 321
@@ -158,7 +160,7 @@ namespace pviewer5
 
             Closing += MainWindow_Closing;   // add handler for Closing event, to save window state
 
-    }
+        }
 
         // implement INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;
@@ -231,7 +233,7 @@ namespace pviewer5
                     tg.OPL1.CopyBytes(1000, b);
                     tg.OPL2.CopyBytes(1000, b);
                 }
-                CollectionViewSource.GetDefaultView(grouptree.ItemsSource).Refresh();
+                gllview.Refresh();
 
                 fs.Close();
 			}
@@ -247,7 +249,7 @@ namespace pviewer5
                 }
                 glist.GLview.Refresh();
             }
-            ((CollectionView)CollectionViewSource.GetDefaultView(grouptree.ItemsSource)).Refresh();
+            //gllview.Refresh();
         }
         private void ReloadFile(object sender, RoutedEventArgs e)
         { }
