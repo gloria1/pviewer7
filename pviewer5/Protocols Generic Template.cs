@@ -65,7 +65,14 @@ namespace pviewer5
         public DateTime FirstTime, LastTime;   // earliest and latest timestamp in this group
 
         public ObservableCollection<Packet> L { get; set; }  // list items are individual packets
-        public override string displayinfo { get { return String.Format("Generic group, Count = {0}", L.Count); } }
+        public override string displayinfo {
+            get
+            {
+                int i = 0;
+                foreach (Packet p in L) if (p.FilterMatched) i++;
+                return String.Format("Generic group, Total Count = {0}, Filtered Count = {1}", L.Count, i);
+            }
+        }
         
         public bool AnyVisiblePackets
         {
@@ -115,7 +122,14 @@ namespace pviewer5
         public ObservableCollection<G> groups { get; set; }
         public virtual Protocols headerselector { get; set; }   // used by G.GroupPacket to pull the header for the relevant protocol out of the packet, to pass into the Belongs and StartNewGroup functions
 
-        public override string displayinfo { get { return name + String.Format(", contains {0} groups", groups.Count()); } }
+        public override string displayinfo {
+            get
+            {
+                int i = 0;
+                foreach (G g in groups) if (g.AnyVisiblePackets) i++;
+                return name + String.Format(", Total Group Count = {0}, Filtered Group Count = {1}", groups.Count, i);
+            }
+        }
         
         public GList(string n)
         {

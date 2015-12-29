@@ -215,8 +215,7 @@ namespace pviewer5
                 while (fs.Position < fs.Length)
                 {
                     pkt = new Packet(fs, pfh);
-                    pkt.FilterMatched = filters.Include(pkt); pkts.Add(pkt);
-                    // if (filters.Include(pkt)) pkts.Add(pkt);
+                    if (filters.Include(pkt)) pkts.Add(pkt);
                 }
 
                 foreach (Packet p in pkts)
@@ -235,11 +234,13 @@ namespace pviewer5
 		}
         private void ApplyFilterToView(object sender, RoutedEventArgs e)
         {
-            for (int i = pkts.Count; i < pkts.Count; i++)
-            {
-                // if (!filters.Include(pkts[i])) pkts.RemoveAt(i);
-            }
-
+            foreach (GList glist in grouplistlist)
+                foreach (G g in glist.groups)
+                {
+                    foreach (Packet p in g.L) p.FilterMatched = filters.Include(p);
+                    //CollectionViewSource.GetDefaultView(glist).Refresh();
+                }
+     int i = 1;
         }
         private void ReloadFile(object sender, RoutedEventArgs e)
         { }
@@ -313,6 +314,12 @@ namespace pviewer5
         private void filter_addfilter(object sender, RoutedEventArgs e)
         {
             filters.Filters.Insert(filters.Filters.Count-1,new Filter(filters));
+
+
+            CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(grouptree.ItemsSource);
+
+
+
             filters.ChangedSinceApplied = filters.ChangedSinceSave = true;
             return;
         }

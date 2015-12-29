@@ -34,7 +34,11 @@ namespace pviewer5
         public static GUIUtil Instance { get { return instance; } }
 
         private bool _hex;
-        public bool Hex { get { return _hex; } set { _hex = value; NotifyPropertyChanged("Hex"); } }
+        public bool Hex { get { return _hex; } set { _hex = value;
+   //             ICollectionView udpgroupview = (ICollectionView)CollectionViewSource.GetDefaultView(MainWindow.grouptree.ItemsSource);
+
+
+                NotifyPropertyChanged("Hex"); } }
         private bool _usealiases;
         public bool UseAliases { get { return _usealiases; } set { _usealiases = value; NotifyPropertyChanged(); } }
 
