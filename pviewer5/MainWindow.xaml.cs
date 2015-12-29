@@ -239,12 +239,14 @@ namespace pviewer5
         private void ApplyFilterToView(object sender, RoutedEventArgs e)
         {
             foreach (GList glist in grouplistlist)
+            {
                 foreach (G g in glist.groups)
                 {
                     foreach (Packet p in g.L) p.FilterMatched = filters.Include(p);
-                    //CollectionViewSource.GetDefaultView(glist).Refresh();
+                    g.Lview.Refresh();
                 }
-     int i = 1;
+                glist.GLview.Refresh();
+            }
         }
         private void ReloadFile(object sender, RoutedEventArgs e)
         { }
@@ -318,12 +320,6 @@ namespace pviewer5
         private void filter_addfilter(object sender, RoutedEventArgs e)
         {
             filters.Filters.Insert(filters.Filters.Count-1,new Filter(filters));
-
-
-            CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(grouptree.ItemsSource);
-            CollectionView viewudp2 = (CollectionView)CollectionViewSource.GetDefaultView(udplisttemp.groups);
-
-
             filters.ChangedSinceApplied = filters.ChangedSinceSave = true;
             return;
         }

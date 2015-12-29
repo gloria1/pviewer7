@@ -65,6 +65,7 @@ namespace pviewer5
         public DateTime FirstTime, LastTime;   // earliest and latest timestamp in this group
 
         public ObservableCollection<Packet> L { get; set; }  // list items are individual packets
+        public CollectionView Lview;
         public override string displayinfo {
             get
             {
@@ -97,10 +98,15 @@ namespace pviewer5
             PcapH ph = pkt.phlist[0] as PcapH;
             FirstTime = LastTime = ph.Time;
             L = new ObservableCollection<Packet>();
+
+            Lview = (CollectionView)CollectionViewSource.GetDefaultView(L);
+            Lview.Filter = new Predicate<object>(GLFilter);
+
             L.Add(pkt);
             ((ICollectionView)(CollectionViewSource.GetDefaultView(L))).Filter = delegate (object item) { return ((Packet)item).FilterMatched; };
 
         }
+
         public virtual bool Belongs(Packet pkt, H h)         // returns true if pkt belongs in this group, also turns Complete to true if this packet will complete the group
         {
             // h argument: the GroupPacket function can pass in a reference to a relevant protocol header, so Belongs does not have to search the header list every time it is called
@@ -114,12 +120,18 @@ namespace pviewer5
             return true;
         }
 
+        public bool GLFilter(object p)
+        {
+            return ((Packet)p).FilterMatched;
+        }
+
     }
     
     public class GList : PVDisplayObject
     {
         public string name;
         public ObservableCollection<G> groups { get; set; }
+        public CollectionView GLview;
         public virtual Protocols headerselector { get; set; }   // used by G.GroupPacket to pull the header for the relevant protocol out of the packet, to pass into the Belongs and StartNewGroup functions
 
         public override string displayinfo {
@@ -136,6 +148,8 @@ namespace pviewer5
             name = n;
 
             groups = new ObservableCollection<G>();
+            GLview = (CollectionView)CollectionViewSource.GetDefaultView(groups);
+            GLview.Filter = new Predicate<object>(GGLFilter);
 
             ((ICollectionView)(CollectionViewSource.GetDefaultView(groups))).Filter = delegate (object item) { return ((G)item).AnyVisiblePackets; };
 
@@ -183,6 +197,11 @@ namespace pviewer5
             // h argument: the GroupPacket function can pass in a reference to a relevant protocol header (likely it's own protocol's header), so Belongs does not have to search the header list every time it is called
             return true;
         }
+        public bool GGLFilter(object g)
+        {
+            return ((G)g).AnyVisiblePackets;
+        }
+
         public virtual G StartNewGroup(Packet pkt, H h)   // starts a new group if this packet can be the basis for a new group of this type
         {
             // h argument: the GroupPacket function can pass in a reference to a relevant protocol header (likely it's own protocol's header), so StartNewGroup does not have to search the header list (since that was already done by GroupPacket for the Belongs calls)
