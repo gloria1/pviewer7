@@ -247,6 +247,7 @@ namespace pviewer5
                 }
                 glist.GLview.Refresh();
             }
+            ((CollectionView)CollectionViewSource.GetDefaultView(grouptree.ItemsSource)).Refresh();
         }
         private void ReloadFile(object sender, RoutedEventArgs e)
         { }

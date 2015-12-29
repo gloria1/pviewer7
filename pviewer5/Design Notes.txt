@@ -2,20 +2,10 @@
 
 next:
 
-	what is data model for packets loaded into memory then excduded via subsequent filtering?
-		each packet will have a state variable "show"
-			show is set true when packet file is loaded
-			show is set false if a subsequent filter application results in !match
-				two versions of apply operation - apply and re-include if packet no longer fails, apply only to packets still shown
-		use Filter on the View to update treeview to only show packets where show==true
-
-
-	enable quick ways to add filters based on packets shown
-		e.g. specialized label for ip4 address
-			tooltip that shows the alias/raw version
-			right-click command to add filteritem based on this item
-		add up/down buttons on filteritems that can make them traverse filters - action would be to right-click an ip4, then use up/down buttons to move into place in filter list
-
+	test
+		button state management
+		application of filter logic
+		updating of tree view area on changes in filters
 
 
 	enable "apply filter" button - so don't have to keep reloading file
@@ -28,6 +18,14 @@ next:
 			HOW DO WE GET A FILTER THAT SAYS "EXCLUDE IPxxxx EXCEPT INCLUDE HTTP GROUPS"????
 
 	maintain count of excluded packets - display it in filter view area
+
+
+	enable quick ways to add filters based on packets shown
+		e.g. specialized label for ip4 address
+			tooltip that shows the alias/raw version
+			right-click command to add filteritem based on this item
+		add up/down buttons on filteritems that can make them traverse filters - action would be to right-click an ip4, then use up/down buttons to move into place in filter list
+
 
 
 	window state management
