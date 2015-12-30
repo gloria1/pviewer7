@@ -123,12 +123,6 @@ namespace pviewer5
             pkts = new ObservableCollection<Packet>();
 
             filters = new FilterSet();
-            try
-            {
-                filters.LoadFromDisk("c:\\pviewer\\autosave.filterset");
-            }
-            catch { }
-            filters.Filename = null;    // reset the filename to null after loading from autosave file
 
             grouplistlist = new ObservableCollection<GList>();
             gllview = (ListCollectionView)CollectionViewSource.GetDefaultView(grouplistlist);
@@ -142,6 +136,13 @@ namespace pviewer5
             InitializeComponent();
             
 			grid.DataContext = this;
+
+            try
+            {
+                filters.LoadFromDisk("c:\\pviewer\\autosave.filterset");
+            }
+            catch { }
+            filters.Filename = null;    // reset the filename to null after loading from autosave file
 
             // try to restore window position and other settings - see "Programing WPF Second Edition" page 321
             try
@@ -247,9 +248,11 @@ namespace pviewer5
                     foreach (Packet p in g.L) p.FilterMatched = filters.Include(p);
                     g.Lview.Refresh();
                 }
-                glist.GLview.Refresh();
+                //glist.GLview.Refresh();
             }
             //gllview.Refresh();
+
+            filters.ChangedSinceApplied = false;
         }
         private void ReloadFile(object sender, RoutedEventArgs e)
         { }
