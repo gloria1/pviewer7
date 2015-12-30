@@ -23,6 +23,14 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace pviewer5
 {
+
+    // NEXT:
+    //  DON'T SERIALIZE THE FILTERSET
+    //  JUST DO FOREACH (FILTER IN FILTERSET) SERIALIZE THE FILTER
+
+
+
+
     [Serializable]
     public class FilterSet : INotifyPropertyChanged
     // a FilterSet is a list of Filter objects
