@@ -25,13 +25,17 @@ namespace pviewer5
 {
 
     // NEXT:
+
+        // FACEPALM - FILTERS INCLUDE REFERENCE TO FILTERSET WHICH IS TRYING TO BE SERIALIZED
+
+
     //  DON'T SERIALIZE THE FILTERSET
     //  JUST DO FOREACH (FILTER IN FILTERSET) SERIALIZE THE FILTER
+    // then go back to getting view to update properly when filter changes
 
 
 
 
-    [Serializable]
     public class FilterSet : INotifyPropertyChanged
     // a FilterSet is a list of Filter objects
     // FilterSet.Include returns true only if ALL Filters return true (or if list is empty)
@@ -80,7 +84,8 @@ namespace pviewer5
             Filename = fn;
 
             fs = new FileStream(Filename, FileMode.OpenOrCreate);
-            formatter.Serialize(fs, Filters);
+            formatter.Serialize(fs, Filters.Count());
+            foreach (Filter f in Filters) f.SerializeMyself(fs, formatter);
             fs.Close();
             ChangedSinceSave = false;
         }
@@ -117,26 +122,24 @@ namespace pviewer5
             }
             else Filename = fn;
 
-            fs = new FileStream(Filename, FileMode.Open);
+            Filters.Clear();
 
             try
             {
-                Filters = ((ObservableCollection<Filter>)(formatter.Deserialize(fs)));
+                fs = new FileStream(Filename, FileMode.Open);
+                for (int i = (int)(formatter.Deserialize(fs)); i > 0; i--) Filters.Add((Filter)(formatter.Deserialize(fs)));
                 ChangedSinceSave = false;
+                fs.Close();
             }
             catch
             {
                 MessageBox.Show("File not read");
             }
-            finally
-            {
-                fs.Close();
-            }
+
+            Filters.Add(new FilterAddItem());
 
         }
 
-        // implement INotifyPropertyChanged interface
-        [field: NonSerializedAttribute()]
         public event PropertyChangedEventHandler PropertyChanged;
         private void NotifyPropertyChanged(String propertyName = "")
         {
@@ -192,6 +195,11 @@ namespace pviewer5
         {
             foreach (FilterItem fi in filterlist) if (fi.Match(pkt) == true) return true;
             return false;
+        }
+
+        public void SerializeMyself(FileStream fs, IFormatter formatter)
+        {
+            formatter.Serialize(fs, this);
         }
 
         // implement INotifyPropertyChanged interface
