@@ -24,6 +24,7 @@ namespace pviewer5
 {
     public class PVDisplayObject
     {
+        public bool isexpanded { get; set; } = false;
         public virtual string displayinfo { get { return "Generic Display Object"; } }
         public virtual PVDisplayObject self { get { return this; } }
     }

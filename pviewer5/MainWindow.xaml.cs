@@ -249,7 +249,8 @@ namespace pviewer5
                 }
                 glist.GLview.Refresh();
             }
-            //gllview.Refresh();
+            filters.ChangedSinceApplied = false;
+            gllview.Refresh();
         }
         private void ReloadFile(object sender, RoutedEventArgs e)
         { }
