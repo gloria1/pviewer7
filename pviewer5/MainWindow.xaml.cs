@@ -57,6 +57,7 @@ namespace pviewer5
 
         // convenience properties to contain copies of commonly needed values,
         // so that other functions do not need to search through header list to find them
+        public ulong SeqNo = 0; // absolute sequence number in packet file
         public Protocols Prots = Protocols.Generic;     // flags for protocols present in this packet
         public ulong SrcMAC = 0;
         public ulong DestMAC = 0;
@@ -217,6 +218,7 @@ namespace pviewer5
             PcapFile pfh;
             FileStream fs;
             Packet pkt;
+            ulong seqno;
 
             byte[] b = new byte[1000];
 
@@ -229,9 +231,11 @@ namespace pviewer5
 
             pfh = new PcapFile(fs);
 
+            seqno = 0;
             while (fs.Position < fs.Length)
             {
                 pkt = new Packet(fs, pfh);
+                pkt.SeqNo = seqno++;    // assign sequence number - this is done now so that excluded packets will get sequence numbers
                 if (filters.Include(pkt)) pkts.Add(pkt);
             }
 
@@ -269,11 +273,12 @@ namespace pviewer5
             filters.ChangedSinceApplied = false;
         }
 
+        /* obsolete
         private void qfbutton(object sender, RoutedEventArgs e)
 		{
 			Window qfd = new QuickFilterDialog();
 			qfd.ShowDialog();
-		}
+		}*/
 		private void mnmbutton(object sender, RoutedEventArgs e)
 		{
 			Window w1 = new MACNameMapDialog();

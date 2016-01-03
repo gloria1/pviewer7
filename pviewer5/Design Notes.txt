@@ -2,37 +2,10 @@
 
 next:
 
-	test
-		button state management
-		application of filter logic
-		updating of tree view area on changes in filters
-
-
-	maintain count of excluded packets - display it in filter view area
-
-
-	enable quick ways to add filters based on packets shown
-		e.g. specialized label for ip4 address
-			tooltip that shows the alias/raw version
-			right-click command to add filteritem based on this item
-		add up/down buttons on filteritems that can make them traverse filters - action would be to right-click an ip4, then use up/down buttons to move into place in filter list
-
-
-
-	window state management
-		when load packet file, close packet viewer
-		when apply filter, close packet viewer
-		when close packet viewer, make it re-open when another packet is selected
-
-	test filter behavior
-		src/dest/either
-		masks
-		exlude not working?
-		inactive not working?
-
 	other types of filters
-		include all
-		timestamp
+		port - needs a multivalueconverter and validator
+
+		timestamp - date only, time only, date+time
 		packet sequence number (simply the order in the file)
 		protocol
 		grouptype
@@ -42,49 +15,32 @@ next:
 				maybe ignore grouptype filters in the packet load pass, then apply the filters again during the group determinatino pass?
 				add "GroupType" property to Packet - set to null until group determination pass is done
 
+	make custom TextBox to get editing/navigation behavior I want
+		- tabbing into the control puts it in edit mode
+		- upon entering edit mode, select all text
+		- while in "edit mode", validate on every key press, but do not do value conversion - want to keep string exactly as user is editing it
+		- when user hits enter, try to get out of "edit mode" - apply value conversion
+		- if hit enter while invalid, stay in edit mode
+		- if lose focus while invalid, revert to previous value
+
+
+	window state management
+		when load packet file, close packet viewer
+		when apply filter, close packet viewer
+		when close packet viewer, make it re-open when another packet is selected
+
 
 	enhance load/save behavior
 		append filter
-		apply current filter to previously loaded file (without reloading)
-		re-load current file
 
-
-	make custom TextBox to get editing/navigation behavior I want
-		- while in "edit mode", validate on every key press, but do not do value conversion - want to keep string exactly as user is editing it
-		- when user hits enter, try to get out of "edit mode" - apply value conversion
-		- if hit enter while invalid, revert to previous valid value
+	enable quick ways to add filters based on packets shown
+		e.g. specialized label for ip4 address
+			tooltip that shows the alias/raw version
+			right-click command to add filteritem based on this item
+		add up/down buttons on filteritems that can make them traverse filters - action would be to right-click an ip4, then use up/down buttons to move into place in filter list
 
 
 
-	filter gui behaviors
-		textbox editing behavior
-			hitting enter tries to accept value
-			invalid values make border glow red (thicker than default)
-			if converter cannot return valid value, return "Invalid Value" so that shows up in tooltip
-
-
-		text entry:
-			mask and value display as ip4
-			can accept decimal or hex input
-			dot notation is required
-				but tolerate missing elements 
-					e.g., can enter 192.
-					e.g., can enter 192...1
-					missing bits filled with zeros
-		tabs cycle through controls, including textboxes and combo in edit items, and add buttons
-			but excluding teh up/down/delete buttons
-		tabbing into a control puts it in edit mode
-		tabbing out saves changes
-		pressing enter saves changes
-		going into edit mode selects all text
-		text entry:
-			mask and value display as ip4
-			can accept decimal or hex input
-			dot notation is required
-				but tolerate missing elements 
-					e.g., can enter 192.
-					e.g., can enter 192...1
-					missing bits filled with zeros
 
 
 

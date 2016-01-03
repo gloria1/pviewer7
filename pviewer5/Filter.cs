@@ -276,6 +276,7 @@ namespace pviewer5
                     {
                         case FilterType.IPv4: newitem = new FilterItemIP4(Parent); break;
                         case FilterType.MAC: newitem = new FilterItemMAC(Parent); break;
+                        case FilterType.Port: newitem = new FilterItemPort(Parent); break;
                         default: newitem = new FilterItem(Parent); break;
                     }
                     Parent.filterlist.Insert(i + 1, newitem);
@@ -453,6 +454,66 @@ namespace pviewer5
         public FilterItemMAC(Filter parent) : base(parent)
         {
             Type = FilterType.MAC;
+            Parent = parent;
+        }
+    }
+
+    [Serializable]
+    public class FilterItemPort : FilterItem
+    {
+        private SrcDest _srcdest = SrcDest.Either;
+        public SrcDest Srcdest { get { return _srcdest; } set { _srcdest = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
+        private uint _value = 0;
+        public uint Value { get { return _value; } set { _value = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
+        private uint _mask = 0xffffffff;
+        public uint Mask { get { return _mask; } set { _mask = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }     // bit mask applied to Value and to the packet being tested
+        private Relations _relation = Relations.Equal;
+        public Relations Relation { get { return _relation; } set { _relation = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
+
+        public override bool Match(Packet pkt)
+        {
+            bool result = false; // default result is to return no match
+
+            uint maskedtarget, maskeddata;
+            maskedtarget = Value & Mask;
+
+            if ((Srcdest == SrcDest.Source) || (Srcdest == SrcDest.Either))
+            {
+                maskeddata = pkt.SrcPort & Mask;
+                switch (Relation)
+                {
+                    case Relations.Equal: result = (maskeddata == maskedtarget); break;
+                    case Relations.NotEqual: result = (maskeddata != maskedtarget); break;
+                    case Relations.LessThan: result = (maskeddata < maskedtarget); break;
+                    case Relations.LessThanOrEqual: result = (maskeddata <= maskedtarget); break;
+                    case Relations.GreaterThan: result = (maskeddata > maskedtarget); break;
+                    case Relations.GreaterThanOrEqual: result = (maskeddata >= maskedtarget); break;
+                    default: break;  // retain previously set value of result
+                }
+            }
+            if (result == true) return true;
+
+            if ((Srcdest == SrcDest.Dest) || (Srcdest == SrcDest.Either))
+            {
+                maskeddata = (pkt.DestPort & Mask);
+                switch (Relation)
+                {
+                    case Relations.Equal: result = (maskeddata == maskedtarget); break;
+                    case Relations.NotEqual: result = (maskeddata != maskedtarget); break;
+                    case Relations.LessThan: result = (maskeddata < maskedtarget); break;
+                    case Relations.LessThanOrEqual: result = (maskeddata <= maskedtarget); break;
+                    case Relations.GreaterThan: result = (maskeddata > maskedtarget); break;
+                    case Relations.GreaterThanOrEqual: result = (maskeddata >= maskedtarget); break;
+                    default: break;  // retain previously set value of result
+                }
+            }
+            return result;
+        }
+
+        public FilterItemPort() : this(null) { }
+        public FilterItemPort(Filter parent) : base(parent)
+        {
+            Type = FilterType.IPv4;
             Parent = parent;
         }
     }

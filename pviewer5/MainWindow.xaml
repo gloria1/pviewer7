@@ -151,8 +151,6 @@
                 <Button Content="X" Click="filteritem_delete"/>
             </WrapPanel>
         </DataTemplate>
-
-
         <DataTemplate DataType="{x:Type local:FilterItemIP4}">
             <WrapPanel Orientation="Horizontal"
                 KeyboardNavigation.TabNavigation="Cycle">
@@ -214,7 +212,6 @@
                 <Button Content="X" HorizontalAlignment="Right" Click="filteritem_delete"/>
             </WrapPanel>
         </DataTemplate>
-
         <DataTemplate DataType="{x:Type local:FilterItemMAC}">
                 <WrapPanel Orientation="Horizontal"
                 KeyboardNavigation.TabNavigation="Cycle">
@@ -279,6 +276,37 @@
 
 
             </DataTemplate>
+        <DataTemplate DataType="{x:Type local:FilterItemPort}">
+            <WrapPanel Orientation="Horizontal"
+                KeyboardNavigation.TabNavigation="Cycle">
+
+                <Label Content="IPv4 filter: "/>
+                <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumFilterType}}" SelectedItem="{Binding Path=Type}"/>
+                <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumSrcDest}}" SelectedItem="{Binding Path=Srcdest}"/>
+                <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumReln}}" SelectedItem="{Binding Path=Relation}"/>
+                <TextBlock Text="    Value: "/>
+                <TextBox MinWidth="100" KeyUp="TextBox_UpdateSourceIfEnterKey">
+                    <TextBox.Text>
+                        <MultiBinding UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
+                            <Binding Path="Value" Mode="TwoWay"/>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                        </MultiBinding>
+                    </TextBox.Text>
+                </TextBox>
+                <TextBlock Text=" Mask: "/>
+                <TextBox MinWidth="100">
+                    <TextBox.Text>
+                        <MultiBinding UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
+                            <Binding Path="Mask" Mode="TwoWay"/>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                        </MultiBinding>
+                    </TextBox.Text>
+                </TextBox>
+                <Button Content="X" HorizontalAlignment="Right" Click="filteritem_delete"/>
+            </WrapPanel>
+        </DataTemplate>
         <DataTemplate DataType="{x:Type local:FilterItemAddItem}">
             <Button Content="Add Filter Item" Click="filteritem_addfilteritem"/>
         </DataTemplate>
