@@ -84,8 +84,9 @@ namespace pviewer5
             Filename = fn;
 
             fs = new FileStream(Filename, FileMode.OpenOrCreate);
-            formatter.Serialize(fs, Filters.Count());
-            foreach (Filter f in Filters) f.SerializeMyself(fs, formatter);
+            int numfilters = Filters.Count() - 1;  // do not count the FilterAddItem
+            formatter.Serialize(fs, numfilters);
+            for (int i = 0; i < numfilters;  i++) Filters[i].SerializeMyself(fs, formatter);
             fs.Close();
             ChangedSinceSave = false;
         }
@@ -127,8 +128,9 @@ namespace pviewer5
             try
             {
                 fs = new FileStream(Filename, FileMode.Open);
-                for (int i = (int)(formatter.Deserialize(fs)); i > 0; i--) Filters.Add((Filter)(formatter.Deserialize(fs)));
-                ChangedSinceSave = false;
+                int numfilters = (int)formatter.Deserialize(fs);
+                for (int i = 0; i < numfilters; i++) Filters.Add(new Filter(this, fs, formatter));
+                ChangedSinceApplied = ChangedSinceSave = false;
                 fs.Close();
             }
             catch
@@ -171,7 +173,10 @@ namespace pviewer5
             }
         }
         public ObservableCollection<FilterItem> filterlist { get; set; }
+        
+        [field:NonSerialized]
         public FilterSet Parent = null;
+
         public string DisplayInfo
         {
             get
@@ -189,6 +194,19 @@ namespace pviewer5
             filterlist.Add(new FilterItemAddItem(this));
             Parent = parent;
         }
+        public Filter(FilterSet parent, FileStream fs, IFormatter formatter)    // constructor for when de-serializing
+        {
+            Parent = parent;
+            Active = (bool)formatter.Deserialize(fs);
+            filterlist = (ObservableCollection<FilterItem>)formatter.Deserialize(fs);
+            foreach (FilterItem i in filterlist) i.Parent = this;   // parent attribute not serialized, so set it manually
+        }
+
+        public void SerializeMyself(FileStream fs, IFormatter formatter)
+        {
+            formatter.Serialize(fs, Active);
+            formatter.Serialize(fs, filterlist);
+        }
 
         public bool Match(Packet pkt)
         // returns true if ANY FilterItems match
@@ -197,10 +215,6 @@ namespace pviewer5
             return false;
         }
 
-        public void SerializeMyself(FileStream fs, IFormatter formatter)
-        {
-            formatter.Serialize(fs, this);
-        }
 
         // implement INotifyPropertyChanged interface
         [field:NonSerializedAttribute()]
@@ -270,14 +284,16 @@ namespace pviewer5
             }
         }
 
-        public Filter Parent { get; set; } = null;
+        [field:NonSerialized]
+        private Filter _parent = null;
+        public Filter Parent { get { return _parent; }  set { _parent = value; } }
 
         public FilterItem() : this(null) { }
         public FilterItem(Filter parent)
         {
             Parent = parent;
         }
-
+        
         public virtual bool Match(Packet pkt)
         {
             return false;
@@ -318,14 +334,6 @@ namespace pviewer5
         GreaterThan = 5,
         GreaterThanOrEqual = 6,
         Undefined = 99999    
-    }
-
-    [Serializable]
-    public enum InclExcl : int
-    {
-        Include = 1,
-        Exclude = 2,
-        Undefined = 99999
     }
 
 
