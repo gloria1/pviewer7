@@ -8,15 +8,6 @@ next:
 		updating of tree view area on changes in filters
 
 
-	enable "apply filter" button - so don't have to keep reloading file
-	enable "reload pcap file" button - so don't have to keep doing file dialog
-		methods needed:
-			apply filter to packet list already loaded
-			load pcap file and apply filter
-				test for match when packet first loaded - many will be discarded based on properties of that packet only
-				test again after grouping pass - match algorithm can consider only grouptype criteria, assuming packet is a match based on packet criteria
-			HOW DO WE GET A FILTER THAT SAYS "EXCLUDE IPxxxx EXCEPT INCLUDE HTTP GROUPS"????
-
 	maintain count of excluded packets - display it in filter view area
 
 
@@ -42,6 +33,7 @@ next:
 	other types of filters
 		include all
 		timestamp
+		packet sequence number (simply the order in the file)
 		protocol
 		grouptype
 			when would/could this be applied?

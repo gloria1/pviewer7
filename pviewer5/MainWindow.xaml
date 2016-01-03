@@ -307,7 +307,7 @@
                    Grid.Row="0"
                    Margin="5,5,5,5">
             <Button Content="Choose File"
-                    Click="ChooseFile"/>
+                    Click="ChoosePCAPFile"/>
             <Label Content="Current File= "/>
             <Label Content="{Binding Path=PacketFileName}"
                    MinWidth="100"/>
@@ -374,7 +374,7 @@
                     <Button
                         Content="Reload PCAP File"
                         Click="ReloadFile"
-                        IsEnabled="{Binding Path=FileLoaded}"/>
+                        IsEnabled="{Binding Path=FileLoaded, Mode=TwoWay}"/>
                     <Button Content="Load Filter Set" 
                             Click="filterset_load"/>
                     <Button

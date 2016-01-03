@@ -344,7 +344,7 @@ namespace pviewer5
         public uint Len { get; set; }            // length on the wire
         public uint NGBlockLen;                  // total block length, if this is a PcapNG packet (needed by Packet function so it can know how many bytes to read over after packet data section)
 
-        public override string displayinfo { get { return "Pcap header"; } }
+        public override string displayinfo { get { return "Pcap header, Timestamp: " + Time.ToString(); } }
 
         public PcapH(FileStream fs, PcapFile pcf, Packet pkt, uint i)
         {

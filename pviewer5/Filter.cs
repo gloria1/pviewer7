@@ -353,19 +353,20 @@ namespace pviewer5
         {
             bool result = false; // default result is to return no match
 
-            uint maskedval;
+            uint maskedtarget, maskeddata;
+            maskedtarget = Value & Mask;
 
             if ((Srcdest == SrcDest.Source) || (Srcdest == SrcDest.Either))
             {
-                maskedval = (pkt.SrcIP4 & Mask);
+                maskeddata = pkt.SrcIP4 & Mask;
                 switch (Relation)
                 {
-                    case Relations.Equal: result = (maskedval == Value); break;
-                    case Relations.NotEqual: result = (maskedval != Value); break;
-                    case Relations.LessThan: result = (maskedval < Value); break;
-                    case Relations.LessThanOrEqual: result = (maskedval <= Value); break;
-                    case Relations.GreaterThan: result = (maskedval > Value); break;
-                    case Relations.GreaterThanOrEqual: result = (maskedval >= Value); break;
+                    case Relations.Equal: result = (maskeddata == maskedtarget); break;
+                    case Relations.NotEqual: result = (maskeddata != maskedtarget); break;
+                    case Relations.LessThan: result = (maskeddata < maskedtarget); break;
+                    case Relations.LessThanOrEqual: result = (maskeddata <= maskedtarget); break;
+                    case Relations.GreaterThan: result = (maskeddata > maskedtarget); break;
+                    case Relations.GreaterThanOrEqual: result = (maskeddata >= maskedtarget); break;
                     default: break;  // retain previously set value of result
                 }
             }
@@ -373,15 +374,15 @@ namespace pviewer5
 
             if ((Srcdest == SrcDest.Dest) || (Srcdest == SrcDest.Either))
             {
-                maskedval = (pkt.DestIP4 & Mask);
+                maskeddata = (pkt.DestIP4 & Mask);
                 switch (Relation)
                 {
-                    case Relations.Equal: result = (maskedval == Value); break;
-                    case Relations.NotEqual: result = (maskedval != Value); break;
-                    case Relations.LessThan: result = (maskedval < Value); break;
-                    case Relations.LessThanOrEqual: result = (maskedval <= Value); break;
-                    case Relations.GreaterThan: result = (maskedval > Value); break;
-                    case Relations.GreaterThanOrEqual: result = (maskedval >= Value); break;
+                    case Relations.Equal: result = (maskeddata == maskedtarget); break;
+                    case Relations.NotEqual: result = (maskeddata != maskedtarget); break;
+                    case Relations.LessThan: result = (maskeddata < maskedtarget); break;
+                    case Relations.LessThanOrEqual: result = (maskeddata <= maskedtarget); break;
+                    case Relations.GreaterThan: result = (maskeddata > maskedtarget); break;
+                    case Relations.GreaterThanOrEqual: result = (maskeddata >= maskedtarget); break;
                     default: break;  // retain previously set value of result
                 }
             }
@@ -412,19 +413,20 @@ namespace pviewer5
         {
             bool result = false; // default result is to return no match
 
-            ulong maskedval;
+            ulong maskedtarget, maskeddata;
+            maskedtarget = Value & Mask;
 
             if ((Srcdest == SrcDest.Source) || (Srcdest == SrcDest.Either))
             {
-                maskedval = (pkt.SrcMAC & Mask);
+                maskeddata = (pkt.SrcMAC & Mask);
                 switch (Relation)
                 {
-                    case Relations.Equal: result = (maskedval == Value); break;
-                    case Relations.NotEqual: result = (maskedval != Value); break;
-                    case Relations.LessThan: result = (maskedval < Value); break;
-                    case Relations.LessThanOrEqual: result = (maskedval <= Value); break;
-                    case Relations.GreaterThan: result = (maskedval > Value); break;
-                    case Relations.GreaterThanOrEqual: result = (maskedval >= Value); break;
+                    case Relations.Equal: result = (maskeddata == maskedtarget); break;
+                    case Relations.NotEqual: result = (maskeddata != maskedtarget); break;
+                    case Relations.LessThan: result = (maskeddata < maskedtarget); break;
+                    case Relations.LessThanOrEqual: result = (maskeddata <= maskedtarget); break;
+                    case Relations.GreaterThan: result = (maskeddata > maskedtarget); break;
+                    case Relations.GreaterThanOrEqual: result = (maskeddata >= maskedtarget); break;
                     default: break;  // retain previously set value of result
                 }
             }
@@ -432,15 +434,15 @@ namespace pviewer5
 
             if ((Srcdest == SrcDest.Dest) || (Srcdest == SrcDest.Either))
             {
-                maskedval = (pkt.DestMAC & Mask);
+                maskeddata = (pkt.DestMAC & Mask);
                 switch (Relation)
                 {
-                    case Relations.Equal: result = (maskedval == Value); break;
-                    case Relations.NotEqual: result = (maskedval != Value); break;
-                    case Relations.LessThan: result = (maskedval < Value); break;
-                    case Relations.LessThanOrEqual: result = (maskedval <= Value); break;
-                    case Relations.GreaterThan: result = (maskedval > Value); break;
-                    case Relations.GreaterThanOrEqual: result = (maskedval >= Value); break;
+                    case Relations.Equal: result = (maskeddata == maskedtarget); break;
+                    case Relations.NotEqual: result = (maskeddata != maskedtarget); break;
+                    case Relations.LessThan: result = (maskeddata < maskedtarget); break;
+                    case Relations.LessThanOrEqual: result = (maskeddata <= maskedtarget); break;
+                    case Relations.GreaterThan: result = (maskeddata > maskedtarget); break;
+                    case Relations.GreaterThanOrEqual: result = (maskeddata >= maskedtarget); break;
                     default: break;  // retain previously set value of result
                 }
             }

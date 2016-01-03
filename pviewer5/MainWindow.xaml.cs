@@ -110,7 +110,8 @@ namespace pviewer5
         public PacketViewer pview;
         private string _packetfilename = null;
         public string PacketFileName { get { return _packetfilename; } set { _packetfilename = value; NotifyPropertyChanged(); } }
-        public bool FileLoaded { get; set; } = false;
+        private bool _fileloaded = false;
+        public bool FileLoaded { get { return _fileloaded; } set { _fileloaded = value; NotifyPropertyChanged(); } }
         public ObservableCollection<Packet> pkts { get; set; }
         public FilterSet filters { get; set; }
         public ObservableCollection<GList> grouplistlist { get; set; }
@@ -190,15 +191,10 @@ namespace pviewer5
             foreach (Window w in Application.Current.Windows) if (w != this) w.Close();
         }
 
-		private void ChooseFile(object sender, RoutedEventArgs e)
+		private void ChoosePCAPFile(object sender, RoutedEventArgs e)
 		{
-			PcapFile pfh;
 			OpenFileDialog dlg = new OpenFileDialog();
 			Nullable<bool> result;
-			FileStream fs;
-			Packet pkt;
-
-            byte[] b = new byte[1000];
 
 			dlg.Multiselect = false;
 			dlg.InitialDirectory = Properties.Settings.Default.LastDirectory;
@@ -212,32 +208,47 @@ namespace pviewer5
 
                 Properties.Settings.Default.LastDirectory = dlg.InitialDirectory;
                 Properties.Settings.Default.LastFile = dlg.FileName;
-				fs = new FileStream(dlg.FileName, FileMode.Open);
-                PacketFileName = dlg.FileName;
-                FileLoaded = true;
-
-                pfh = new PcapFile(fs);
-
-                while (fs.Position < fs.Length)
-                {
-                    pkt = new Packet(fs, pfh);
-                    if (filters.Include(pkt)) pkts.Add(pkt);
-                }
-
-                foreach (Packet p in pkts)
-                    foreach (GList gl in grouplistlist)
-                        if (gl.GroupPacket(p)) break;
-
-                foreach (TCPG tg in ((TCPGList)(grouplistlist[2])).groups)
-                {
-                    tg.OPL1.CopyBytes(1000, b);
-                    tg.OPL2.CopyBytes(1000, b);
-                }
-                gllview.Refresh();
-
-                fs.Close();
+                LoadPCAPFile(dlg.FileName);
 			}
 		}
+
+        private void LoadPCAPFile(string filename)
+        {
+            PcapFile pfh;
+            FileStream fs;
+            Packet pkt;
+
+            byte[] b = new byte[1000];
+
+            pkts.Clear();
+            foreach (GList gl in grouplistlist) gl.groups.Clear();
+
+            fs = new FileStream(filename, FileMode.Open);
+            PacketFileName = filename;
+            FileLoaded = true;
+
+            pfh = new PcapFile(fs);
+
+            while (fs.Position < fs.Length)
+            {
+                pkt = new Packet(fs, pfh);
+                if (filters.Include(pkt)) pkts.Add(pkt);
+            }
+
+            foreach (Packet p in pkts)
+                foreach (GList gl in grouplistlist)
+                    if (gl.GroupPacket(p)) break;
+
+            foreach (TCPG tg in ((TCPGList)(grouplistlist[2])).groups)
+            {
+                tg.OPL1.CopyBytes(1000, b);
+                tg.OPL2.CopyBytes(1000, b);
+            }
+            gllview.Refresh();
+
+            fs.Close();
+        }
+
         private void ApplyFilterToView(object sender, RoutedEventArgs e)
         {
             foreach (GList glist in grouplistlist)
@@ -253,7 +264,10 @@ namespace pviewer5
             gllview.Refresh();
         }
         private void ReloadFile(object sender, RoutedEventArgs e)
-        { }
+        {
+            if (PacketFileName != null) LoadPCAPFile(PacketFileName);
+            filters.ChangedSinceApplied = false;
+        }
 
         private void qfbutton(object sender, RoutedEventArgs e)
 		{
