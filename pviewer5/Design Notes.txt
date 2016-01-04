@@ -2,6 +2,27 @@
 
 next:
 
+
+	make custom TextBox to get editing/navigation behavior I want
+		- when control gets focus, put it in edit mode
+		- upon entering edit mode, select all text
+		- while in "edit mode", validate on every key press, but do not do value conversion - want to keep string exactly as user is editing it
+		- when user hits enter, try to get out of "edit mode" - apply value conversion
+		- if hit enter while invalid, stay in edit mode
+		- if hit escape, revert to previous value and exit edit mode
+		- AND/OR USE TEXTCHANGED EVENT?
+		- if lose focus while invalid, revert to previous value
+
+		- state machine
+			- gotfocus - selected text = all of it
+			- enter - validate TextBox.Text, if ok update source, if not OK leave TextBox.Text as is, box highlighted in red
+			- lostfocus - same as enter (does this happen automatically if binding update trigger is lostfocus?)
+			- escape - revert to source value, ignoring TextBox.Text
+			- any other key - validate, update box outline to reflect error state, but do not update source
+
+
+
+
 	other types of filters
 		port - needs a multivalueconverter and validator
 
@@ -14,14 +35,6 @@ next:
 				want to have filters apply during packet load, to avoid having to do expensive gropu processing on bulks of packets that will be discarded based on simple mac or ip filters
 				maybe ignore grouptype filters in the packet load pass, then apply the filters again during the group determinatino pass?
 				add "GroupType" property to Packet - set to null until group determination pass is done
-
-	make custom TextBox to get editing/navigation behavior I want
-		- tabbing into the control puts it in edit mode
-		- upon entering edit mode, select all text
-		- while in "edit mode", validate on every key press, but do not do value conversion - want to keep string exactly as user is editing it
-		- when user hits enter, try to get out of "edit mode" - apply value conversion
-		- if hit enter while invalid, stay in edit mode
-		- if lose focus while invalid, revert to previous value
 
 
 	window state management

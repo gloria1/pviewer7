@@ -391,18 +391,49 @@ namespace pviewer5
             return;
         }
 
-        private void TextBox_UpdateSourceIfEnterKey(object sender, KeyEventArgs e)
+        private void TextBox_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter)
+            switch (e.Key)
             {
-                TextBox tBox = (TextBox)sender;
-                DependencyProperty prop = TextBox.TextProperty;
+                case Key.Enter:
+                    // try to update source property (via binding, so validation happens)
+                    TextBox tBox = (TextBox)sender;
+                    DependencyProperty prop = TextBox.TextProperty;
 
-                MultiBindingExpression binding = BindingOperations.GetMultiBindingExpression(tBox, prop);
-                if (binding != null) { binding.UpdateSource(); }
+                    MultiBindingExpression binding = BindingOperations.GetMultiBindingExpression(tBox, prop);
+                    if (binding != null) { binding.UpdateSource(); }
+                    break;
+
+                case Key.Escape: break;
+                    // revert TextBox.Text to source property value
+
+                default: break;
+                    // validate and update error state indication (red highlight around box)
+
             }
         }
 
+        private void TextBox_TextChanged(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void TextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+
+        }
+
+        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void TextBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            TextBox tBox = (TextBox)sender;
+            tBox.SelectionStart = 0;
+            tBox.SelectionLength = tBox.Text.Length;
+        }
     }
 
 

@@ -160,7 +160,12 @@
                 <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumSrcDest}}" SelectedItem="{Binding Path=Srcdest}"/>
                 <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumReln}}" SelectedItem="{Binding Path=Relation}"/>
                 <TextBlock Text="    Value: "/>
-                <TextBox MinWidth="100" KeyUp="TextBox_UpdateSourceIfEnterKey">
+                <TextBox MinWidth="100"
+                         KeyUp="TextBox_KeyUp"
+                         KeyDown="TextBox_KeyDown"
+                         LostFocus="TextBox_LostFocus"
+                         GotFocus="TextBox_GotFocus"
+                         TextChanged="TextBox_TextChanged">
                     <TextBox.Text>
                         <MultiBinding Converter="{StaticResource IP4multiconverternumberoralias}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
                             <MultiBinding.ValidationRules>
@@ -221,7 +226,7 @@
                     <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumSrcDest}}" SelectedItem="{Binding Path=Srcdest}"/>
                     <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumReln}}" SelectedItem="{Binding Path=Relation}"/>
                     <TextBlock Text="    Value: "/>
-                    <TextBox MinWidth="100" KeyUp="TextBox_UpdateSourceIfEnterKey">
+                    <TextBox MinWidth="100" KeyUp="TextBox_KeyUp">
                         <TextBox.Text>
                             <MultiBinding Converter="{StaticResource MACmulticonverternumberoralias}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
                                 <MultiBinding.ValidationRules>
@@ -285,7 +290,7 @@
                 <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumSrcDest}}" SelectedItem="{Binding Path=Srcdest}"/>
                 <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumReln}}" SelectedItem="{Binding Path=Relation}"/>
                 <TextBlock Text="    Value: "/>
-                <TextBox MinWidth="100" KeyUp="TextBox_UpdateSourceIfEnterKey">
+                <TextBox MinWidth="100" KeyUp="TextBox_KeyUp">
                     <TextBox.Text>
                         <MultiBinding UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
                             <Binding Path="Value" Mode="TwoWay"/>
