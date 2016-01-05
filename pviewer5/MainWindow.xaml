@@ -187,7 +187,9 @@
                     </TextBox.ToolTip>
                 </TextBox>
                 <TextBlock Text=" Mask: "/>
-                <TextBox MinWidth="100">
+                <TextBox MinWidth="100"
+                         KeyUp="TextBox_KeyUp"
+                         GotFocus="TextBox_GotFocus">
                     <TextBox.Text>
                         <MultiBinding Converter="{StaticResource IP4multiconverternumberoralias}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
                             <MultiBinding.ValidationRules>
@@ -223,7 +225,9 @@
                     <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumSrcDest}}" SelectedItem="{Binding Path=Srcdest}"/>
                     <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumReln}}" SelectedItem="{Binding Path=Relation}"/>
                     <TextBlock Text="    Value: "/>
-                    <TextBox MinWidth="100" KeyUp="TextBox_KeyUp">
+                <TextBox MinWidth="100" 
+                         KeyUp="TextBox_KeyUp"
+                         GotFocus="TextBox_GotFocus">
                         <TextBox.Text>
                             <MultiBinding Converter="{StaticResource MACmulticonverternumberoralias}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
                                 <MultiBinding.ValidationRules>
@@ -248,7 +252,9 @@
                         </TextBox.ToolTip>
                     </TextBox>
                     <TextBlock Text=" Mask: "/>
-                    <TextBox MinWidth="100">
+                <TextBox MinWidth="100"
+                         KeyUp="TextBox_KeyUp"
+                         GotFocus="TextBox_GotFocus">
                         <TextBox.Text>
                             <MultiBinding Converter="{StaticResource MACmulticonverternumberoralias}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
                                 <MultiBinding.ValidationRules>
@@ -287,7 +293,9 @@
                 <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumSrcDest}}" SelectedItem="{Binding Path=Srcdest}"/>
                 <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumReln}}" SelectedItem="{Binding Path=Relation}"/>
                 <TextBlock Text="    Value: "/>
-                <TextBox MinWidth="100" KeyUp="TextBox_KeyUp">
+                <TextBox MinWidth="100" 
+                         KeyUp="TextBox_KeyUp"
+                         GotFocus="TextBox_GotFocus">
                     <TextBox.Text>
                         <MultiBinding UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
                             <Binding Path="Value" Mode="TwoWay"/>
@@ -297,7 +305,9 @@
                     </TextBox.Text>
                 </TextBox>
                 <TextBlock Text=" Mask: "/>
-                <TextBox MinWidth="100">
+                <TextBox MinWidth="100"
+                         KeyUp="TextBox_KeyUp"
+                         GotFocus="TextBox_GotFocus">
                     <TextBox.Text>
                         <MultiBinding UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
                             <Binding Path="Mask" Mode="TwoWay"/>
