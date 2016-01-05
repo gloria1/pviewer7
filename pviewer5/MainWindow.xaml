@@ -162,10 +162,7 @@
                 <TextBlock Text="    Value: "/>
                 <TextBox MinWidth="100"
                          KeyUp="TextBox_KeyUp"
-                         KeyDown="TextBox_KeyDown"
-                         LostFocus="TextBox_LostFocus"
-                         GotFocus="TextBox_GotFocus"
-                         TextChanged="TextBox_TextChanged">
+                         GotFocus="TextBox_GotFocus">
                     <TextBox.Text>
                         <MultiBinding Converter="{StaticResource IP4multiconverternumberoralias}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
                             <MultiBinding.ValidationRules>

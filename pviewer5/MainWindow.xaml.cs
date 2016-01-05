@@ -393,38 +393,27 @@ namespace pviewer5
 
         private void TextBox_KeyUp(object sender, KeyEventArgs e)
         {
+            TextBox tBox = (TextBox)sender;
+            DependencyProperty prop = TextBox.TextProperty;
+            MultiBindingExpression binding = BindingOperations.GetMultiBindingExpression(tBox, prop);
+
             switch (e.Key)
             {
                 case Key.Enter:
                     // try to update source property (via binding, so validation happens)
-                    TextBox tBox = (TextBox)sender;
-                    DependencyProperty prop = TextBox.TextProperty;
-
-                    MultiBindingExpression binding = BindingOperations.GetMultiBindingExpression(tBox, prop);
-                    if (binding != null) { binding.UpdateSource(); }
+                    if (binding != null) binding.UpdateSource();
                     break;
 
-                case Key.Escape: break;
+                case Key.Escape:
                     // revert TextBox.Text to source property value
+                    if (binding != null) binding.UpdateTarget();
+                    break;
 
-                default: break;
+                default:
                     // validate and update error state indication (red highlight around box)
-
+                    if (binding != null) binding.ValidateWithoutUpdate();
+                    break;
             }
-        }
-
-        private void TextBox_TextChanged(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void TextBox_KeyDown(object sender, KeyEventArgs e)
-        {
-
-        }
-
-        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
-        {
 
         }
 
