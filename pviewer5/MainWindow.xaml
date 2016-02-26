@@ -9,7 +9,7 @@
          
         <Style TargetType="Button">
             <Setter Property="Margin" Value=" 7"/>
-            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontSize" Value="12"/>
         </Style>
         <Style TargetType="TreeView">
             <Setter Property="MinHeight" Value=" 70"/>
@@ -21,9 +21,9 @@
         <ObjectDataProvider x:Key="GUIUtilKey" ObjectType="{x:Type local:GUIUtil}"/>
         <local:DisplayInfoMVC x:Key="displayinfomvc"/>
         <local:IP4ConverterNumberOrAlias x:Key="IP4converternumberoralias"/>
-        <local:IP4ConverterNumberOrAliasInverse x:Key="IP4converternumberoraliasinverse"/>
+        <local:IP4ConverterNumberOrAliasForTooltip x:Key="IP4converternumberoraliasfortooltip"/>
         <local:IP4MultiConverterNumberOrAlias x:Key="IP4multiconverternumberoralias"/>
-        <local:IP4MultiConverterNumberOrAliasInverse x:Key="IP4multiconverternumberoraliasinverse"/>
+        <local:IP4MultiConverterNumberOrAliasForTooltip x:Key="IP4multiconverternumberoraliasfortooltip"/>
         <local:MACConverterNumberOrAlias x:Key="MACconverternumberoralias"/>
         <local:MACConverterNumberOrAliasInverse x:Key="MACconverternumberoraliasinverse"/>
         <local:MACMultiConverterNumberOrAlias x:Key="MACmulticonverternumberoralias"/>
@@ -175,7 +175,7 @@
                         </MultiBinding>
                     </TextBox.Text>
                     <TextBox.ToolTip>
-                        <MultiBinding Converter="{StaticResource IP4multiconverternumberoraliasinverse}">
+                        <MultiBinding Converter="{StaticResource IP4multiconverternumberoraliasfortooltip}">
                             <Binding Path="Value">
                                 <Binding.ValidationRules>
                                     <local:ValidateIP4NumberOrAlias/>
@@ -202,8 +202,8 @@
                         </MultiBinding>
                     </TextBox.Text>
                     <TextBox.ToolTip>
-                        <MultiBinding Converter="{StaticResource IP4multiconverternumberoraliasinverse}">
-                            <Binding Path="Value" >
+                        <MultiBinding Converter="{StaticResource IP4multiconverternumberoraliasfortooltip}">
+                            <Binding Path="Mask" >
                                 <Binding.ValidationRules>
                                     <local:ValidateIP4NumberOrAlias/>
                                 </Binding.ValidationRules>
@@ -268,7 +268,7 @@
                         </TextBox.Text>
                         <TextBox.ToolTip>
                             <MultiBinding Converter="{StaticResource MACmulticonverternumberoraliasinverse}">
-                                <Binding Path="Value" >
+                                <Binding Path="Mask" >
                                     <Binding.ValidationRules>
                                         <local:ValidateMACNumberOrAlias/>
                                     </Binding.ValidationRules>

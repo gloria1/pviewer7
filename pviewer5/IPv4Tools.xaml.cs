@@ -112,7 +112,7 @@ namespace pviewer5
             b[2] = ((value & 0xff00) / 0x100);
             b[3] = ((value & 0xff) / 0x1);
 
-            if (GUIUtil.Instance.Hex) s = String.Format("{0:x2}.{1:x2}.{2:x2}.{3:x2}", b[0], b[1], b[2], b[3]);
+            if (!GUIUtil.Instance.Hex) s = String.Format("{0:x2}.{1:x2}.{2:x2}.{3:x2}", b[0], b[1], b[2], b[3]);
             else s = String.Format("{0}.{1}.{2}.{3}", b[0], b[1], b[2], b[3]);
 
             return s;
@@ -270,16 +270,27 @@ namespace pviewer5
         }
     }
 
-    public class IP4ConverterNumberOrAliasInverse : IValueConverter
-    // same as IP4ConverterNumberOrAlias except reflects the inverse of the UseAliases property - to feed tooltips
+    public class IP4ConverterNumberOrAliasForTooltip : IValueConverter
+    // same as IP4ConverterNumberOrAlias except reflects the inverse of the UseAliases and Hex properties - to feed tooltips
+    // i.e., of the three possible display formats (number in hex, number in decimal, alias string), 
+    // whichever one is active for the main display, this will return the other one or two (depending on whether an alias string exists)
     {
         // converts number to/from display format IP4 address, including translating aliases
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (!GUIUtil.Instance.UseAliases && IP4Util.Instance.map.ContainsKey((uint)value))
-                return IP4Util.Instance.map[(uint)value];
-            else return IP4Util.Instance.IP4ToString((uint)value);
+            string result = "";
+
+            // if there is an alias for this one, include the result of the inverse of the UseAliases setting
+            if (IP4Util.Instance.map.ContainsKey((uint)value))
+            {
+                if (GUIUtil.Instance.UseAliases) result += IP4Util.Instance.IP4ToString((uint)value) + "\n";
+                else result += IP4Util.Instance.map[(uint)value] + "\n";
+            }
+            // now add on the result of the inverse of the Hex property
+            result += IP4Util.Instance.IP4ToStringInverse((uint)value);
+
+            return result;
         }
 
         public object ConvertBack(object value, Type targetTypes, object parameter, CultureInfo culture)
@@ -332,17 +343,28 @@ namespace pviewer5
         }
     }
 
-    public class IP4MultiConverterNumberOrAliasInverse : IMultiValueConverter
-    // same as above except respects the inverse of UseAliases
+    public class IP4MultiConverterNumberOrAliasForTooltip : IMultiValueConverter
+    // same as IP4MultiConverterNumberOrAlias except reflects the inverse of the UseAliases and Hex properties - to feed tooltips
+    // i.e., of the three possible display formats (number in hex, number in decimal, alias string), 
+    // whichever one is active for the main display, this will return the other one or two (depending on whether an alias string exists)
     {
         // converts number to/from display format IP4 address, including translating aliases
         // also takes value of IP4Hex as an argument
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            if (!GUIUtil.Instance.UseAliases && IP4Util.Instance.map.ContainsKey((uint)values[0]))
-                return IP4Util.Instance.map[(uint)values[0]];
-            else return IP4Util.Instance.IP4ToString((uint)values[0]);
+            string result = "";
+
+            // if there is an alias for this one, include the result of the inverse of the UseAliases setting
+            if (IP4Util.Instance.map.ContainsKey((uint)values[0]))
+            {
+                if (GUIUtil.Instance.UseAliases) result += IP4Util.Instance.IP4ToString((uint)values[0]) + "\n";
+                else result += IP4Util.Instance.map[(uint)values[0]] + "\n";
+            }
+            // now add on the result of the inverse of the Hex property
+            result += IP4Util.Instance.IP4ToStringInverse((uint)values[0]);
+
+            return result;
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)

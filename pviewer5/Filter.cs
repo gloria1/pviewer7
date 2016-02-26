@@ -513,7 +513,7 @@ namespace pviewer5
         public FilterItemPort() : this(null) { }
         public FilterItemPort(Filter parent) : base(parent)
         {
-            Type = FilterType.IPv4;
+            Type = FilterType.Port;
             Parent = parent;
         }
     }
