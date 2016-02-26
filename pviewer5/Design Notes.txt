@@ -2,10 +2,8 @@
 
 next:
 
-	extend changes in convert for tooltip to macs
-
-	finish converter, mvc and validator for UInt16
-	hook up ^ to Port
+	test UInt16 validator/converter for Port filter
+	add tooltip for Port filter
 
 
 	other types of filters

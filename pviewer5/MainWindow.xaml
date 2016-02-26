@@ -25,9 +25,13 @@
         <local:IP4MultiConverterNumberOrAlias x:Key="IP4multiconverternumberoralias"/>
         <local:IP4MultiConverterNumberOrAliasForTooltip x:Key="IP4multiconverternumberoraliasfortooltip"/>
         <local:MACConverterNumberOrAlias x:Key="MACconverternumberoralias"/>
-        <local:MACConverterNumberOrAliasInverse x:Key="MACconverternumberoraliasinverse"/>
+        <local:MACConverterNumberOrAliasForTooltip x:Key="MACconverternumberoraliasfortooltip"/>
         <local:MACMultiConverterNumberOrAlias x:Key="MACmulticonverternumberoralias"/>
-        <local:MACMultiConverterNumberOrAliasInverse x:Key="MACmulticonverternumberoraliasinverse"/>
+        <local:MACMultiConverterNumberOrAliasForTooltip x:Key="MACmulticonverternumberoraliasfortooltip"/>
+        <local:UInt16Converter x:Key="UInt16converter"/>
+        <local:UInt16ConverterForTooltip x:Key="UInt16converterfortooltip"/>
+        <local:UInt16MultiConverter x:Key="UInt16multiconverter"/>
+        <local:UInt16MultiConverterForTooltip x:Key="UInt16multiconverterfortooltip"/>
 
         <DataTemplate DataType="{x:Type local:H}">
             <TextBlock>
@@ -240,7 +244,7 @@
                             </MultiBinding>
                         </TextBox.Text>
                         <TextBox.ToolTip>
-                            <MultiBinding Converter="{StaticResource MACmulticonverternumberoraliasinverse}">
+                            <MultiBinding Converter="{StaticResource MACmulticonverternumberoraliasfortooltip}">
                                 <Binding Path="Value">
                                     <Binding.ValidationRules>
                                         <local:ValidateMACNumberOrAlias/>
@@ -267,7 +271,7 @@
                             </MultiBinding>
                         </TextBox.Text>
                         <TextBox.ToolTip>
-                            <MultiBinding Converter="{StaticResource MACmulticonverternumberoraliasinverse}">
+                            <MultiBinding Converter="{StaticResource MACmulticonverternumberoraliasfortooltip}">
                                 <Binding Path="Mask" >
                                     <Binding.ValidationRules>
                                         <local:ValidateMACNumberOrAlias/>
@@ -288,7 +292,7 @@
             <WrapPanel Orientation="Horizontal"
                 KeyboardNavigation.TabNavigation="Cycle">
 
-                <Label Content="IPv4 filter: "/>
+                <Label Content="Port filter: "/>
                 <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumFilterType}}" SelectedItem="{Binding Path=Type}"/>
                 <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumSrcDest}}" SelectedItem="{Binding Path=Srcdest}"/>
                 <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumReln}}" SelectedItem="{Binding Path=Relation}"/>
@@ -297,7 +301,7 @@
                          KeyUp="TextBox_KeyUp"
                          GotFocus="TextBox_GotFocus">
                     <TextBox.Text>
-                        <MultiBinding UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
+                        <MultiBinding Converter="{StaticResource UInt16multiconverter}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
                             <Binding Path="Value" Mode="TwoWay"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
@@ -309,7 +313,7 @@
                          KeyUp="TextBox_KeyUp"
                          GotFocus="TextBox_GotFocus">
                     <TextBox.Text>
-                        <MultiBinding UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
+                        <MultiBinding Converter="{StaticResource UInt16multiconverter}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
                             <Binding Path="Mask" Mode="TwoWay"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>

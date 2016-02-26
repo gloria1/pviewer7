@@ -256,7 +256,7 @@ namespace pviewer5
         }
     }
 
-    public class MACConverterNumberOrAliasInverse : IValueConverter
+    public class MACConverterNumberOrAliasForTooltip : IValueConverter
     {
         // converts number to/from display format mac address, including translating aliases
         // uses inverse of GUIUtil.UseAliases property - to feed tooltip
@@ -317,7 +317,7 @@ namespace pviewer5
 
     }
 
-    public class MACMultiConverterNumberOrAliasInverse : IMultiValueConverter
+    public class MACMultiConverterNumberOrAliasForTooltip : IMultiValueConverter
     // same as above except respects inverse of UseAliases, to feed tooltip
     {
         // converts number to/from display format MAC address, including translating aliases
