@@ -414,6 +414,7 @@ namespace pviewer5
             }
 
             pkt.PData = new byte[pcaphdrlen + CapLen];
+            pkt.Time = Time;
             pkt.Len = pcaphdrlen + CapLen;
             fs.Read(pkt.PData, 0, (int)(pcaphdrlen + CapLen));
 

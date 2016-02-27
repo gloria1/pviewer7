@@ -2,13 +2,8 @@
 
 next:
 
-	test UInt16 validator/converter for Port filter
-	add tooltip for Port filter
-
 
 	other types of filters
-		port - needs a multivalueconverter and validator
-
 		timestamp - date only, time only, date+time
 		packet sequence number (simply the order in the file)
 		protocol

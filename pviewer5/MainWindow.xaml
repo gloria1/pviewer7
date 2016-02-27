@@ -180,11 +180,7 @@
                     </TextBox.Text>
                     <TextBox.ToolTip>
                         <MultiBinding Converter="{StaticResource IP4multiconverternumberoraliasfortooltip}">
-                            <Binding Path="Value">
-                                <Binding.ValidationRules>
-                                    <local:ValidateIP4NumberOrAlias/>
-                                </Binding.ValidationRules>
-                            </Binding>
+                            <Binding Path="Value"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
                         </MultiBinding>
@@ -207,11 +203,7 @@
                     </TextBox.Text>
                     <TextBox.ToolTip>
                         <MultiBinding Converter="{StaticResource IP4multiconverternumberoraliasfortooltip}">
-                            <Binding Path="Mask" >
-                                <Binding.ValidationRules>
-                                    <local:ValidateIP4NumberOrAlias/>
-                                </Binding.ValidationRules>
-                            </Binding>
+                            <Binding Path="Mask" />
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
                         </MultiBinding>
@@ -245,11 +237,7 @@
                         </TextBox.Text>
                         <TextBox.ToolTip>
                             <MultiBinding Converter="{StaticResource MACmulticonverternumberoraliasfortooltip}">
-                                <Binding Path="Value">
-                                    <Binding.ValidationRules>
-                                        <local:ValidateMACNumberOrAlias/>
-                                    </Binding.ValidationRules>
-                                </Binding>
+                                <Binding Path="Value"/>
                                 <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                                 <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
                             </MultiBinding>
@@ -272,11 +260,7 @@
                         </TextBox.Text>
                         <TextBox.ToolTip>
                             <MultiBinding Converter="{StaticResource MACmulticonverternumberoraliasfortooltip}">
-                                <Binding Path="Mask" >
-                                    <Binding.ValidationRules>
-                                        <local:ValidateMACNumberOrAlias/>
-                                    </Binding.ValidationRules>
-                                </Binding>
+                                <Binding Path="Mask"/>
                                 <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                                 <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
                             </MultiBinding>
@@ -302,11 +286,21 @@
                          GotFocus="TextBox_GotFocus">
                     <TextBox.Text>
                         <MultiBinding Converter="{StaticResource UInt16multiconverter}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
+                            <MultiBinding.ValidationRules>
+                                <local:ValidateUInt16Number ValidationStep="RawProposedValue"/>
+                            </MultiBinding.ValidationRules>
                             <Binding Path="Value" Mode="TwoWay"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
                         </MultiBinding>
                     </TextBox.Text>
+                    <TextBox.ToolTip>
+                        <MultiBinding Converter="{StaticResource UInt16multiconverterfortooltip}">
+                            <Binding Path="Value"/>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                        </MultiBinding>
+                    </TextBox.ToolTip>
                 </TextBox>
                 <TextBlock Text=" Mask: "/>
                 <TextBox MinWidth="100"
@@ -314,11 +308,53 @@
                          GotFocus="TextBox_GotFocus">
                     <TextBox.Text>
                         <MultiBinding Converter="{StaticResource UInt16multiconverter}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
+                            <MultiBinding.ValidationRules>
+                                <local:ValidateUInt16Number ValidationStep="RawProposedValue"/>
+                            </MultiBinding.ValidationRules>
                             <Binding Path="Mask" Mode="TwoWay"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
                         </MultiBinding>
                     </TextBox.Text>
+                    <TextBox.ToolTip>
+                        <MultiBinding Converter="{StaticResource UInt16multiconverterfortooltip}">
+                            <Binding Path="Mask"/>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                        </MultiBinding>
+                    </TextBox.ToolTip>
+                </TextBox>
+                <Button Content="X" HorizontalAlignment="Right" Click="filteritem_delete"/>
+            </WrapPanel>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type local:FilterItemDateTime}">
+            <WrapPanel Orientation="Horizontal"
+                KeyboardNavigation.TabNavigation="Cycle">
+
+                <Label Content="DateTime filter: "/>
+                <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumFilterType}}" SelectedItem="{Binding Path=Type}"/>
+                <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumReln}}" SelectedItem="{Binding Path=Relation}"/>
+                <TextBlock Text="    Value: "/>
+                <TextBox MinWidth="100" 
+                         KeyUp="TextBox_KeyUp"
+                         GotFocus="TextBox_GotFocus">
+                    <TextBox.Text>
+                        <MultiBinding Converter="{StaticResource UInt16multiconverter}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
+                            <MultiBinding.ValidationRules>
+                                <local:ValidateUInt16Number ValidationStep="RawProposedValue"/>
+                            </MultiBinding.ValidationRules>
+                            <Binding Path="Value" Mode="TwoWay"/>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                        </MultiBinding>
+                    </TextBox.Text>
+                    <TextBox.ToolTip>
+                        <MultiBinding Converter="{StaticResource UInt16multiconverterfortooltip}">
+                            <Binding Path="Value"/>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
+                            <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                        </MultiBinding>
+                    </TextBox.ToolTip>
                 </TextBox>
                 <Button Content="X" HorizontalAlignment="Right" Click="filteritem_delete"/>
             </WrapPanel>

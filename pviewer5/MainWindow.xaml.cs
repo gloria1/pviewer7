@@ -59,6 +59,7 @@ namespace pviewer5
         // so that other functions do not need to search through header list to find them
         public ulong SeqNo = 0; // absolute sequence number in packet file
         public Protocols Prots = Protocols.Generic;     // flags for protocols present in this packet
+        public DateTime Time = new DateTime(0);
         public ulong SrcMAC = 0;
         public ulong DestMAC = 0;
         public uint SrcIP4 { get; set; } = 0;

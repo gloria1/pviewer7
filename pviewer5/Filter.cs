@@ -274,6 +274,7 @@ namespace pviewer5
                     FilterItem newitem;
                     switch (value)
                     {
+                        case FilterType.DateTime: newitem = new FilterItemDateTime(Parent); break;
                         case FilterType.IPv4: newitem = new FilterItemIP4(Parent); break;
                         case FilterType.MAC: newitem = new FilterItemMAC(Parent); break;
                         case FilterType.Port: newitem = new FilterItemPort(Parent); break;
@@ -307,7 +308,7 @@ namespace pviewer5
     [Serializable]
     public enum FilterType: int
     {
-        TimeStamp = 1,
+        DateTime = 1,
         IPv4 = 2,
         MAC = 3,
         Port = 4,
@@ -465,7 +466,7 @@ namespace pviewer5
         public SrcDest Srcdest { get { return _srcdest; } set { _srcdest = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
         private uint _value = 0;
         public uint Value { get { return _value; } set { _value = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
-        private uint _mask = 0xffffffff;
+        private uint _mask = 0xffff;
         public uint Mask { get { return _mask; } set { _mask = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }     // bit mask applied to Value and to the packet being tested
         private Relations _relation = Relations.Equal;
         public Relations Relation { get { return _relation; } set { _relation = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
@@ -514,6 +515,36 @@ namespace pviewer5
         public FilterItemPort(Filter parent) : base(parent)
         {
             Type = FilterType.Port;
+            Parent = parent;
+        }
+    }
+
+    [Serializable]
+    public class FilterItemDateTime : FilterItem
+    {
+        private DateTime _value = new DateTime(0);
+        public DateTime Value { get { return _value; } set { _value = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
+        private Relations _relation = Relations.Equal;
+        public Relations Relation { get { return _relation; } set { _relation = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
+
+        public override bool Match(Packet pkt)
+        {
+            switch (Relation)
+            {
+                case Relations.Equal: return (pkt.Time == Value);
+                case Relations.NotEqual: return (pkt.Time != Value);
+                case Relations.LessThan: return (pkt.Time < Value);
+                case Relations.LessThanOrEqual: return (pkt.Time <= Value);
+                case Relations.GreaterThan: return (pkt.Time > Value); 
+                case Relations.GreaterThanOrEqual: return (pkt.Time >= Value);
+                default: return false; 
+            }
+        }
+
+        public FilterItemDateTime() : this(null) { }
+        public FilterItemDateTime(Filter parent) : base(parent)
+        {
+            Type = FilterType.DateTime;
             Parent = parent;
         }
     }
