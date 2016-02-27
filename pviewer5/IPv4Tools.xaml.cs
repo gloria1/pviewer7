@@ -26,6 +26,69 @@ using System.Runtime.Serialization.Formatters.Binary;
 namespace pviewer5
 {
 
+    public class CSIP4
+    // class for encapsulating behavior for IPv4 addresses
+    // prepended CS to name to avoid any possible conflict with standard MS libraries
+    {
+        public uint value = 0;
+
+        public string ToString(bool inverthex, bool usealiasesthistime)
+        // if inverthex==true, return based on !Hex
+        // if usealiasesthistime == true, then if global UseAliases is true, return the alias
+        {
+
+            if (usealiasesthistime)
+                if (IP4Util.Instance.map.ContainsKey(value))
+                    return IP4Util.Instance.map[value];
+
+            uint[] b = new uint[4];
+            string s;
+
+            b[0] = ((value & 0xff000000) / 0x1000000);
+            b[1] = ((value & 0xff0000) / 0x10000);
+            b[2] = ((value & 0xff00) / 0x100);
+            b[3] = ((value & 0xff) / 0x1);
+
+            if (inverthex ^ GUIUtil.Instance.Hex) s = String.Format("{0:x2}.{1:x2}.{2:x2}.{3:x2}", b[0], b[1], b[2], b[3]);
+            else s = String.Format("{0}.{1}.{2}.{3}", b[0], b[1], b[2], b[3]);
+
+            return s;
+        }
+
+        public string ToStringAlts()
+        // return strings of forms other than what would be returned by ToString
+        //      numerical form indicated by !Hex
+        //      if UseAliases, then numerical form based on Hex
+        //      if !UseAliases, then alias if there is one
+        {
+            string s = null;
+
+            s = this.ToString(true, false);
+            s += "\n";
+            if (IP4Util.Instance.map.ContainsKey(value))
+            {
+                // if UseAliases, then, if this IP has an alias, we want to append the non-inverthex numerical form
+                if (GUIUtil.Instance.UseAliases) s += this.ToString(false, false);
+                // else return the alias
+                else s += IP4Util.Instance.map[value];
+            }
+
+            return s;
+        }
+
+        public bool TryParse(string s)
+        // tries to parse string into this.value
+        // if any errors, returns false and does not assign this.value
+        {
+            return false;
+        }
+
+
+
+    }
+
+
+
     public class IP4Util
     // class containing:
     //      utility functions related to IP4 addresses (value converters, etc.)
@@ -117,6 +180,10 @@ namespace pviewer5
 
             return s;
         }
+
+
+
+
 
         [Serializable]
         public class IP4namemapclass : Dictionary<uint, string>

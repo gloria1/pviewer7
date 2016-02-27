@@ -2,6 +2,30 @@
 
 next:
 
+	factor ip4, mac, port, datetime utility functions
+		for each type need a
+			ToString
+			ToStringNoAlias
+			ToStringAlts
+			TryParse
+		each should respect current versions of Hex, UseAliases
+		for each type, genericize the validation/conversion functions
+			Validate
+			Converter
+			ConverterAlts
+			ConverterNoAlias
+			MVConverter
+			MVConverterAlts
+			MVConverterNoAlias
+
+	add DNS history database
+		track mapping of DNS results
+		data structure
+			idea 1:  list of pairs (DNS, IP4)
+				
+
+
+
 
 	other types of filters
 		timestamp - date only, time only, date+time

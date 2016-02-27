@@ -212,21 +212,21 @@ namespace pviewer5
     }
 
 
-    public class ValidateUInt16Number : ValidationRule
+    public class ValidateDateTime : ValidationRule
     {
-        // validates that string is valid as either raw hex number or IP4-formatted hex number (using StringToIP4 function)
+        // validates that string is valid as a DateTime
         public override ValidationResult Validate(object value, System.Globalization.CultureInfo cultureInfo)
         {
-            uint? v = 0;
+            DateTime dt;
+            // try to parse as a DateTime
 
-            // try to parse as a uint 16 bit value
-            v = GUIUtil.Instance.StringToUInt(value.ToString());
-            if (v == null) return new ValidationResult(false, "Not a valid UInt");
-            else if (v > 0xffff) return new ValidationResult(false, "Value Out of Bounds for UInt16");
-            else return new ValidationResult(true, "Valid UInt16");
+            if (DateTime.TryParse(value.ToString(), out dt)) return new ValidationResult(true, "Valid DateTime");
+            else return new ValidationResult(false, "Invalid DateTime");
         }
     }
 
+    BOOKMARK REVISE BELOW TO WORK WITH DATE TIME
+        THEN UPDATE THE TEMPLATE IN XAML
 
 
     public class UInt16Converter : IValueConverter
