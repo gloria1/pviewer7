@@ -99,11 +99,7 @@ namespace pviewer5
             return false;
 
         }
-
-        BOOKMARK
-            NEXT IS TO CREATE UINT16 VERSIONS OF VALIDATE/CONVERT FUNCTIONS
-            THEN USE THEM IN THE PORT FILTER
-            THEN MOVE ON TO DATETIME
+        
 
 
         /*
@@ -164,6 +160,119 @@ namespace pviewer5
         */
     }
 
+
+    public class ValidateUInt16 : ValidationRule
+    {
+        public override ValidationResult Validate(object value, System.Globalization.CultureInfo cultureInfo)
+        {
+            uint i = 0;
+
+            if (GUIUtil.UInt16TryParse((string)value, ref i)) return new ValidationResult(true, "Valid IP4 Address");
+            else return new ValidationResult(false, "Not a valid IP4 address");
+        }
+    }
+
+    public class UInt16Converter : IValueConverter
+    {
+        // converts number to/from display format IP4 address
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return GUIUtil.UInt16ToString((uint)value, false, true);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            uint i = 0;
+            if (GUIUtil.UInt16TryParse((string)value, ref i)) return i;
+            // the tryparse should never fail because Validation should have prevented any errors, but just in case, return a zero value
+            else return 0;
+        }
+    }
+
+    public class UInt16ConverterNumberOnly : IValueConverter
+    {
+        // converts number to/from display format IP4 address
+        // does not convert aliases
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return GUIUtil.UInt16ToString((uint)value, false, false);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            uint i = 0;
+            if (GUIUtil.UInt16TryParse((string)value, ref i)) return i;
+            // the tryparse should never fail because Validation should have prevented any errors, but just in case, return a zero value
+            else return 0;
+        }
+    }
+
+    public class UInt16ConverterForTooltip : IValueConverter
+    {
+        // converts number to display format IP4 address strings
+        // this returns a string containing all forms other than that returned by normal converter
+        // this is to feed tooltips
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return GUIUtil.UInt16ToStringAlts((uint)value);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException("Cannot convert back");
+        }
+    }
+
+    public class UInt16MVConverter : IMultiValueConverter
+    {
+        // converts number to/from display format IP4 address, including translating aliases
+        // takes two additional arguments, because this will be used as part of a MultiBinding that also binds to Hex and UseAliases
+
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            return GUIUtil.UInt16ToString((uint)values[0], false, true);
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            uint i = 0;
+            object[] v = new object[3];
+            v[0] = (uint)0;
+            // set v[1] and v[2] - not sure if they need to be set to their actual values, but not setting them at all leaves
+            // them null, and then validation fails even if input if valid
+            v[1] = GUIUtil.Instance.Hex;
+            v[2] = GUIUtil.Instance.UseAliases;
+
+            if (GUIUtil.UInt16TryParse((string)value, ref i))
+            {
+                v[0] = i;
+                return v;
+            }
+            // the tryparse should never fail because Validation should have prevented any errors, but just in case, return a zero value
+            else return v;
+        }
+    }
+
+    public class UInt16MVConverterForTooltip : IMultiValueConverter
+    {
+
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            return GUIUtil.UInt16ToStringAlts((uint)values[0]);
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException("Cannot convert back");
+        }
+
+    }
+
+
+    /*
 
     public class ValidateUInt16Number : ValidationRule
     {
@@ -272,8 +381,7 @@ namespace pviewer5
             else return new ValidationResult(false, "Invalid DateTime");
         }
     }
-
-    /*
+    
 
     public class UInt16Converter : IValueConverter
     {

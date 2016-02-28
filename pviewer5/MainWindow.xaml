@@ -30,8 +30,8 @@
         <local:MACMVConverterForTooltip x:Key="MACmvconverterfortooltip"/>
         <local:UInt16Converter x:Key="UInt16converter"/>
         <local:UInt16ConverterForTooltip x:Key="UInt16converterfortooltip"/>
-        <local:UInt16MultiConverter x:Key="UInt16multiconverter"/>
-        <local:UInt16MultiConverterForTooltip x:Key="UInt16multiconverterfortooltip"/>
+        <local:UInt16MVConverter x:Key="UInt16mvconverter"/>
+        <local:UInt16MVConverterForTooltip x:Key="UInt16mvconverterfortooltip"/>
 
         <DataTemplate DataType="{x:Type local:H}">
             <TextBlock>
@@ -284,9 +284,9 @@
                          KeyUp="TextBox_KeyUp"
                          GotFocus="TextBox_GotFocus">
                     <TextBox.Text>
-                        <MultiBinding Converter="{StaticResource UInt16multiconverter}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
+                        <MultiBinding Converter="{StaticResource UInt16mvconverter}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
                             <MultiBinding.ValidationRules>
-                                <local:ValidateUInt16Number ValidationStep="RawProposedValue"/>
+                                <local:ValidateUInt16 ValidationStep="RawProposedValue"/>
                             </MultiBinding.ValidationRules>
                             <Binding Path="Value" Mode="TwoWay"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
@@ -294,7 +294,7 @@
                         </MultiBinding>
                     </TextBox.Text>
                     <TextBox.ToolTip>
-                        <MultiBinding Converter="{StaticResource UInt16multiconverterfortooltip}">
+                        <MultiBinding Converter="{StaticResource UInt16mvconverterfortooltip}">
                             <Binding Path="Value"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
@@ -306,9 +306,9 @@
                          KeyUp="TextBox_KeyUp"
                          GotFocus="TextBox_GotFocus">
                     <TextBox.Text>
-                        <MultiBinding Converter="{StaticResource UInt16multiconverter}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
+                        <MultiBinding Converter="{StaticResource UInt16mvconverter}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
                             <MultiBinding.ValidationRules>
-                                <local:ValidateUInt16Number ValidationStep="RawProposedValue"/>
+                                <local:ValidateUInt16 ValidationStep="RawProposedValue"/>
                             </MultiBinding.ValidationRules>
                             <Binding Path="Mask" Mode="TwoWay"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
@@ -316,7 +316,7 @@
                         </MultiBinding>
                     </TextBox.Text>
                     <TextBox.ToolTip>
-                        <MultiBinding Converter="{StaticResource UInt16multiconverterfortooltip}">
+                        <MultiBinding Converter="{StaticResource UInt16mvconverterfortooltip}">
                             <Binding Path="Mask"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
@@ -340,7 +340,7 @@
                     <TextBox.Text>
                         <MultiBinding Converter="{StaticResource UInt16multiconverter}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
                             <MultiBinding.ValidationRules>
-                                <local:ValidateUInt16Number ValidationStep="RawProposedValue"/>
+                                <local:ValidateUInt16 ValidationStep="RawProposedValue"/>
                             </MultiBinding.ValidationRules>
                             <Binding Path="Value" Mode="TwoWay"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
