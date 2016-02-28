@@ -60,6 +60,53 @@ namespace pviewer5
             }
         }
 
+        public static string UInt16ToString(uint value, bool inverthex, bool usealiasesthistime)
+        // if inverthex==true, return based on !Hex
+        // usealiasesthistime parameter copied from IP4 code, not used yet, but someday may add Port number map
+        {
+            if (inverthex ^ GUIUtil.Instance.Hex) return String.Format("{0:x4}", value);
+            else return String.Format("{0}", value);
+        }
+
+        public static string UInt16ToStringAlts(uint value)
+        // return strings of forms other than what would be returned by ToString
+        //      numerical form indicated by !Hex
+       {
+            if (!GUIUtil.Instance.Hex) return String.Format("{0:x4}", value);
+            else return String.Format("{0}", value);
+        }
+
+        public static bool UInt16TryParse(string s, ref uint value)
+        // tries to parse string into value, respecting global Hex flag
+        // fails if value is > 0xffff
+        // if any errors, returns false and does not assign value
+        {
+            NumberStyles style = (GUIUtil.Instance.Hex ? NumberStyles.HexNumber : NumberStyles.Integer);
+            uint result;
+
+            // try to parse, if it fails fall through to return false
+            try
+            {
+                result = uint.Parse(s, style);
+                if (result > 0xffff) return false;
+                value = result;
+                return true;
+            }
+            catch (FormatException ex)
+            {
+            }
+
+            return false;
+
+        }
+
+        BOOKMARK
+            NEXT IS TO CREATE UINT16 VERSIONS OF VALIDATE/CONVERT FUNCTIONS
+            THEN USE THEM IN THE PORT FILTER
+            THEN MOVE ON TO DATETIME
+
+
+        /*
         public uint? StringToUInt(string s)
         // converts string to numerical value, respecting state of Hex flag
         // returns null if string cannot be parsed
@@ -78,6 +125,7 @@ namespace pviewer5
             return null;
         }
 
+       
         public string UIntToStringHex(uint value, int width)
         // converts a uint to a string, respecting Hex flag
         // fixed width if width > 0 and Hex==true
@@ -113,7 +161,7 @@ namespace pviewer5
 
             return s;
         }
-
+        */
     }
 
 
