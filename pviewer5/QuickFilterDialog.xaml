@@ -99,7 +99,7 @@
                         <DataGridTextColumn.Binding>
                             <Binding Path="mask" Converter="{StaticResource IP4converternumberoralias}" >
                                 <Binding.ValidationRules>
-                                    <local:ValidateIP4NumberOrAlias/>
+                                    <local:ValidateCSIP4/>
                                 </Binding.ValidationRules>
                             </Binding>
                         </DataGridTextColumn.Binding>
@@ -108,7 +108,7 @@
                         <DataGridTextColumn.Binding>
                             <Binding Path="value" Converter="{StaticResource IP4converternumberoralias}" >
                                 <Binding.ValidationRules>
-                                    <local:ValidateIP4NumberOrAlias/>
+                                    <local:ValidateCSIP4/>
                                 </Binding.ValidationRules>
                             </Binding>
                         </DataGridTextColumn.Binding>

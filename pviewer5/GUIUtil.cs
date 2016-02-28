@@ -225,9 +225,7 @@ namespace pviewer5
         }
     }
 
-    BOOKMARK REVISE BELOW TO WORK WITH DATE TIME
-        THEN UPDATE THE TEMPLATE IN XAML
-
+    /*
 
     public class UInt16Converter : IValueConverter
     {
@@ -305,7 +303,7 @@ namespace pviewer5
         }
 
     }
-
+    */
 
 
 }

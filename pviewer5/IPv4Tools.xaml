@@ -9,7 +9,7 @@
         ShowInTaskbar="False" Height="468.667" Width="351">
     
     <Window.Resources>
-        <local:IP4ConverterNumberOnly x:Key="IP4converternumberonly"/>
+        <local:CSIP4ConverterNumberOnly x:Key="CSIP4converternumberonly"/>
     </Window.Resources>
     
     <Grid x:Name="inmgrid"
@@ -64,9 +64,9 @@
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="IP4 Address">
                         <DataGridTextColumn.Binding>
-                            <Binding Path="IP4" Converter="{StaticResource IP4converternumberonly}" >
+                            <Binding Path="IP4" Converter="{StaticResource CSIP4converternumberonly}" >
                                 <Binding.ValidationRules>
-                                    <local:ValidateIP4Number/>
+                                    <local:ValidateCSIP4/>
                                 </Binding.ValidationRules>
                             </Binding>
                         </DataGridTextColumn.Binding>

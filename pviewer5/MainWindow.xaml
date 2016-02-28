@@ -20,10 +20,10 @@
 
         <ObjectDataProvider x:Key="GUIUtilKey" ObjectType="{x:Type local:GUIUtil}"/>
         <local:DisplayInfoMVC x:Key="displayinfomvc"/>
-        <local:IP4ConverterNumberOrAlias x:Key="IP4converternumberoralias"/>
-        <local:IP4ConverterNumberOrAliasForTooltip x:Key="IP4converternumberoraliasfortooltip"/>
-        <local:IP4MultiConverterNumberOrAlias x:Key="IP4multiconverternumberoralias"/>
-        <local:IP4MultiConverterNumberOrAliasForTooltip x:Key="IP4multiconverternumberoraliasfortooltip"/>
+        <local:CSIP4Converter x:Key="CSIP4converter"/>
+        <local:CSIP4ConverterForTooltip x:Key="CSIP4converterfortooltip"/>
+        <local:CSIP4MVConverter x:Key="CSIP4mvconverter"/>
+        <local:CSIP4MVConverterForTooltip x:Key="CSIP4mvconverterfortooltip"/>
         <local:MACConverterNumberOrAlias x:Key="MACconverternumberoralias"/>
         <local:MACConverterNumberOrAliasForTooltip x:Key="MACconverternumberoraliasfortooltip"/>
         <local:MACMultiConverterNumberOrAlias x:Key="MACmulticonverternumberoralias"/>
@@ -168,9 +168,9 @@
                          KeyUp="TextBox_KeyUp"
                          GotFocus="TextBox_GotFocus">
                     <TextBox.Text>
-                        <MultiBinding Converter="{StaticResource IP4multiconverternumberoralias}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
+                        <MultiBinding Converter="{StaticResource CSIP4mvconverter}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
                             <MultiBinding.ValidationRules>
-                                <local:ValidateIP4NumberOrAlias ValidationStep="RawProposedValue"/>
+                                <local:ValidateCSIP4 ValidationStep="RawProposedValue"/>
                             </MultiBinding.ValidationRules>
                             <Binding Path="Value" Mode="TwoWay">
                             </Binding>
@@ -179,7 +179,7 @@
                         </MultiBinding>
                     </TextBox.Text>
                     <TextBox.ToolTip>
-                        <MultiBinding Converter="{StaticResource IP4multiconverternumberoraliasfortooltip}">
+                        <MultiBinding Converter="{StaticResource CSIP4mvconverterfortooltip}">
                             <Binding Path="Value"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
@@ -191,9 +191,9 @@
                          KeyUp="TextBox_KeyUp"
                          GotFocus="TextBox_GotFocus">
                     <TextBox.Text>
-                        <MultiBinding Converter="{StaticResource IP4multiconverternumberoralias}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
+                        <MultiBinding Converter="{StaticResource CSIP4mvconverter}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
                             <MultiBinding.ValidationRules>
-                                <local:ValidateIP4NumberOrAlias ValidationStep="RawProposedValue"/>
+                                <local:ValidateCSIP4 ValidationStep="RawProposedValue"/>
                             </MultiBinding.ValidationRules>
                             <Binding Path="Mask" Mode="TwoWay">
                             </Binding>
@@ -202,7 +202,7 @@
                         </MultiBinding>
                     </TextBox.Text>
                     <TextBox.ToolTip>
-                        <MultiBinding Converter="{StaticResource IP4multiconverternumberoraliasfortooltip}">
+                        <MultiBinding Converter="{StaticResource CSIP4mvconverterfortooltip}">
                             <Binding Path="Mask" />
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>

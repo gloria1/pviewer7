@@ -18,6 +18,14 @@ next:
 			MVConverterAlts
 			MVConverterNoAlias
 
+	use new utility functions in filter list
+	use them in packet viewer
+	use them in main window packet treeview
+	use them in ip4 and mac name map dialogs
+	use the CSIP4 type to replace IP4 addresses everywhere
+
+	repeat the above for MAC and Port
+
 	add DNS history database
 		track mapping of DNS results
 		data structure

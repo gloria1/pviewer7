@@ -31,13 +31,18 @@ namespace pviewer5
     // prepended CS to name to avoid any possible conflict with standard MS libraries
     {
         public uint value = 0;
+        public CSIP4(uint v)
+        {
+            value = v;
+        }
+
 
         public string ToString(bool inverthex, bool usealiasesthistime)
         // if inverthex==true, return based on !Hex
         // if usealiasesthistime == true, then if global UseAliases is true, return the alias
         {
 
-            if (usealiasesthistime)
+            if (usealiasesthistime && GUIUtil.Instance.UseAliases)
                 if (IP4Util.Instance.map.ContainsKey(value))
                     return IP4Util.Instance.map[value];
 
@@ -78,12 +83,57 @@ namespace pviewer5
 
         public bool TryParse(string s)
         // tries to parse string into this.value
-        // if any errors, returns false and does not assign this.value
+        // first tries to parse a simple number, respecting global Hex flag
+        // if that fails, tries to parse as a numerical dot format address, respecting global Hex flag
+        // if that fails, checks for match of an alias
+        // if no match or any errors, returns false and does not assign this.value
         {
-            return false;
+            // first try to parse as a raw IP4 address
+            string[] IP4bits = new string[4];
+            NumberStyles style = (GUIUtil.Instance.Hex ? NumberStyles.HexNumber : NumberStyles.Integer);
+            string regexIP4 = (GUIUtil.Instance.Hex ? "^(0*[a-fA-F0-9]{0,2}.){0,3}0*[a-fA-F0-9]{0,2}$" : "^([0-9]{0,3}.){0,3}[0-9]{0,3}$");
+
+            try
+            {
+                value = uint.Parse(s, style);
+                return true;
+            }
+            // if could not parse as simple number
+            catch (FormatException ex)
+            {
+                // try parsing as dot notation
+                if (Regex.IsMatch(s, regexIP4))
+                {
+                    IP4bits = Regex.Split(s, "\\.");
+                    // resize array to 4 - we want to tolerate missing dots, i.e., user entering less than 4 segments,
+                    // split will produce array with number of elements equal to nmber of dots + 1
+                    Array.Resize<string>(ref IP4bits, 4);
+
+                    for (int i = 0; i < 4; i++) { IP4bits[i] = "0" + IP4bits[i]; }
+
+                    try
+                    {
+                        value = uint.Parse(IP4bits[0], style) * 0x0000000001000000 +
+                            uint.Parse(IP4bits[1], style) * 0x0000000000010000 +
+                            uint.Parse(IP4bits[2], style) * 0x0000000000000100 +
+                            uint.Parse(IP4bits[3], style) * 0x0000000000000001;
+                        return true;
+                    }
+                    catch { }
+                }
+                // if we have gotten this far, s was not parsed as a simple number or dot notation number, so check if it is a valid alias
+                foreach (uint u in IP4Util.Instance.map.Keys)
+                    if (s == IP4Util.Instance.map[u])
+                    {
+                        value = u;
+                        return true;
+                    }
+
+                // if we get to here, s could not be parsed in any valid way, so return false;
+                return false;
+            }
+
         }
-
-
 
     }
 
@@ -240,44 +290,121 @@ namespace pviewer5
 
 
 
-    public class ValidateIP4Number : ValidationRule
+    public class ValidateCSIP4 : ValidationRule
     {
-        // validates that string is valid as either raw hex number or IP4-formatted hex number (using StringToIP4 function)
         public override ValidationResult Validate(object value, System.Globalization.CultureInfo cultureInfo)
         {
-            uint? v = 0;
+            CSIP4 i = new CSIP4(0);
 
-            // try to parse as a raw IP4 address
-            v = IP4Util.Instance.StringToIP4(value.ToString());
-            if (v != null) return new ValidationResult(true, "Valid IP4 Address");
+            if (i.TryParse((string)value)) return new ValidationResult(true, "Valid IP4 Address");
             else return new ValidationResult(false, "Not a valid IP4 address");
         }
     }
 
-    public class ValidateIP4NumberOrAlias : ValidationRule
+    public class CSIP4Converter : IValueConverter
     {
-        // validates that string is valid as either raw hex number or IP4-formatted hex number (using StringToIP4 function)
-        //      or that string is a valid entry in alias registry
+        // converts number to/from display format IP4 address
 
-        public override ValidationResult Validate(object value, System.Globalization.CultureInfo cultureInfo)
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            uint? v = 0;
+            CSIP4 ip = new CSIP4((uint)value);
+            return ip.ToString(false, true);
+        }
 
-            if (!(value is string)) return new ValidationResult(false, "Not a valid IP4 address");
- 
-            // first try to parse as a raw IP4 address
-            v = IP4Util.Instance.StringToIP4((string)value);
-            if (v != null) return new ValidationResult(true, "Valid IP4 Address");
-            // if that failed, see if string exists in IP4namemap
-            foreach (uint u in IP4Util.Instance.map.Keys)
-            {
-                string s = IP4Util.Instance.map[u];
-                if ((string)value == IP4Util.Instance.map[u])
-                    return new ValidationResult(true, "Valid IP4 Address");
-            }
-            return new ValidationResult(false, "Not a valid IP4 address");
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            CSIP4 ip = new CSIP4(0);
+            if (ip.TryParse((string)value)) return (ip.value);
+            // the tryparse should never fail because Validation should have prevented any errors, but just in case, return a zero value
+            else return 0;
         }
     }
+
+    public class CSIP4ConverterNumberOnly : IValueConverter
+    {
+        // converts number to/from display format IP4 address
+        // does not convert aliases
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            CSIP4 ip = new CSIP4((uint)value);
+            return ip.ToString(false, false);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            CSIP4 ip = new CSIP4(0);
+            if (ip.TryParse((string)value)) return (ip.value);
+            // the tryparse should never fail because Validation should have prevented any errors, but just in case, return a zero value
+            else return 0;
+        }
+    }
+
+    public class CSIP4ConverterForTooltip : IValueConverter
+    {
+        // converts number to display format IP4 address strings
+        // this returns a string containing all forms other than that returned by normal converter
+        // this is to feed tooltips
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            CSIP4 ip = new CSIP4((uint)value);
+            return ip.ToStringAlts();
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException("Cannot convert back");
+        }
+    }
+
+
+    public class CSIP4MVConverter : IMultiValueConverter
+    {
+        // converts number to/from display format IP4 address, including translating aliases
+        // takes two additional arguments, because this will be used as part of a MultiBinding that also binds to Hex and UseAliases
+
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            CSIP4 ip = new CSIP4((uint)values[0]);
+            return ip.ToString(false, true);
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            CSIP4 ip = new CSIP4(0);
+            object[] v = new object[3];
+            v[0] = (uint)0;
+
+            if (ip.TryParse((string)value))
+            {
+                v[0] = ip.value;
+                return v;
+            }
+            // the tryparse should never fail because Validation should have prevented any errors, but just in case, return a zero value
+            else return v;
+        }
+    }
+
+    public class CSIP4MVConverterForTooltip : IMultiValueConverter
+    {
+
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            CSIP4 ip = new CSIP4((uint)values[0]);
+            return ip.ToStringAlts();
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException("Cannot convert back");
+        }
+
+    }
+
+
+
+
 
     public class IP4ConverterNumberOnly : IValueConverter
     {
