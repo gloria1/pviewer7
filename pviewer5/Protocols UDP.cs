@@ -81,12 +81,12 @@ namespace pviewer5
         {
             get
             {
-                MACConverterNumberOrAlias mc = new MACConverterNumberOrAlias();
-                IP4ConverterNumberOrAlias ic = new IP4ConverterNumberOrAlias();
+                CSIP4 src = new CSIP4(SrcIP4);
+                CSIP4 dest = new CSIP4(DestIP4);
                 return "UDP Group"
-                        + ", Source IP4 " + ic.Convert(SrcIP4, null, null, null)
+                        + ", Source IP4 " + src.ToString(false, true)
                         + String.Format(", Source Port {0:X4}", SrcPort)
-                        + ", Dest IP4 " + ic.Convert(DestIP4, null, null, null)
+                        + ", Dest IP4 " + dest.ToString(false, true)
                         + String.Format(", Dest Port {0:X4}", DestPort)
                         + String.Format(", Packets in Group = {0:X2}", L.Count());
             }

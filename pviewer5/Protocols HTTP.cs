@@ -53,8 +53,6 @@ namespace pviewer5
         {
             get
             {
-                MACConverterNumberOrAlias mc = new MACConverterNumberOrAlias();
-                IP4ConverterNumberOrAlias ic = new IP4ConverterNumberOrAlias();
                 return "HTTP Group text";
             }
         }

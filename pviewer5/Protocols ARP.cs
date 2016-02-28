@@ -98,12 +98,15 @@ namespace pviewer5
             get
             {
                 MACConverterNumberOrAlias mc = new MACConverterNumberOrAlias();
-                IP4ConverterNumberOrAlias ic = new IP4ConverterNumberOrAlias();
+
+                CSIP4 sender = new CSIP4(SenderProt);
+                CSIP4 target = new CSIP4(TargetProt);
+
                 if (Prot == 0x0800)     // IPv4
                     return String.Format("ARP Group, HWType: {0:X4}, Prot {1:X4}", HWType, Prot)
                             + ", SenderHW " + mc.Convert(SenderHW, null, null, null)
-                            + ", SenderIP4 " + ic.Convert(SenderProt, null, null, null)
-                            + ", TargetIP4 " + ic.Convert(TargetProt, null, null, null)
+                            + ", SenderIP4 " + sender.ToString(false, true)
+                            + ", TargetIP4 " + target.ToString(false, true)
                             + String.Format(", Packets in Group = {0:X2}", L.Count());
 
                 else

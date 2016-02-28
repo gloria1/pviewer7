@@ -105,8 +105,6 @@ namespace pviewer5
             {
                 get
                 {
-                    MACConverterNumberOrAlias mc = new MACConverterNumberOrAlias();
-                    IP4ConverterNumberOrAlias ic = new IP4ConverterNumberOrAlias();
                     return String.Format("DHCP Group, XID {0:X4}, Packet Count = {1:X4}", DHCP4XID, L.Count());
                 }
             }

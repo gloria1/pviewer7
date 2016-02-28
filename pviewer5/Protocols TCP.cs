@@ -408,13 +408,13 @@ namespace pviewer5
             get
             {
                 string r;
+                CSIP4 s1ip = new CSIP4(S1IP4);
+                CSIP4 s2ip = new CSIP4(S2IP4);
 
-                MACConverterNumberOrAlias mc = new MACConverterNumberOrAlias();
-                IP4ConverterNumberOrAlias ic = new IP4ConverterNumberOrAlias();
                 r = "TCP Group"
-                            + ", Stream1 IP4 " + ic.Convert(S1IP4, null, null, null);
+                            + ", Stream1 IP4 " + s1ip.ToString(false, true);
                 r += String.Format(", Stream1 Port {0}", S1Port);
-                r += ", Stream2 IP4 " + ic.Convert(S2IP4, null, null, null);
+                r += ", Stream2 IP4 " + s2ip.ToString(false, true);
                 r += String.Format(", Stream2 Port {0}", S2Port);
                 r += String.Format(", Packets in Group = {0}", L.Count())
                              + State;

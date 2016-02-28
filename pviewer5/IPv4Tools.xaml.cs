@@ -403,7 +403,7 @@ namespace pviewer5
     }
 
 
-
+    /*
 
 
     public class IP4ConverterNumberOnly : IValueConverter
@@ -569,7 +569,7 @@ namespace pviewer5
     }
 
 
-
+*/
 
     public partial class IP4NameMapDialog : Window, INotifyPropertyChanged
 	{

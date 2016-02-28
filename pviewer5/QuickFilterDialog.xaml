@@ -15,7 +15,7 @@
             <Setter Property="HorizontalAlignment" Value="Center"/>
         </Style>
         <local:MACConverterNumberOrAlias x:Key="macconverternumberoralias"/>
-        <local:IP4ConverterNumberOrAlias x:Key="IP4converternumberoralias"/>
+        <local:CSIP4Converter x:Key="CSIP4converter"/>
     </Window.Resources>
     <Grid Name="QFDgrid"
           Margin="20,29,20,11.333"
@@ -97,7 +97,7 @@
                     <DataGridComboBoxColumn Header="Incl/Excl" ItemsSource="{Binding Source={x:Static local:QuickFilterTools.QFInclItems}}" SelectedItemBinding="{Binding Path=inclusion}"/>
                     <DataGridTextColumn Header="Mask" >
                         <DataGridTextColumn.Binding>
-                            <Binding Path="mask" Converter="{StaticResource IP4converternumberoralias}" >
+                            <Binding Path="mask" Converter="{StaticResource CSIP4converter}" >
                                 <Binding.ValidationRules>
                                     <local:ValidateCSIP4/>
                                 </Binding.ValidationRules>
@@ -106,7 +106,7 @@
                     </DataGridTextColumn>
                     <DataGridTextColumn Header="IP4 Address" >
                         <DataGridTextColumn.Binding>
-                            <Binding Path="value" Converter="{StaticResource IP4converternumberoralias}" >
+                            <Binding Path="value" Converter="{StaticResource CSIP4converter}" >
                                 <Binding.ValidationRules>
                                     <local:ValidateCSIP4/>
                                 </Binding.ValidationRules>
