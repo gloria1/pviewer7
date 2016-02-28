@@ -150,10 +150,6 @@ namespace pviewer5
         }
 
 
-
-
-
-
         [Serializable]
         public class IP4namemapclass : Dictionary<uint, string>
         // data model for a mapping of IP4 addresses to aliases
@@ -209,7 +205,7 @@ namespace pviewer5
 
 
 
-    public class ValidateCSIP4 : ValidationRule
+    public class ValidateIP4 : ValidationRule
     {
         public override ValidationResult Validate(object value, System.Globalization.CultureInfo cultureInfo)
         {
@@ -220,7 +216,7 @@ namespace pviewer5
         }
     }
 
-    public class CSIP4Converter : IValueConverter
+    public class IP4Converter : IValueConverter
     {
         // converts number to/from display format IP4 address
 
@@ -238,7 +234,7 @@ namespace pviewer5
         }
     }
 
-    public class CSIP4ConverterNumberOnly : IValueConverter
+    public class IP4ConverterNumberOnly : IValueConverter
     {
         // converts number to/from display format IP4 address
         // does not convert aliases
@@ -257,7 +253,7 @@ namespace pviewer5
         }
     }
 
-    public class CSIP4ConverterForTooltip : IValueConverter
+    public class IP4ConverterForTooltip : IValueConverter
     {
         // converts number to display format IP4 address strings
         // this returns a string containing all forms other than that returned by normal converter
@@ -274,8 +270,7 @@ namespace pviewer5
         }
     }
 
-
-    public class CSIP4MVConverter : IMultiValueConverter
+    public class IP4MVConverter : IMultiValueConverter
     {
         // converts number to/from display format IP4 address, including translating aliases
         // takes two additional arguments, because this will be used as part of a MultiBinding that also binds to Hex and UseAliases
@@ -290,6 +285,10 @@ namespace pviewer5
             uint i = 0;
             object[] v = new object[3];
             v[0] = (uint)0;
+            // set v[1] and v[2] - not sure if they need to be set to their actual values, but not setting them at all leaves
+            // them null, and then validation fails even if input if valid
+            v[1] = GUIUtil.Instance.Hex;
+            v[2] = GUIUtil.Instance.UseAliases;
 
             if (IP4Util.TryParse((string)value, ref i))
             {
@@ -301,7 +300,7 @@ namespace pviewer5
         }
     }
 
-    public class CSIP4MVConverterForTooltip : IMultiValueConverter
+    public class IP4MVConverterForTooltip : IMultiValueConverter
     {
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)

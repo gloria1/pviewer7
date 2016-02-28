@@ -20,10 +20,10 @@
 
         <ObjectDataProvider x:Key="GUIUtilKey" ObjectType="{x:Type local:GUIUtil}"/>
         <local:DisplayInfoMVC x:Key="displayinfomvc"/>
-        <local:CSIP4Converter x:Key="CSIP4converter"/>
-        <local:CSIP4ConverterForTooltip x:Key="CSIP4converterfortooltip"/>
-        <local:CSIP4MVConverter x:Key="CSIP4mvconverter"/>
-        <local:CSIP4MVConverterForTooltip x:Key="CSIP4mvconverterfortooltip"/>
+        <local:IP4Converter x:Key="IP4converter"/>
+        <local:IP4ConverterForTooltip x:Key="IP4converterfortooltip"/>
+        <local:IP4MVConverter x:Key="IP4mvconverter"/>
+        <local:IP4MVConverterForTooltip x:Key="IP4mvconverterfortooltip"/>
         <local:MACConverter x:Key="MACconverter"/>
         <local:MACConverterForTooltip x:Key="MACconverterfortooltip"/>
         <local:MACMVConverter x:Key="MACmvconverter"/>
@@ -168,9 +168,9 @@
                          KeyUp="TextBox_KeyUp"
                          GotFocus="TextBox_GotFocus">
                     <TextBox.Text>
-                        <MultiBinding Converter="{StaticResource CSIP4mvconverter}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
+                        <MultiBinding Converter="{StaticResource IP4mvconverter}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
                             <MultiBinding.ValidationRules>
-                                <local:ValidateCSIP4 ValidationStep="RawProposedValue"/>
+                                <local:ValidateIP4 ValidationStep="RawProposedValue"/>
                             </MultiBinding.ValidationRules>
                             <Binding Path="Value" Mode="TwoWay">
                             </Binding>
@@ -179,7 +179,7 @@
                         </MultiBinding>
                     </TextBox.Text>
                     <TextBox.ToolTip>
-                        <MultiBinding Converter="{StaticResource CSIP4mvconverterfortooltip}">
+                        <MultiBinding Converter="{StaticResource IP4mvconverterfortooltip}">
                             <Binding Path="Value"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
@@ -191,9 +191,9 @@
                          KeyUp="TextBox_KeyUp"
                          GotFocus="TextBox_GotFocus">
                     <TextBox.Text>
-                        <MultiBinding Converter="{StaticResource CSIP4mvconverter}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
+                        <MultiBinding Converter="{StaticResource IP4mvconverter}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
                             <MultiBinding.ValidationRules>
-                                <local:ValidateCSIP4 ValidationStep="RawProposedValue"/>
+                                <local:ValidateIP4 ValidationStep="RawProposedValue"/>
                             </MultiBinding.ValidationRules>
                             <Binding Path="Mask" Mode="TwoWay">
                             </Binding>
@@ -202,7 +202,7 @@
                         </MultiBinding>
                     </TextBox.Text>
                     <TextBox.ToolTip>
-                        <MultiBinding Converter="{StaticResource CSIP4mvconverterfortooltip}">
+                        <MultiBinding Converter="{StaticResource IP4mvconverterfortooltip}">
                             <Binding Path="Mask" />
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
@@ -229,8 +229,7 @@
                                 <MultiBinding.ValidationRules>
                                     <local:ValidateMAC ValidationStep="RawProposedValue"/>
                                 </MultiBinding.ValidationRules>
-                                <Binding Path="Value" Mode="TwoWay">
-                                </Binding>
+                                <Binding Path="Value" Mode="TwoWay"/>
                                 <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                                 <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
                             </MultiBinding>

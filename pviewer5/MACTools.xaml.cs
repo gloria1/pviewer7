@@ -316,7 +316,6 @@ namespace pviewer5
         }
     }
 
-
     public class MACMVConverter : IMultiValueConverter
     {
         // converts number to/from display format IP4 address, including translating aliases
@@ -332,6 +331,9 @@ namespace pviewer5
             ulong i = 0;
             object[] v = new object[3];
             v[0] = (ulong)0;
+            // set v[1] and v[2] - not sure if they need to be set to their actual values, but not setting them at all leaves
+            // them null, and then validation fails even if input if valid            v[1] = GUIUtil.Instance.Hex;
+            v[2] = GUIUtil.Instance.UseAliases;
 
             if (MACUtil.TryParse((string)value, ref i))
             {
@@ -360,181 +362,7 @@ namespace pviewer5
 
 
 
-
-
-    /*
-    public class ValidateMACNumber : ValidationRule
-    {
-        // validates that string is valid as either raw hex number or mac-formatted hex number (using StringToMAC function)
-        public override ValidationResult Validate(object value, System.Globalization.CultureInfo cultureInfo)
-        {
-            ulong? v = 0;
-
-            // try to parse as a raw mac address
-            v = MACUtil.Instance.StringToMAC((string)value);
-            if (v != null) return new ValidationResult(true, "Valid MAC Address");
-            else return new ValidationResult(false, "Not a valid MAC address");
-        }
-    }
-
-    public class ValidateMACNumberOrAlias : ValidationRule
-    {
-        // validates that string is valid as either raw hex number or mac-formatted hex number (using StringToMAC function)
-        //      or that string is a valid entry in alias registry
-
-        public override ValidationResult Validate(object value, System.Globalization.CultureInfo cultureInfo)
-        {
-            ulong? v = 0;
-
-            if (!(value is string)) return new ValidationResult(false, "Not a valid MAC address");
-
-            // first try to parse as a raw mac address
-            v = MACUtil.Instance.StringToMAC((string)value);
-            if (v != null) return new ValidationResult(true, "Valid MAC Address");
-            // if that failed, see if string exists in macnamemap
-            foreach (ulong u in MACUtil.Instance.map.Keys)
-                if ((string)value == MACUtil.Instance.map[u])
-                    return new ValidationResult(true, "Valid MAC Address");
-            return new ValidationResult(false, "Not a valid MAC address");
-        }
-    }
-
-    public class MACConverterNumberOnly : IValueConverter
-    {
-        // converts number to/from display format mac address, without checking the mac alias dictionary
-
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return MACUtil.Instance.MACToString((ulong)value);
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            ulong? v = 0;
-
-            // first try to parse as a raw mac address
-            v = MACUtil.Instance.StringToMAC((string)value);
-            if (v != null) return v;
-
-            // we should never get to this point, since validation step will not pass unless value is either valid raw mac 
-            // however, just in case put up a messagebox and return 0
-            MessageBox.Show("ConvertBack could not process a raw mac address.  Why did this pass validation????");
-            return 0;
-        }
-    }
-
-    public class MACConverterNumberOrAlias : IValueConverter
-    {
-        // converts number to/from display format mac address, including translating aliases
-
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (GUIUtil.Instance.UseAliases && MACUtil.Instance.map.ContainsKey((ulong)value)) return MACUtil.Instance.map[(ulong)value];
-            else return MACUtil.Instance.MACToString((ulong)value);
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            ulong? v = 0;
-
-            // first try to parse as a raw mac address
-            v = MACUtil.Instance.StringToMAC((string)value);
-            if (v != null) return v;
-
-            // if that failed, see if string exists in macnamemap
-            foreach (ulong u in MACUtil.Instance.map.Keys)
-                if ((string)value == MACUtil.Instance.map[u])
-                    return u;
-
-            // we should never get to this point, since validation step will not pass unless value is either valid raw mac or existing entry in macnamemap
-            // however, just in case put up a messagebox and return 0
-            MessageBox.Show("ConvertBack could not process as either raw mac address or entry in macnamemap.  Why did this pass validation????");
-            return 0;
-        }
-    }
-
-    public class MACConverterNumberOrAliasForTooltip : IValueConverter
-    {
-        // converts number to/from display format mac address, including translating aliases
-        // uses inverse of GUIUtil.UseAliases property - to feed tooltip
-
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (!GUIUtil.Instance.UseAliases && MACUtil.Instance.map.ContainsKey((ulong)value)) return MACUtil.Instance.map[(ulong)value];
-            else return MACUtil.Instance.MACToString((ulong)value);
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotSupportedException("Cannot convert back");
-        }
-    }
-
-    public class MACMultiConverterNumberOrAlias : IMultiValueConverter
-    {
-        // converts number to/from display format MAC address, including translating aliases
-        // also takes value of UseAliases as an argument
-
-        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (GUIUtil.Instance.UseAliases && MACUtil.Instance.map.ContainsKey((ulong)values[0]))
-                return MACUtil.Instance.map[(ulong)values[0]];
-            else return MACUtil.Instance.MACToString((ulong)values[0]);
-        }
-
-        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
-        {
-            ulong? u;
-            object[] v = new object[3];
-            // copy current values of hex and usealiases into result to be sent back - multi value converter must pass back values for all bindings in the multibinding
-            v[1] = GUIUtil.Instance.Hex;
-            v[2] = GUIUtil.Instance.UseAliases;
-
-            // first try to parse as a raw IP4 address
-            u = MACUtil.Instance.StringToMAC((string)value);
-            if (u != null)
-            {
-                v[0] = u;
-                return v;
-            }
-
-            // if that failed, see if string exists in IP4namemap
-            foreach (ulong uu in MACUtil.Instance.map.Keys)
-                if ((string)value == MACUtil.Instance.map[uu])
-                {
-                    v[0] = uu;
-                    return v;
-                }
-
-            // we should never get to this point, since validation step will not pass unless value is either valid raw IP4 or existing entry in IP4namemap
-            // however, just in case put up a messagebox and return 0
-            MessageBox.Show("ConvertBack could not process as either raw IP4 address or entry in IP4namemap.  Why did this pass validation????");
-            v[0] = 0; return v;
-        }
-
-    }
-
-    public class MACMultiConverterNumberOrAliasForTooltip : IMultiValueConverter
-    // same as above except respects inverse of UseAliases, to feed tooltip
-    {
-        // converts number to/from display format MAC address, including translating aliases
-        // also takes value of UseAliases as an argument
-
-        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (GUIUtil.Instance.UseAliases && MACUtil.Instance.map.ContainsKey((ulong)values[0]))
-                return MACUtil.Instance.map[(ulong)values[0]];
-            else return MACUtil.Instance.MACToString((ulong)values[0]);
-        }
-
-        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
-        {
-            throw new NotSupportedException("Cannot convert back");
-        }
-
-    }
-
-    */
+    
 
 
     public partial class MACNameMapDialog : Window, INotifyPropertyChanged
