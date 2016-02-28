@@ -257,8 +257,8 @@ namespace pviewer5
         {
             ulong i = 0;
 
-            if (MACUtil.TryParse((string)value, ref i)) return new ValidationResult(true, "Valid IP4 Address");
-            else return new ValidationResult(false, "Not a valid IP4 address");
+            if (MACUtil.TryParse((string)value, ref i)) return new ValidationResult(true, "Valid MAC Address");
+            else return new ValidationResult(false, "Not a valid MAC address");
         }
     }
 
