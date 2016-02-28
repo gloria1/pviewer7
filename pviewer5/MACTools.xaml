@@ -66,7 +66,7 @@
                         <DataGridTextColumn.Binding>
                             <Binding Path="mac" Converter="{StaticResource macconverternumberonly}" >
                                 <Binding.ValidationRules>
-                                    <local:ValidateMACNumber/>
+                                    <local:ValidateMAC/>
                                 </Binding.ValidationRules>
                             </Binding>
                         </DataGridTextColumn.Binding>

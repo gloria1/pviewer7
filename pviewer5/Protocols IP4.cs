@@ -43,13 +43,10 @@ namespace pviewer5
         {
             get
             {
-                CSIP4 src = new CSIP4(SrcIP4);
-                CSIP4 dest = new CSIP4(DestIP4);
-
                 return String.Format("IPv4 header, Protocol = {0:X4}, Src IP = ", Prot)
-                    + src.ToString(false, true)
+                    + IP4Util.ToString(SrcIP4, false, true)
                     + ", Dest IP = "
-                    + dest.ToString(false, true);
+                    + IP4Util.ToString(DestIP4, false, true);
             }
         }
 

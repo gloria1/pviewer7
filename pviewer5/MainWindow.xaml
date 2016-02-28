@@ -24,10 +24,10 @@
         <local:CSIP4ConverterForTooltip x:Key="CSIP4converterfortooltip"/>
         <local:CSIP4MVConverter x:Key="CSIP4mvconverter"/>
         <local:CSIP4MVConverterForTooltip x:Key="CSIP4mvconverterfortooltip"/>
-        <local:MACConverterNumberOrAlias x:Key="MACconverternumberoralias"/>
-        <local:MACConverterNumberOrAliasForTooltip x:Key="MACconverternumberoraliasfortooltip"/>
-        <local:MACMultiConverterNumberOrAlias x:Key="MACmulticonverternumberoralias"/>
-        <local:MACMultiConverterNumberOrAliasForTooltip x:Key="MACmulticonverternumberoraliasfortooltip"/>
+        <local:MACConverter x:Key="MACconverter"/>
+        <local:MACConverterForTooltip x:Key="MACconverterfortooltip"/>
+        <local:MACMVConverter x:Key="MACmvconverter"/>
+        <local:MACMVConverterForTooltip x:Key="MACmvconverterfortooltip"/>
         <local:UInt16Converter x:Key="UInt16converter"/>
         <local:UInt16ConverterForTooltip x:Key="UInt16converterfortooltip"/>
         <local:UInt16MultiConverter x:Key="UInt16multiconverter"/>
@@ -225,9 +225,9 @@
                          KeyUp="TextBox_KeyUp"
                          GotFocus="TextBox_GotFocus">
                         <TextBox.Text>
-                            <MultiBinding Converter="{StaticResource MACmulticonverternumberoralias}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
+                            <MultiBinding Converter="{StaticResource MACmvconverter}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
                                 <MultiBinding.ValidationRules>
-                                    <local:ValidateMACNumberOrAlias ValidationStep="RawProposedValue"/>
+                                    <local:ValidateMAC ValidationStep="RawProposedValue"/>
                                 </MultiBinding.ValidationRules>
                                 <Binding Path="Value" Mode="TwoWay">
                                 </Binding>
@@ -236,7 +236,7 @@
                             </MultiBinding>
                         </TextBox.Text>
                         <TextBox.ToolTip>
-                            <MultiBinding Converter="{StaticResource MACmulticonverternumberoraliasfortooltip}">
+                            <MultiBinding Converter="{StaticResource MACmvconverterfortooltip}">
                                 <Binding Path="Value"/>
                                 <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                                 <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
@@ -248,9 +248,9 @@
                          KeyUp="TextBox_KeyUp"
                          GotFocus="TextBox_GotFocus">
                         <TextBox.Text>
-                            <MultiBinding Converter="{StaticResource MACmulticonverternumberoralias}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
+                            <MultiBinding Converter="{StaticResource MACmvconverter}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
                                 <MultiBinding.ValidationRules>
-                                    <local:ValidateMACNumberOrAlias ValidationStep="RawProposedValue"/>
+                                    <local:ValidateMAC ValidationStep="RawProposedValue"/>
                                 </MultiBinding.ValidationRules>
                                 <Binding Path="Mask" Mode="TwoWay">
                                 </Binding>
@@ -259,7 +259,7 @@
                             </MultiBinding>
                         </TextBox.Text>
                         <TextBox.ToolTip>
-                            <MultiBinding Converter="{StaticResource MACmulticonverternumberoraliasfortooltip}">
+                            <MultiBinding Converter="{StaticResource MACmvconverterfortooltip}">
                                 <Binding Path="Mask"/>
                                 <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                                 <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>

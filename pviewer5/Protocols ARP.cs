@@ -40,15 +40,15 @@ namespace pviewer5
            get { 
                 if (Prot == 0x0800)     // IPv4
                     return String.Format("ARP OpCode: {0:X4}, HWType: {1:X4}, Prot {2:X4}", Opn, HWType, Prot)
-                            + ", SenderHW " + MACUtil.Instance.MACToString(SenderHW)
-                            + ", Sender IP4 " + IP4Util.Instance.IP4ToString(SenderProt)
-                            + ", TargetHW " + MACUtil.Instance.MACToString(TargetHW)
-                            + ", Target IP4 " + IP4Util.Instance.IP4ToString(TargetProt);
+                            + ", SenderHW " + MACUtil.ToString(SenderHW, true)
+                            + ", Sender IP4 " + IP4Util.ToString(SenderProt, false, true)
+                            + ", TargetHW " + MACUtil.ToString(TargetHW, true)
+                            + ", Target IP4 " + IP4Util.ToString(TargetProt, false, true);
                 else
                     return String.Format("ARP OpCode: {0:X4}, HWType: {1:X4}, Prot {2:X4}", Opn, HWType, Prot)
-                            + ", SenderHW " + MACUtil.Instance.MACToString(SenderHW)
+                            + ", SenderHW " + MACUtil.ToString(SenderHW, true)
                             + String.Format(", SenderProto {0:X8}", SenderProt)
-                            + ", TargetHW " + MACUtil.Instance.MACToString(TargetHW)
+                            + ", TargetHW " + MACUtil.ToString(TargetHW, true)
                             + String.Format(", TargetProto {0:X8}", TargetProt);
             }
         }
@@ -97,21 +97,16 @@ namespace pviewer5
         {
             get
             {
-                MACConverterNumberOrAlias mc = new MACConverterNumberOrAlias();
-
-                CSIP4 sender = new CSIP4(SenderProt);
-                CSIP4 target = new CSIP4(TargetProt);
-
                 if (Prot == 0x0800)     // IPv4
                     return String.Format("ARP Group, HWType: {0:X4}, Prot {1:X4}", HWType, Prot)
-                            + ", SenderHW " + mc.Convert(SenderHW, null, null, null)
-                            + ", SenderIP4 " + sender.ToString(false, true)
-                            + ", TargetIP4 " + target.ToString(false, true)
+                            + ", SenderHW " + MACUtil.ToString(SenderHW, true)
+                            + ", SenderIP4 " + IP4Util.ToString(SenderProt, false, true)
+                            + ", TargetIP4 " + IP4Util.ToString(TargetProt, false, true)
                             + String.Format(", Packets in Group = {0:X2}", L.Count());
 
                 else
                     return String.Format("ARP Group, HWType: {0:X4}, Prot {1:X4}", HWType, Prot)
-                            + ", SenderHW " + mc.Convert(SenderHW, null, null, null)
+                            + ", SenderHW " + MACUtil.ToString(SenderHW, true)
                             + String.Format(", SenderProto {0:X8}", SenderProt)
                             + String.Format(", TargetProto {0:X8}", TargetProt)
                             + String.Format(", Packets in Group = {0:X2}", L.Count());

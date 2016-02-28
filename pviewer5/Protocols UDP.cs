@@ -81,12 +81,10 @@ namespace pviewer5
         {
             get
             {
-                CSIP4 src = new CSIP4(SrcIP4);
-                CSIP4 dest = new CSIP4(DestIP4);
                 return "UDP Group"
-                        + ", Source IP4 " + src.ToString(false, true)
+                        + ", Source IP4 " + IP4Util.ToString(SrcIP4, false, true)
                         + String.Format(", Source Port {0:X4}", SrcPort)
-                        + ", Dest IP4 " + dest.ToString(false, true)
+                        + ", Dest IP4 " + IP4Util.ToString(DestIP4, false, true)
                         + String.Format(", Dest Port {0:X4}", DestPort)
                         + String.Format(", Packets in Group = {0:X2}", L.Count());
             }

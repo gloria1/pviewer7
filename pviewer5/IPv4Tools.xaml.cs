@@ -26,18 +26,32 @@ using System.Runtime.Serialization.Formatters.Binary;
 namespace pviewer5
 {
 
-    public class CSIP4
-    // class for encapsulating behavior for IPv4 addresses
-    // prepended CS to name to avoid any possible conflict with standard MS libraries
+
+
+    public class IP4Util
+    // class containing:
+    //      utility functions related to IP4 addresses (value converters, etc.)
+    // this is implemented as a dynamic class as a Singleton, i.e., there can only ever be one instance
+    // this is because static classes cannot implement interfaces (or at least INotifyPropertyChanged)
     {
-        public uint value = 0;
-        public CSIP4(uint v)
+        private static readonly IP4Util instance = new IP4Util();
+        public static IP4Util Instance { get { return instance; } }
+
+        public IP4namemapclass map = new IP4namemapclass()
         {
-            value = v;
-        }
+                {0x00000000, "ALL ZEROES"},
+        };
+
+        // private constructor below was set up per the "singleton" pattern, so that no further instances of this class could be created
+        // however, for some reason this caused the data binding to IP4Hex to stop working, so i have commented this out
+        /* private IP4Util()
+        // constructor is private, so no one else can call it - the singleton instance was created in the initialization of Instance above
+        {
+            return;
+        }*/
 
 
-        public string ToString(bool inverthex, bool usealiasesthistime)
+        public static string ToString(uint value, bool inverthex, bool usealiasesthistime)
         // if inverthex==true, return based on !Hex
         // if usealiasesthistime == true, then if global UseAliases is true, return the alias
         {
@@ -60,7 +74,7 @@ namespace pviewer5
             return s;
         }
 
-        public string ToStringAlts()
+        public static string ToStringAlts(uint value)
         // return strings of forms other than what would be returned by ToString
         //      numerical form indicated by !Hex
         //      if UseAliases, then numerical form based on Hex
@@ -68,12 +82,12 @@ namespace pviewer5
         {
             string s = null;
 
-            s = this.ToString(true, false);
+            s = IP4Util.ToString(value, true, false);
             s += "\n";
             if (IP4Util.Instance.map.ContainsKey(value))
             {
                 // if UseAliases, then, if this IP has an alias, we want to append the non-inverthex numerical form
-                if (GUIUtil.Instance.UseAliases) s += this.ToString(false, false);
+                if (GUIUtil.Instance.UseAliases) s += IP4Util.ToString(value, false, false);
                 // else return the alias
                 else s += IP4Util.Instance.map[value];
             }
@@ -81,12 +95,12 @@ namespace pviewer5
             return s;
         }
 
-        public bool TryParse(string s)
-        // tries to parse string into this.value
+        public static bool TryParse(string s, ref uint value)
+        // tries to parse string into value
         // first tries to parse a simple number, respecting global Hex flag
         // if that fails, tries to parse as a numerical dot format address, respecting global Hex flag
         // if that fails, checks for match of an alias
-        // if no match or any errors, returns false and does not assign this.value
+        // if no match or any errors, returns false and does not assign value
         {
             // first try to parse as a raw IP4 address
             string[] IP4bits = new string[4];
@@ -135,101 +149,6 @@ namespace pviewer5
 
         }
 
-    }
-
-
-
-    public class IP4Util
-    // class containing:
-    //      utility functions related to IP4 addresses (value converters, etc.)
-    // this is implemented as a dynamic class as a Singleton, i.e., there can only ever be one instance
-    // this is because static classes cannot implement interfaces (or at least INotifyPropertyChanged)
-    {
-        private static readonly IP4Util instance = new IP4Util();
-        public static IP4Util Instance { get { return instance; } }
-
-        public IP4namemapclass map = new IP4namemapclass()
-        {
-                {0x00000000, "ALL ZEROES"},
-        };
-
-        // private constructor below was set up per the "singleton" pattern, so that no further instances of this class could be created
-        // however, for some reason this caused the data binding to IP4Hex to stop working, so i have commented this out
-        /* private IP4Util()
-        // constructor is private, so no one else can call it - the singleton instance was created in the initialization of Instance above
-        {
-            return;
-        }*/
-
-        public uint? StringToIP4(string s)
-        // converts string to numerical IP4 value
-        // returns null if string cannot be parsed
-        {
-            string regIP4 = (GUIUtil.Instance.Hex ? "^(0*[a-fA-F0-9]{0,2}.){0,3}0*[a-fA-F0-9]{0,2}$" : "^([0-9]{0,3}.){0,3}[0-9]{0,3}$");
-            NumberStyles style = (GUIUtil.Instance.Hex ? NumberStyles.HexNumber : NumberStyles.Integer);
-            string[] IP4bits = new string[4];
-
-            try
-            {
-                return uint.Parse(s, style);
-            }
-            catch (FormatException ex)
-            {
-                if (Regex.IsMatch(s, regIP4))
-                {
-                    IP4bits = Regex.Split(s, "\\.");
-                    // resize array to 4 - we want to tolerate missing dots, i.e., user entering less than 4 segments,
-                    // split will produce array with number of elements equal to nmber of dots + 1
-                    Array.Resize<string>(ref IP4bits, 4);
-
-                    for (int i = 0; i < 4; i++) { IP4bits[i] = "0" + IP4bits[i]; }
-
-                    try
-                    {
-                        return uint.Parse(IP4bits[0], style) * 0x0000000001000000 +
-                            uint.Parse(IP4bits[1], style) * 0x0000000000010000 +
-                            uint.Parse(IP4bits[2], style) * 0x0000000000000100 +
-                            uint.Parse(IP4bits[3], style) * 0x0000000000000001;
-                    }
-                    catch { }
-                }
-            }
-
-            return null;
-        }
-
-        public string IP4ToString(uint value)
-        {
-            uint[] b = new uint[4];
-            string s;
-
-            b[0] = ((value & 0xff000000) / 0x1000000);
-            b[1] = ((value & 0xff0000) / 0x10000);
-            b[2] = ((value & 0xff00) / 0x100);
-            b[3] = ((value & 0xff) / 0x1);
-
-            if (GUIUtil.Instance.Hex) s = String.Format("{0:x2}.{1:x2}.{2:x2}.{3:x2}", b[0], b[1], b[2], b[3]);
-            else s = String.Format("{0}.{1}.{2}.{3}", b[0], b[1], b[2], b[3]);
-
-            return s;
-        }
-
-
-        public string IP4ToStringInverse(uint value)
-        {
-            uint[] b = new uint[4];
-            string s;
-
-            b[0] = ((value & 0xff000000) / 0x1000000);
-            b[1] = ((value & 0xff0000) / 0x10000);
-            b[2] = ((value & 0xff00) / 0x100);
-            b[3] = ((value & 0xff) / 0x1);
-
-            if (!GUIUtil.Instance.Hex) s = String.Format("{0:x2}.{1:x2}.{2:x2}.{3:x2}", b[0], b[1], b[2], b[3]);
-            else s = String.Format("{0}.{1}.{2}.{3}", b[0], b[1], b[2], b[3]);
-
-            return s;
-        }
 
 
 
@@ -294,9 +213,9 @@ namespace pviewer5
     {
         public override ValidationResult Validate(object value, System.Globalization.CultureInfo cultureInfo)
         {
-            CSIP4 i = new CSIP4(0);
+            uint i = 0;
 
-            if (i.TryParse((string)value)) return new ValidationResult(true, "Valid IP4 Address");
+            if (IP4Util.TryParse((string)value, ref i)) return new ValidationResult(true, "Valid IP4 Address");
             else return new ValidationResult(false, "Not a valid IP4 address");
         }
     }
@@ -307,14 +226,13 @@ namespace pviewer5
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            CSIP4 ip = new CSIP4((uint)value);
-            return ip.ToString(false, true);
+            return IP4Util.ToString((uint)value, false, true);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            CSIP4 ip = new CSIP4(0);
-            if (ip.TryParse((string)value)) return (ip.value);
+            uint i = 0;
+            if (IP4Util.TryParse((string)value, ref i)) return i;
             // the tryparse should never fail because Validation should have prevented any errors, but just in case, return a zero value
             else return 0;
         }
@@ -327,14 +245,13 @@ namespace pviewer5
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            CSIP4 ip = new CSIP4((uint)value);
-            return ip.ToString(false, false);
+            return IP4Util.ToString((uint)value, false, false);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            CSIP4 ip = new CSIP4(0);
-            if (ip.TryParse((string)value)) return (ip.value);
+            uint i = 0;
+            if (IP4Util.TryParse((string)value, ref i)) return i;
             // the tryparse should never fail because Validation should have prevented any errors, but just in case, return a zero value
             else return 0;
         }
@@ -348,8 +265,7 @@ namespace pviewer5
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            CSIP4 ip = new CSIP4((uint)value);
-            return ip.ToStringAlts();
+            return IP4Util.ToStringAlts((uint)value);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -366,19 +282,18 @@ namespace pviewer5
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            CSIP4 ip = new CSIP4((uint)values[0]);
-            return ip.ToString(false, true);
+            return IP4Util.ToString((uint)values[0], false, true);
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
-            CSIP4 ip = new CSIP4(0);
+            uint i = 0;
             object[] v = new object[3];
             v[0] = (uint)0;
 
-            if (ip.TryParse((string)value))
+            if (IP4Util.TryParse((string)value, ref i))
             {
-                v[0] = ip.value;
+                v[0] = i;
                 return v;
             }
             // the tryparse should never fail because Validation should have prevented any errors, but just in case, return a zero value
@@ -391,8 +306,7 @@ namespace pviewer5
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            CSIP4 ip = new CSIP4((uint)values[0]);
-            return ip.ToStringAlts();
+            return IP4Util.ToStringAlts((uint)values[0]);
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
@@ -403,173 +317,6 @@ namespace pviewer5
     }
 
 
-    /*
-
-
-    public class IP4ConverterNumberOnly : IValueConverter
-    {
-        // converts number to/from display format IP4 address, without checking the IP4 alias dictionary
-
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return IP4Util.Instance.IP4ToString((uint)value);
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            ulong? v = 0;
-
-            // first try to parse as a raw IP4 address
-            v = IP4Util.Instance.StringToIP4((string)value);
-            if (v != null) return v;
-
-            // we should never get to this point, since validation step will not pass unless value is either valid raw IP4 
-            // however, just in case put up a messagebox and return 0
-            MessageBox.Show("ConvertBack could not process a raw IP4 address.  Why did this pass validation????");
-            return 0;
-        }
-    }
-
-
-
-
-    public class IP4ConverterNumberOrAlias : IValueConverter
-    {
-        // converts number to/from display format IP4 address, including translating aliases
-
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (GUIUtil.Instance.UseAliases && IP4Util.Instance.map.ContainsKey((uint)value))
-                return IP4Util.Instance.map[(uint)value];
-            else return IP4Util.Instance.IP4ToString((uint)value);
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            uint? v = 0;
-
-            // first try to parse as a raw IP4 address
-            v = IP4Util.Instance.StringToIP4((string)value);
-            if (v != null) return v;
-
-            // if that failed, see if string exists in IP4namemap
-            foreach (uint u in IP4Util.Instance.map.Keys)
-                if ((string)value == IP4Util.Instance.map[u])
-                    return u;
-
-            // we should never get to this point, since validation step will not pass unless value is either valid raw IP4 or existing entry in IP4namemap
-            // however, just in case put up a messagebox and return 0
-            MessageBox.Show("ConvertBack could not process as either raw IP4 address or entry in IP4namemap.  Why did this pass validation????");
-            return 0;
-        }
-    }
-
-    public class IP4ConverterNumberOrAliasForTooltip : IValueConverter
-    // same as IP4ConverterNumberOrAlias except reflects the inverse of the UseAliases and Hex properties - to feed tooltips
-    // i.e., of the three possible display formats (number in hex, number in decimal, alias string), 
-    // whichever one is active for the main display, this will return the other one or two (depending on whether an alias string exists)
-    {
-        // converts number to/from display format IP4 address, including translating aliases
-
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            string result = "";
-
-            // if there is an alias for this one, include the result of the inverse of the UseAliases setting
-            if (IP4Util.Instance.map.ContainsKey((uint)value))
-            {
-                if (GUIUtil.Instance.UseAliases) result += IP4Util.Instance.IP4ToString((uint)value) + "\n";
-                else result += IP4Util.Instance.map[(uint)value] + "\n";
-            }
-            // now add on the result of the inverse of the Hex property
-            result += IP4Util.Instance.IP4ToStringInverse((uint)value);
-
-            return result;
-        }
-
-        public object ConvertBack(object value, Type targetTypes, object parameter, CultureInfo culture)
-        {
-            throw new NotSupportedException("Cannot convert back");
-        }
-    }
-
-
-    public class IP4MultiConverterNumberOrAlias : IMultiValueConverter
-    {
-        // converts number to/from display format IP4 address, including translating aliases
-        // also takes value of IP4Hex as an argument
-
-        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (GUIUtil.Instance.UseAliases && IP4Util.Instance.map.ContainsKey((uint)values[0]))
-                return IP4Util.Instance.map[(uint)values[0]];
-            else return IP4Util.Instance.IP4ToString((uint)values[0]);
-        }
-
-        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
-        {
-            uint? u;
-            object[] v = new object[3];
-            // copy current values of hex and usealiases into result to be sent back - multi value converter must pass back values for all bindings in the multibinding
-            v[1] = GUIUtil.Instance.Hex;
-            v[2] = GUIUtil.Instance.UseAliases;
-
-            // first try to parse as a raw IP4 address
-            u = IP4Util.Instance.StringToIP4((string)value);
-            if (u != null)
-            {
-                v[0] = u;
-                return v;
-            }
-
-            // if that failed, see if string exists in IP4namemap
-            foreach (uint uu in IP4Util.Instance.map.Keys)
-                if ((string)value == IP4Util.Instance.map[uu])
-                {
-                    v[0] = uu;
-                    return v;
-                }
- 
-            // we should never get to this point, since validation step will not pass unless value is either valid raw IP4 or existing entry in IP4namemap
-            // however, just in case put up a messagebox and return 0
-            MessageBox.Show("ConvertBack could not process as either raw IP4 address or entry in IP4namemap.  Why did this pass validation????");
-            v[0] = 0; return v;
-        }
-    }
-
-    public class IP4MultiConverterNumberOrAliasForTooltip : IMultiValueConverter
-    // same as IP4MultiConverterNumberOrAlias except reflects the inverse of the UseAliases and Hex properties - to feed tooltips
-    // i.e., of the three possible display formats (number in hex, number in decimal, alias string), 
-    // whichever one is active for the main display, this will return the other one or two (depending on whether an alias string exists)
-    {
-        // converts number to/from display format IP4 address, including translating aliases
-        // also takes value of IP4Hex as an argument
-
-        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
-        {
-            string result = "";
-
-            // if there is an alias for this one, include the result of the inverse of the UseAliases setting
-            if (IP4Util.Instance.map.ContainsKey((uint)values[0]))
-            {
-                if (GUIUtil.Instance.UseAliases) result += IP4Util.Instance.IP4ToString((uint)values[0]) + "\n";
-                else result += IP4Util.Instance.map[(uint)values[0]] + "\n";
-            }
-            // now add on the result of the inverse of the Hex property
-            result += IP4Util.Instance.IP4ToStringInverse((uint)values[0]);
-
-            return result;
-        }
-
-        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
-        {
-            throw new NotSupportedException("Cannot convert back");
-        }
-
-    }
-
-
-*/
 
     public partial class IP4NameMapDialog : Window, INotifyPropertyChanged
 	{
