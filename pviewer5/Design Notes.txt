@@ -2,29 +2,8 @@
 
 next:
 
-	factor ip4, mac, port, datetime utility functions
-		for each type need a
-			ToString
-			ToStringNoAlias
-			ToStringAlts
-			TryParse
-		each should respect current versions of Hex, UseAliases
-		for each type, genericize the validation/conversion functions
-			Validate
-			Converter
-			ConverterAlts
-			ConverterNoAlias
-			MVConverter
-			MVConverterAlts
-			MVConverterNoAlias
+	test datetime filters - data entry not working?
 
-	use new utility functions in filter list
-	use them in packet viewer
-	use them in main window packet treeview
-	use them in ip4 and mac name map dialogs
-	use the CSIP4 type to replace IP4 addresses everywhere
-
-	repeat the above for MAC and Port
 
 	add DNS history database
 		track mapping of DNS results
@@ -36,7 +15,6 @@ next:
 
 
 	other types of filters
-		timestamp - date only, time only, date+time
 		packet sequence number (simply the order in the file)
 		protocol
 		grouptype

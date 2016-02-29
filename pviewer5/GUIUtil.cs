@@ -34,11 +34,7 @@ namespace pviewer5
         public static GUIUtil Instance { get { return instance; } }
 
         private bool _hex;
-        public bool Hex { get { return _hex; } set { _hex = value;
-   //             ICollectionView udpgroupview = (ICollectionView)CollectionViewSource.GetDefaultView(MainWindow.grouptree.ItemsSource);
-
-
-                NotifyPropertyChanged("Hex"); } }
+        public bool Hex { get { return _hex; } set { _hex = value; NotifyPropertyChanged("Hex"); } }
         private bool _usealiases;
         public bool UseAliases { get { return _usealiases; } set { _usealiases = value; NotifyPropertyChanged(); } }
 
@@ -111,12 +107,18 @@ namespace pviewer5
         // if any errors, returns false and does not assign value
         {
             DateTime result;
+            CultureInfo culture;
+            DateTimeStyles styles;
+            culture = CultureInfo.CreateSpecificCulture("en-US");
+            styles = DateTimeStyles.AssumeLocal;
+
+            // Parse a date and time with no styles.
 
             // try to parse, if it fails fall through to return false
             try
             {
                 result = new DateTime(0);
-                if (DateTime.TryParse(s, out result))
+                if (DateTime.TryParse(s, culture, styles, out result))
                 {
                     value = new DateTime(1);
                     return true;
