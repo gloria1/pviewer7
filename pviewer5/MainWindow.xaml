@@ -32,6 +32,10 @@
         <local:UInt16ConverterForTooltip x:Key="UInt16converterfortooltip"/>
         <local:UInt16MVConverter x:Key="UInt16mvconverter"/>
         <local:UInt16MVConverterForTooltip x:Key="UInt16mvconverterfortooltip"/>
+        <local:DateTimeConverter x:Key="DateTimeconverter"/>
+        <local:DateTimeConverterForTooltip x:Key="DateTimeconverterfortooltip"/>
+        <local:DateTimeMVConverter x:Key="DateTimemvconverter"/>
+        <local:DateTimeMVConverterForTooltip x:Key="DateTimemvconverterfortooltip"/>
 
         <DataTemplate DataType="{x:Type local:H}">
             <TextBlock>
@@ -338,9 +342,9 @@
                          KeyUp="TextBox_KeyUp"
                          GotFocus="TextBox_GotFocus">
                     <TextBox.Text>
-                        <MultiBinding Converter="{StaticResource UInt16mvconverter}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
+                        <MultiBinding Converter="{StaticResource DateTimemvconverter}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
                             <MultiBinding.ValidationRules>
-                                <local:ValidateUInt16 ValidationStep="RawProposedValue"/>
+                                <local:ValidateDateTime ValidationStep="RawProposedValue"/>
                             </MultiBinding.ValidationRules>
                             <Binding Path="Value" Mode="TwoWay"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
@@ -348,7 +352,7 @@
                         </MultiBinding>
                     </TextBox.Text>
                     <TextBox.ToolTip>
-                        <MultiBinding Converter="{StaticResource UInt16mvconverterfortooltip}">
+                        <MultiBinding Converter="{StaticResource DateTimemvconverterfortooltip}">
                             <Binding Path="Value"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>

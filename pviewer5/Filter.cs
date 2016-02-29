@@ -24,17 +24,6 @@ using System.Runtime.Serialization.Formatters.Binary;
 namespace pviewer5
 {
 
-    // NEXT:
-
-        // FACEPALM - FILTERS INCLUDE REFERENCE TO FILTERSET WHICH IS TRYING TO BE SERIALIZED
-
-
-    //  DON'T SERIALIZE THE FILTERSET
-    //  JUST DO FOREACH (FILTER IN FILTERSET) SERIALIZE THE FILTER
-    // then go back to getting view to update properly when filter changes
-
-
-
 
     public class FilterSet : INotifyPropertyChanged
     // a FilterSet is a list of Filter objects
