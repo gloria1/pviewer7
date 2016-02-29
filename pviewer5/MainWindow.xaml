@@ -338,7 +338,7 @@
                          KeyUp="TextBox_KeyUp"
                          GotFocus="TextBox_GotFocus">
                     <TextBox.Text>
-                        <MultiBinding Converter="{StaticResource UInt16multiconverter}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
+                        <MultiBinding Converter="{StaticResource UInt16mvconverter}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
                             <MultiBinding.ValidationRules>
                                 <local:ValidateUInt16 ValidationStep="RawProposedValue"/>
                             </MultiBinding.ValidationRules>
@@ -348,7 +348,7 @@
                         </MultiBinding>
                     </TextBox.Text>
                     <TextBox.ToolTip>
-                        <MultiBinding Converter="{StaticResource UInt16multiconverterfortooltip}">
+                        <MultiBinding Converter="{StaticResource UInt16mvconverterfortooltip}">
                             <Binding Path="Value"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                             <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>

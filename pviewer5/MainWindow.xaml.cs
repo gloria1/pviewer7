@@ -71,7 +71,14 @@ namespace pviewer5
         public TCPH tcphdr = null;
         public H groupprotoheader { get; set; }     // packet group logic will set this to point to the header of the protocol relevant to that group type
         public G parent { get; set; } = null;
-        public override string displayinfo { get { return "Packet innermost header is: " + phlist[phlist.Count - 1].displayinfo; } }
+        public override string displayinfo
+        {
+            get
+            {
+                return (Time.ToLocalTime()).ToString("yyyy-MM-dd HH:mm:ss.fffffff") +
+                "   Packet innermost header is: " + phlist[phlist.Count - 1].displayinfo;
+            }
+        }
 
         public byte[] PData;
         public uint Len;
