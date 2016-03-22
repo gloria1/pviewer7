@@ -368,6 +368,8 @@ namespace pviewer5
                 timesecs = (pcf.FileHdrOld.Bigendian ? PcapFile.flip32(d, 0) : BitConverter.ToUInt32(d, 0));
                 timeusecs = (pcf.FileHdrOld.Bigendian ? PcapFile.flip32(d, 4) : BitConverter.ToUInt32(d, 4));
                 Time = new DateTime(timesecs * TimeSpan.TicksPerSecond + timeusecs * TimeSpan.TicksPerSecond / 1000000 / ((pcf.FileHdrOld.Nanores == 1) ? 1000 : 1));
+                // adjust from unix time basis of 1970-01-01 to .NET time basis of 0001-01-01
+                Time = Time.AddYears(1969);
 
                 CapLen = (pcf.FileHdrOld.Bigendian ? PcapFile.flip32(d, 8) : BitConverter.ToUInt32(d, 8));
                 Len = (pcf.FileHdrOld.Bigendian ? PcapFile.flip32(d, 12) : BitConverter.ToUInt32(d, 12));
@@ -397,6 +399,8 @@ namespace pviewer5
                 timelow = (pcf.FileHdrNG.CurrentSection.bigendian ? PcapFile.flip32(d, 0x10) : BitConverter.ToUInt32(d, 0x10));
                 time = (ulong)timehigh * 0x100000000 + (ulong)timelow;
                 Time = pcf.FileHdrNG.TSBasis;
+                // adjust from unix time basis of 1970-01-01 to .NET time basis of 0001-01-01
+                Time = Time.AddYears(1969);
 
                 long factor = TimeSpan.TicksPerSecond / (long)thisif.TSUnitsPerSecond;
                 time = (ulong)((long)time * factor);

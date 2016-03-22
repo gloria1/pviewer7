@@ -2,16 +2,56 @@
 
 next:
 
+	window layout
+		
+
+
+	workflow
+		scan files (one or multiple)
+			select list of files
+			for each file, parse headers far enough to get the ether, ip and dns information
+				purpose is to 
+					(1) build tabulation of 
+							internal host | wan  host | protocol | packet count | byte count | ealiest time | latest time
+								do this by building dictionary keyed by sourceip, destip, protocol, then updating counts and time for each packet
+								then merge entries where src/dest == dest/src
+					(2) add to dns history db - see below
+
+		show tabulation from scan - idea is user will change filters based on this
+
+		load files
+			enter filters (perhaps based on the scan)
+			select list of files
+			for each file, load packets that pass the filter - keep loading all files into memory
+
+		save packets in memory as a pcap file
+
+		load filtered and save as a single operation - can be time consuming, want to be able to launch and walk away
+
+	dns history database
+		data structure:
+			dictionary
+				key: ip address
+				value: list of dns observations
+					item is a domain name and time of earliest and latest observation
+		data is populated by dns header reader
+		need viewer
+		file management
+			similar to filters
+				load and save
+				"merge" i.e. union one or more files into data in memory
+				mainwindow remembers last file opened
+		may add reverse dns lookup background thread at some point
+
+
+
+
+
+
+
+
+
 	test datetime filters - data entry not working?
-
-
-	add DNS history database
-		track mapping of DNS results
-		data structure
-			idea 1:  list of pairs (DNS, IP4)
-				
-
-
 
 
 	other types of filters

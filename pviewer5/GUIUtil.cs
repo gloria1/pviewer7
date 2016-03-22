@@ -120,7 +120,7 @@ namespace pviewer5
                 result = new DateTime(0);
                 if (DateTime.TryParse(s, culture, styles, out result))
                 {
-                    value = new DateTime(1);
+                    value = result;
                     return true;
                 }
             }
