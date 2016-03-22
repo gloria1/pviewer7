@@ -106,5 +106,17 @@ namespace pviewer5.Properties {
                 this["WindowPositionStreamViewer"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("800")]
+        public global::System.Windows.GridLength MainColLeftWidth {
+            get {
+                return ((global::System.Windows.GridLength)(this["MainColLeftWidth"]));
+            }
+            set {
+                this["MainColLeftWidth"] = value;
+            }
+        }
     }
 }

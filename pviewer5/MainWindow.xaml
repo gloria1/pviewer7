@@ -368,130 +368,141 @@
 
     </Window.Resources>
 
-    <Grid Name="grid2">
+    <Grid Name="gridmain">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition MinWidth="300"></ColumnDefinition>
-            <ColumnDefinition Width="3"></ColumnDefinition>
-            <ColumnDefinition MinWidth="100"></ColumnDefinition>
+            <ColumnDefinition Name="columnleft" MinWidth="300"></ColumnDefinition>
+            <ColumnDefinition Width="10"></ColumnDefinition>
+            <ColumnDefinition Name="columnright" MinWidth="100"></ColumnDefinition>
         </Grid.ColumnDefinitions>
-        <GridSplitter Grid.Row="0" Grid.Column="1" Width="3" VerticalAlignment="Stretch" HorizontalAlignment="Center" ShowsPreview="False"/>
+        <GridSplitter Name="splitvert" Grid.Row="0" Grid.Column="1" Width="10" VerticalAlignment="Stretch" HorizontalAlignment="Center" ShowsPreview="False" Background="Orange"/>
 
+        <Grid Name="gridleft">
+            <Grid.RowDefinitions>
+                <RowDefinition MinHeight="150"></RowDefinition>
+                <RowDefinition Height="10"></RowDefinition>
+                <RowDefinition MinHeight="150"></RowDefinition>
+            </Grid.RowDefinitions>
+            <GridSplitter Name="splitlefthorz" Grid.Row="1" Grid.Column="0" Height="10" HorizontalAlignment="Stretch" VerticalAlignment="Center" ShowsPreview="False" Background="Orange"/>
 
-        <Grid Name="grid"
-            KeyboardNavigation.TabNavigation="None"
-            KeyboardNavigation.ControlTabNavigation="None"
-            Margin="20,20,20,20">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
- 
-        <WrapPanel Name="filebar"
-                   Grid.Column="0"
-                   Grid.ColumnSpan="2"
-                   Grid.Row="0"
-                   Margin="5,5,5,5">
-            <Button Content="Choose File"
-                    Click="ChoosePCAPFile"/>
-            <Label Content="Current File= "/>
-            <Label Content="{Binding Path=PacketFileName}"
-                   MinWidth="100"/>
-
-        </WrapPanel>
-        <WrapPanel Name="buttonbar"
-                   Grid.Column="1"
-                   Grid.Row="0"
-                   Margin="5,5,5,5">
-        </WrapPanel>
-        <WrapPanel Name="viewsettings"
-                   Grid.Column="0"
-                   Grid.ColumnSpan="2"
-                   Grid.Row="1"
-                   Margin="5,5,5,5">
-           <Button Content="MAC Aliases"
-                    Click="mnmbutton"/>
-            <Button Content="IP4 Aliases"
-                    Click="inmbutton"/>
-            <CheckBox Name="displayaliascheckbox"
-                      Content="Display Aliases"
-                      IsChecked="{Binding Source={StaticResource GUIUtilKey}, Path=Instance.UseAliases, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                      Margin="20,5"/>
-            <CheckBox Name="displayIP4inhexcheckbox"
-                      Content="Display IP4 in Hex"
-                      IsChecked="{Binding Source={StaticResource GUIUtilKey}, Path=Instance.Hex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                      Margin="20,5"/>
-        </WrapPanel>
-        <GroupBox Header="Packet Groups"
-                  Name="grouptreebox"
+            <Grid Name="gridlefttop"
+                  Grid.Row="0"
                   Grid.Column="0"
-                  Grid.ColumnSpan="2"
-                  Grid.Row="2"
-                  Margin="5,5,5,5">
-            <TreeView Name="grouptree"
-                        VirtualizingPanel.IsVirtualizing="True"
-                        VirtualizingPanel.VirtualizationMode="Recycling"
-                      ItemsSource="{Binding Path=grouplistlist}"
-                      SelectedItemChanged="grouptree_SelectedItemChanged">
-                <TreeView.ItemContainerStyle>
-                    <Style TargetType="TreeViewItem">
-                        <Setter Property="IsExpanded" Value="{Binding isexpanded, Mode=TwoWay}" />
-                    </Style>
-                </TreeView.ItemContainerStyle>
+                KeyboardNavigation.TabNavigation="None"
+                KeyboardNavigation.ControlTabNavigation="None"
+                Margin="20,20,20,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-            </TreeView>          
- 
-        </GroupBox>
-
-        <GroupBox Header="Filters"
-                  KeyboardNavigation.TabNavigation="Cycle"
-                  Name="filterviewbox"
-                  Grid.Column="0"
-                  Grid.ColumnSpan="2"
-                  Grid.Row="3"
-                  Margin="5,5,5,5">
-            <WrapPanel
-                Orientation="Vertical">
-                <WrapPanel Orientation="Horizontal">
-                    <Button
-                        Content="Apply to View"
-                        Click="ApplyFilterToView"
-                        IsEnabled="{Binding Path=filters.ChangedSinceApplied}"/>
-                    <Button
-                        Content="Reload PCAP File"
-                        Click="ReloadFile"
-                        IsEnabled="{Binding Path=FileLoaded, Mode=TwoWay}"/>
-                    <Button Content="Load Filter Set" 
-                            Click="filterset_load"/>
-                    <Button
-                        Content="Save Filter Set"
-                        Click="filterset_save"
-                        IsEnabled="{Binding Path=filters.ChangedSinceSave}"/>
-                    <Button Content="Clear Filter Set"
-                            Click="filterset_clear"/>
+                <WrapPanel Name="filebar"
+                       Grid.Column="0"
+                       Grid.ColumnSpan="2"
+                       Grid.Row="0"
+                       Margin="5,5,5,5">
+                    <Button Content="Choose File"
+                        Click="ChoosePCAPFile"/>
                     <Label Content="Current File= "/>
-                    <Label Name="filtersetfilename"
-                           Content="{Binding Path=filters.Filename}"
-                        MinWidth="100"/>
-                    
+                    <Label Content="{Binding Path=PacketFileName}"
+                       MinWidth="100"/>
+
                 </WrapPanel>
-                <TreeView Name="filtertree"
-                       KeyboardNavigation.TabNavigation="Cycle"
-                       VirtualizingPanel.IsVirtualizing="True"
-                        VirtualizingPanel.VirtualizationMode="Recycling"
-                        ItemsSource="{Binding Path=filters.Filters}">
-                </TreeView>
+                <WrapPanel Name="buttonbar"
+                       Grid.Column="1"
+                       Grid.Row="0"
+                       Margin="5,5,5,5">
+                </WrapPanel>
+                <WrapPanel Name="viewsettings"
+                       Grid.Column="0"
+                       Grid.ColumnSpan="2"
+                       Grid.Row="1"
+                       Margin="5,5,5,5">
+                    <Button Content="MAC Aliases"
+                        Click="mnmbutton"/>
+                    <Button Content="IP4 Aliases"
+                        Click="inmbutton"/>
+                    <CheckBox Name="displayaliascheckbox"
+                          Content="Display Aliases"
+                          IsChecked="{Binding Source={StaticResource GUIUtilKey}, Path=Instance.UseAliases, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          Margin="20,5"/>
+                    <CheckBox Name="displayIP4inhexcheckbox"
+                          Content="Display IP4 in Hex"
+                          IsChecked="{Binding Source={StaticResource GUIUtilKey}, Path=Instance.Hex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          Margin="20,5"/>
+                </WrapPanel>
+                <GroupBox Header="Packet Groups"
+                      Name="grouptreebox"
+                      Grid.Column="0"
+                      Grid.ColumnSpan="2"
+                      Grid.Row="2"
+                      Margin="5,5,5,5">
+                    <TreeView Name="grouptree"
+                            VirtualizingPanel.IsVirtualizing="True"
+                            VirtualizingPanel.VirtualizationMode="Recycling"
+                          ItemsSource="{Binding Path=grouplistlist}"
+                          SelectedItemChanged="grouptree_SelectedItemChanged">
+                        <TreeView.ItemContainerStyle>
+                            <Style TargetType="TreeViewItem">
+                                <Setter Property="IsExpanded" Value="{Binding isexpanded, Mode=TwoWay}" />
+                            </Style>
+                        </TreeView.ItemContainerStyle>
 
-            </WrapPanel>
-        </GroupBox>
+                    </TreeView>
 
-    </Grid>
+                </GroupBox>
+            </Grid>
+            <Grid Name="gridleftbottom"
+                Grid.Row="2"
+                Grid.Column="0">
+                <GroupBox Header="Filters"
+                      KeyboardNavigation.TabNavigation="Cycle"
+                      Name="filterviewbox"
+                      Grid.Column="0"
+                      Grid.ColumnSpan="2"
+                      Grid.Row="3"
+                      Margin="5,5,5,5">
+                    <WrapPanel
+                    Orientation="Vertical">
+                        <WrapPanel Orientation="Horizontal">
+                            <Button
+                            Content="Apply to View"
+                            Click="ApplyFilterToView"
+                            IsEnabled="{Binding Path=filters.ChangedSinceApplied}"/>
+                            <Button
+                            Content="Reload PCAP File"
+                            Click="ReloadFile"
+                            IsEnabled="{Binding Path=FileLoaded, Mode=TwoWay}"/>
+                            <Button Content="Load Filter Set" 
+                                Click="filterset_load"/>
+                            <Button
+                            Content="Save Filter Set"
+                            Click="filterset_save"
+                            IsEnabled="{Binding Path=filters.ChangedSinceSave}"/>
+                            <Button Content="Clear Filter Set"
+                                Click="filterset_clear"/>
+                            <Label Content="Current File= "/>
+                            <Label Name="filtersetfilename"
+                               Content="{Binding Path=filters.Filename}"
+                            MinWidth="100"/>
+
+                        </WrapPanel>
+                        <TreeView Name="filtertree"
+                           KeyboardNavigation.TabNavigation="Cycle"
+                           VirtualizingPanel.IsVirtualizing="True"
+                            VirtualizingPanel.VirtualizationMode="Recycling"
+                            ItemsSource="{Binding Path=filters.Filters}">
+                        </TreeView>
+
+                    </WrapPanel>
+                </GroupBox>
+            </Grid>
+
+        </Grid>
 
     </Grid>
 

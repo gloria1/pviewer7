@@ -151,7 +151,7 @@ namespace pviewer5
 
             InitializeComponent();
             
-			grid.DataContext = this;
+			gridmain.DataContext = this;
 
             // try to restore window position and other settings - see "Programing WPF Second Edition" page 321
             try
@@ -162,6 +162,9 @@ namespace pviewer5
                 Left = bounds.Left;
                 Width = bounds.Width;
                 Height = bounds.Height;
+
+                columnleft.Width = Properties.Settings.Default.MainColLeftWidth;
+
                 GUIUtil.Instance.Hex = Properties.Settings.Default.Hex;
                 GUIUtil.Instance.UseAliases = Properties.Settings.Default.UseAliases;
             }
@@ -194,6 +197,8 @@ namespace pviewer5
             filters.SaveToDisk("c:\\pviewer\\autosave.filterset");
 
             Properties.Settings.Default.WindowPositionMain = this.RestoreBounds;
+            Properties.Settings.Default.MainColLeftWidth = columnleft.Width;
+
             Properties.Settings.Default.Hex = GUIUtil.Instance.Hex;
             Properties.Settings.Default.UseAliases = GUIUtil.Instance.UseAliases;
             Properties.Settings.Default.Save();

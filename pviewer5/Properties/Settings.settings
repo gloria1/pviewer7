@@ -23,5 +23,8 @@
     <Setting Name="WindowPositionStreamViewer" Type="System.Windows.Rect" Scope="User">
       <Value Profile="(Default)">0,0,0,0</Value>
     </Setting>
+    <Setting Name="MainColLeftWidth" Type="System.Windows.GridLength" Scope="User">
+      <Value Profile="(Default)">800</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
