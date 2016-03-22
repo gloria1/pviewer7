@@ -24,7 +24,7 @@
       <Value Profile="(Default)">0,0,0,0</Value>
     </Setting>
     <Setting Name="MainColLeftWidth" Type="System.Windows.GridLength" Scope="User">
-      <Value Profile="(Default)">800</Value>
+      <Value Profile="(Default)" />
     </Setting>
   </Settings>
 </SettingsFile>

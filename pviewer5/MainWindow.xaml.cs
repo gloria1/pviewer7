@@ -163,7 +163,10 @@ namespace pviewer5
                 Width = bounds.Width;
                 Height = bounds.Height;
 
-                columnleft.Width = Properties.Settings.Default.MainColLeftWidth;
+                GridLength gl = Properties.Settings.Default.MainColLeftWidth;
+                gl = columnleft.Width;
+
+                //columnleft.Width = Properties.Settings.Default.MainColLeftWidth;
 
                 GUIUtil.Instance.Hex = Properties.Settings.Default.Hex;
                 GUIUtil.Instance.UseAliases = Properties.Settings.Default.UseAliases;

@@ -370,19 +370,20 @@
 
     <Grid Name="gridmain">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Name="columnleft" MinWidth="300"></ColumnDefinition>
+            <ColumnDefinition Name="columnleft" Width="Auto" MinWidth="300"></ColumnDefinition>
             <ColumnDefinition Width="10"></ColumnDefinition>
-            <ColumnDefinition Name="columnright" MinWidth="100"></ColumnDefinition>
+            <ColumnDefinition Name="columnright" Width="Auto" MinWidth="100"></ColumnDefinition>
         </Grid.ColumnDefinitions>
-        <GridSplitter Name="splitvert" Grid.Row="0" Grid.Column="1" Width="10" VerticalAlignment="Stretch" HorizontalAlignment="Center" ShowsPreview="False" Background="Orange"/>
+        <GridSplitter Grid.Row="0" Grid.Column="1" Width="10" VerticalAlignment="Stretch" HorizontalAlignment="Center" ShowsPreview="False" Background="Orange"/>
 
-        <Grid Name="gridleft">
+        <Grid Name="gridleft"
+              Grid.Column="0">
             <Grid.RowDefinitions>
                 <RowDefinition MinHeight="150"></RowDefinition>
                 <RowDefinition Height="10"></RowDefinition>
                 <RowDefinition MinHeight="150"></RowDefinition>
             </Grid.RowDefinitions>
-            <GridSplitter Name="splitlefthorz" Grid.Row="1" Grid.Column="0" Height="10" HorizontalAlignment="Stretch" VerticalAlignment="Center" ShowsPreview="False" Background="Orange"/>
+            <GridSplitter Grid.Row="1" Grid.Column="0" Height="10" HorizontalAlignment="Stretch" VerticalAlignment="Center" ResizeBehavior="BasedOnAlignment" ShowsPreview="False" Background="Orange"/>
 
             <Grid Name="gridlefttop"
                   Grid.Row="0"
@@ -504,6 +505,94 @@
 
         </Grid>
 
+        <Grid Name="gridright"
+              Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition MinHeight="150"></RowDefinition>
+                <RowDefinition Height="10"></RowDefinition>
+                <RowDefinition MinHeight="150"></RowDefinition>
+                <RowDefinition Height="10"></RowDefinition>
+                <RowDefinition MinHeight="150"></RowDefinition>
+            </Grid.RowDefinitions>
+            <GridSplitter Grid.Row="1" Grid.Column="0" Height="10" HorizontalAlignment="Stretch" VerticalAlignment="Center" ShowsPreview="False" Background="Orange"/>
+            <GridSplitter Grid.Row="3" Grid.Column="0" Height="10" HorizontalAlignment="Stretch" VerticalAlignment="Center" ShowsPreview="False" Background="Orange"/>
+
+
+            <Grid x:Name="inmgrid"
+                    Grid.Row="2"
+            		ShowGridLines="True">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <WrapPanel x:Name="inmbuttonbar"
+			        Grid.ColumnSpan="2"
+			        Grid.Row="0"
+			        HorizontalAlignment="Left"
+			        Margin="5,5,5,5">
+                            <Button Content="Apply"
+				        Click="inmApply"
+                            IsEnabled="{Binding Path=changedsinceapplied}"/>
+                            <Button Content="Accept and Close"
+				        Click="inmAccept"
+                            IsEnabled="{Binding Path=changedsinceapplied}"/>
+                            <Button Content="Cancel"
+				        Click="inmCancel"/>
+                            <Button Content="Save To Disk"
+				        Click="inmSaveToDisk"
+                            IsEnabled="{Binding Path=changedsincesaved}"/>
+                            <Button Content="Load from Disk"
+				        Click="inmLoadFromDisk"/>
+                            <Button Content="Append From Disk"
+				        Click="inmAppendFromDisk"/>
+                </WrapPanel>
+                <GroupBox Header="Map of IP4 Addresses To Aliases"
+			Grid.Column="0"
+			Grid.Row="1"
+			Margin="5,5,5,5">
+                    <!-- added Enable*Virtualization lines based on http://www.elegant-software.net/2014/05/performance-of-the-wpf-datagrid.html -->
+                    <!-- added VirtualizingPanel lines based on http://www.codewrecks.com/blog/index.php/2012/07/06/wpf-datagrid-poor-performance-on-sorting/ -->
+                    <!-- added CanUserAddRows="False" to prevent display of blank row at end-->
+                    <DataGrid
+				            x:Name="INMDG"
+				            EnableColumnVirtualization="True"
+				            EnableRowVirtualization="True"
+				            VirtualizingPanel.IsVirtualizing="True"
+				            VirtualizingPanel.VirtualizationMode="Recycling"
+				            AutoGenerateColumns="False"
+				            ItemsSource="{Binding Path=dgtable}"
+				            ItemStringFormat="x"
+				            CanUserAddRows="False"
+                            CellEditEnding="inmcelleditending"> 
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="IP4 Address">
+                                <DataGridTextColumn.Binding>
+                                    <Binding Path="IP4" Converter="{StaticResource IP4converternumberonly}" >
+                                        <Binding.ValidationRules>
+                                            <local:ValidateIP4/>
+                                        </Binding.ValidationRules>
+                                    </Binding>
+                                </DataGridTextColumn.Binding>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Alias" Binding="{Binding alias}"/>
+                        </DataGrid.Columns>
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem x:Name="inmaddrowmenuitem" Header="Add Row" Command="{x:Static local:IP4NameMapDialog.inmaddrow}"/>
+                                <MenuItem x:Name="inmdelrowmenuitem" Header="Delete Row"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                    </DataGrid>
+                </GroupBox>
+
+            </Grid>
+
+        </Grid>
+        
+        
     </Grid>
 
 </Window>

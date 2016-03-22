@@ -3,7 +3,16 @@
 next:
 
 	window layout
-		
+		next steps:
+			ip4 map window
+				move constructor elements into MainWindow constructor
+				re-think flow of namemap dictionary<->table - they really should be databound
+					how to bind the dictionary directly to the gui?? to eliminate the need for a separate table
+			mac name map window
+			save window divider state
+			implement ip4<->dns map
+			implement code to populate the dns map when reading packet files
+			implement code to show domain names in place of ips (with check box for show domain, and databinding just like aliases)
 
 
 	workflow

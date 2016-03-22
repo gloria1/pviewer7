@@ -317,7 +317,7 @@ namespace pviewer5
 
 
 
-    public partial class IP4NameMapDialog : Window, INotifyPropertyChanged
+    public partial class MainWindow : Window, INotifyPropertyChanged
 	{
 		public static RoutedCommand inmaddrow = new RoutedCommand();
 
@@ -328,16 +328,6 @@ namespace pviewer5
         private bool _chgsinceapplied = false;
         public bool changedsinceapplied { get { return _chgsinceapplied; } set { _chgsinceapplied = value; NotifyPropertyChanged(); } }
 
-        // implement INotifyPropertyChanged
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void NotifyPropertyChanged(String propertyName = "")
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
-
 
         public IP4NameMapDialog()
 		{
@@ -346,7 +336,7 @@ namespace pviewer5
 			dgtable = IP4Util.Instance.map.maptotable();
 
             InitializeComponent();
-            buttonbar.DataContext = this;
+            inmbuttonbar.DataContext = this;
 			INMDG.DataContext = this;
 			inmaddrowbinding = new CommandBinding(inmaddrow, Executedaddrow, CanExecuteaddrow);
 			INMDG.CommandBindings.Add(inmaddrowbinding);
