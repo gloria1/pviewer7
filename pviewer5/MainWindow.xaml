@@ -368,7 +368,16 @@
 
     </Window.Resources>
 
-    <Grid Name="grid"
+    <Grid Name="grid2">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition MinWidth="300"></ColumnDefinition>
+            <ColumnDefinition Width="3"></ColumnDefinition>
+            <ColumnDefinition MinWidth="100"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <GridSplitter Grid.Row="0" Grid.Column="1" Width="3" VerticalAlignment="Stretch" HorizontalAlignment="Center" ShowsPreview="False"/>
+
+
+        <Grid Name="grid"
             KeyboardNavigation.TabNavigation="None"
             KeyboardNavigation.ControlTabNavigation="None"
             Margin="20,20,20,20">
@@ -484,6 +493,7 @@
 
     </Grid>
 
+    </Grid>
 
 </Window>
 
