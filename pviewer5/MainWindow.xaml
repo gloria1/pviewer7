@@ -4,7 +4,8 @@
         xmlns:System="clr-namespace:System;assembly=mscorlib"
         xmlns:local="clr-namespace:pviewer5"
         Title="MainWindow"
->
+        BorderBrush="Orange"
+        BorderThickness="10">
 
     <Window.Resources>
          
@@ -551,9 +552,9 @@
 				        Click="inmAppendFromDisk"/>
                 </WrapPanel>
                 <GroupBox Header="Map of IP4 Addresses To Aliases"
-			Grid.Column="0"
-			Grid.Row="1"
-			Margin="5,5,5,5">
+			        Grid.Column="0"
+			        Grid.Row="1"
+			        Margin="5,5,5,5">   
                     <!-- added Enable*Virtualization lines based on http://www.elegant-software.net/2014/05/performance-of-the-wpf-datagrid.html -->
                     <!-- added VirtualizingPanel lines based on http://www.codewrecks.com/blog/index.php/2012/07/06/wpf-datagrid-poor-performance-on-sorting/ -->
                     <!-- added CanUserAddRows="False" to prevent display of blank row at end-->
