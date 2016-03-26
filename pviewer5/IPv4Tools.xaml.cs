@@ -37,18 +37,61 @@ namespace pviewer5
         private static readonly IP4Util instance = new IP4Util();
         public static IP4Util Instance { get { return instance; } }
 
-        public inmdict map = new inmdict()
-        {
-                {0x00000000, "ALL ZEROES"},
-        };
-
-        // private constructor below was set up per the "singleton" pattern, so that no further instances of this class could be created
+      // private constructor below was set up per the "singleton" pattern, so that no further instances of this class could be created
         // however, for some reason this caused the data binding to IP4Hex to stop working, so i have commented this out
         /* private IP4Util()
         // constructor is private, so no one else can call it - the singleton instance was created in the initialization of Instance above
         {
             return;
         }*/
+
+  
+        [Serializable]
+        public class inmdict : Dictionary<uint, string>
+        // data model for a mapping of IP4 addresses to aliases
+        {
+            // need the following constructor (from ISerializable, which is inherited by Dictionary)
+            protected inmdict(SerializationInfo info, StreamingContext ctx) : base(info, ctx) { }
+            // need to explicitly declare an empty constructor, because without this, new tries to use the above constructor
+            public inmdict() { }
+
+            public void maptotable(inmtable table)	// transfers IP4namemap dictionary to a table to support a datagrid
+            {
+                foreach (uint k in this.Keys) table.Add(new inmtableitem(k, this[k], table));
+            }
+        }
+
+        public inmdict map = new inmdict()
+        {
+                {0x00000000, "ALL ZEROES"},
+        };
+
+
+        BOOKMARK
+            RE-THINK CHANGE PROPAGATION BETWEEN DICT AND TABLE AND GUI
+                DICT CHANGE DUE TO LOAD/APPEND -> REFRESH TABLE -> REFRESH GUI TABLE -> REFRESH REST OF GUI
+                TABLEITEM CHANGE DUE TO USER EDITING -> REFRESH REST OF GUI -> UPDATE DICT
+            REVISE IMPLEMENATION OF FILE LOAD/SAVE/APPEND
+
+
+        public ObservableCollection<inmtableitem> inmtable = new ObservableCollection<inmtableitem>();
+        // view model for mapping of IP4 values to aliases
+
+
+
+        public class inmtableitem
+        {
+            public uint IP4 { get; set; }
+            public string alias { get; set; }
+            public inmtable parent;
+
+            public inmtableitem(uint u, string s, inmtable p)
+            {
+                IP4 = u;
+                alias = s;
+                parent = p;
+            }
+        }
 
 
         public static string ToString(uint value, bool inverthex, bool usealiasesthistime)
@@ -150,59 +193,6 @@ namespace pviewer5
         }
 
 
-        [Serializable]
-        public class inmdict : Dictionary<uint, string>
-        // data model for a mapping of IP4 addresses to aliases
-        {
-            // need the following constructor (from ISerializable, which is inherited by Dictionary)
-            protected inmdict(SerializationInfo info, StreamingContext ctx) : base(info, ctx) { }
-            // need to explicitly declare an empty constructor, because without this, new tries to use the above constructor
-            public inmdict() { }
-
-            public void maptotable(inmtable table)	// transfers IP4namemap dictionary to a table to support a datagrid
-            {
-                foreach (uint k in this.Keys) table.Add(new inmtableitem(k, this[k], table));
-            }
-        }
-
-BOOKMARK
-            RE-THINK CHANGE PROPAGATION BETWEEN DICT AND TABLE AND GUI
-                DICT CHANGE DUE TO LOAD/APPEND -> REFRESH TABLE -> REFRESH GUI TABLE -> REFRESH REST OF GUI
-                TABLEITEM CHANGE DUE TO USER EDITING -> REFRESH REST OF GUI -> UPDATE DICT
-            REVISE IMPLEMENATION OF FILE LOAD/SAVE/APPEND
-
-
-        public class inmtable : ObservableCollection<inmtableitem>, INotifyPropertyChanged
-        // view model for mapping of IP4 values to aliases
-        {
-            public void tabletomap(inmdict dict)	// transfers IP4name table from a datagrid to a IP4namemap dictionary
-            {
-                // need to catch exceptions in case table has duplicate IP4 entries - if this is the case, just return null
-                foreach (inmtableitem i in this)
-                { 
-                    try
-                    {
-                        dict.Add(i.IP4, i.alias);
-                    }
-                    catch { }
-                }
-                
-            }
-        }
-
-        public class inmtableitem
-        {
-            public uint IP4 { get; set; }
-            public string alias { get; set; }
-            public inmtable parent;
-
-            public inmtableitem(uint u, string s, inmtable p)
-            {
-                IP4 = u;
-                alias = s;
-                parent = p;
-            }
-        }
 
     }
 
