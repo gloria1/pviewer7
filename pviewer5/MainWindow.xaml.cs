@@ -396,6 +396,147 @@ namespace pviewer5
             return;
         }
 
+        public bool inmIsValid(DependencyObject parent)
+        {
+            // this is from http://stackoverflow.com/questions/17951045/wpf-datagrid-validation-haserror-is-always-false-mvvm
+
+            if (Validation.GetHasError(parent))
+                return false;
+
+            // Validate all the bindings on the children
+            for (int i = 0; i != VisualTreeHelper.GetChildrenCount(parent); ++i)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(parent, i);
+                if (!inmIsValid(child)) { return false; }
+            }
+
+            return true;
+        }
+        private void inmcelleditending(object sender, DataGridCellEditEndingEventArgs e)
+        // handle CellEditEnding event from the datagrid
+        {
+            inmchangedsincesavedtodisk = true;
+        }
+        private void inmSaveToDisk(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog dlg = new SaveFileDialog();
+            FileStream fs;
+            IFormatter formatter = new BinaryFormatter();
+            IP4Util.IP4namemapclass map = new IP4Util.IP4namemapclass();
+
+            // first need to transfer datagrid table to official map
+            if (!inmIsValid(inmgrid))
+            {
+                MessageBox.Show("Resolve Validation Errors.\nTable not saved.");
+                return;
+            }
+            else
+            {
+                map = inmdgtable.tabletomap();
+                if (map == null)        // if error transferring table due to duplicate IP4s, inform user and return to dialog		
+                {
+                    MessageBox.Show("Duplicate IP4 addresses not allowed.\nTable not saved.");
+                    return;
+                }
+                else
+                {
+                    dlg.InitialDirectory = "c:\\pviewer\\";
+                    dlg.DefaultExt = ".IP4namemap";
+                    dlg.OverwritePrompt = true;
+
+                    if (dlg.ShowDialog() == true)
+                    {
+                        fs = new FileStream(dlg.FileName, FileMode.OpenOrCreate);
+                        formatter.Serialize(fs, map);
+                        inmchangedsincesavedtodisk = false;
+                        fs.Close();
+                    }
+                }
+            }
+        }
+        private void inmLoadFromDisk(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog dlg = new OpenFileDialog();
+            FileStream fs;
+            IFormatter formatter = new BinaryFormatter();
+
+            dlg.InitialDirectory = "c:\\pviewer\\";
+            dlg.DefaultExt = ".IP4namemap";
+            dlg.Multiselect = false;
+
+            if (dlg.ShowDialog() == true)
+            {
+                fs = new FileStream(dlg.FileName, FileMode.Open);
+
+                try
+                {
+                    inmdgtable = ((IP4Util.IP4namemapclass)formatter.Deserialize(fs)).maptotable();
+                    // next command re-sets ItemsSource, window on screen does not update to show new contents of dgtable, don't know why
+                    // there is probably some mechanism to get the display to update without re-setting the ItemsSource, but this seems to work
+                    INMDG.ItemsSource = inmdgtable;
+                    inmchangedsincesavedtodisk = false;
+                }
+                catch
+                {
+                    MessageBox.Show("File not read");
+                }
+                finally
+                {
+                    fs.Close();
+                }
+            }
+        }
+        private void inmAppendFromDisk(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog dlg = new OpenFileDialog();
+            FileStream fs;
+            IFormatter formatter = new BinaryFormatter();
+
+            dlg.InitialDirectory = "c:\\pviewer\\";
+            dlg.DefaultExt = ".IP4namemap";
+            dlg.Multiselect = false;
+
+            if (dlg.ShowDialog() == true)
+            {
+                fs = new FileStream(dlg.FileName, FileMode.Open);
+
+                try
+                {
+                    foreach (IP4Util.inmtableitem i in ((IP4Util.IP4namemapclass)formatter.Deserialize(fs)).maptotable()) inmdgtable.Add(i);
+                    // next command re-sets ItemsSource, window on screen does not update to show new contents of dgtable, don't know why
+                    // there is probably some mechanism to get the display to update without re-setting the ItemsSource, but this seems to work
+                    INMDG.ItemsSource = inmdgtable;
+                    inmchangedsincesavedtodisk = true;
+                }
+                catch
+                {
+                    MessageBox.Show("File not read"); fs.Close(); return;
+                }
+                finally
+                {
+                    fs.Close();
+                }
+            }
+        }
+        private static void inmExecutedaddrow(object sender, ExecutedRoutedEventArgs e)
+        {
+            IP4Util.IP4nametableclass q;
+            DataGrid dg = (DataGrid)e.Source;
+
+            q = (IP4Util.IP4nametableclass)(dg.ItemsSource);
+
+            q.Add(new IP4Util.inmtableitem(0, ""));
+        }
+        private static void inmPreviewExecutedaddrow(object sender, ExecutedRoutedEventArgs e)
+        {
+        }
+        private static void inmCanExecuteaddrow(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+
+
+
         private void TextBox_KeyUp(object sender, KeyEventArgs e)
         {
             TextBox tBox = (TextBox)sender;

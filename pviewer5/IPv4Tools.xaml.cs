@@ -37,7 +37,7 @@ namespace pviewer5
         private static readonly IP4Util instance = new IP4Util();
         public static IP4Util Instance { get { return instance; } }
 
-        public IP4namemapclass map = new IP4namemapclass()
+        public inmdict map = new inmdict()
         {
                 {0x00000000, "ALL ZEROES"},
         };
@@ -151,41 +151,42 @@ namespace pviewer5
 
 
         [Serializable]
-        public class IP4namemapclass : Dictionary<uint, string>
+        public class inmdict : Dictionary<uint, string>
         // data model for a mapping of IP4 addresses to aliases
         {
             // need the following constructor (from ISerializable, which is inherited by Dictionary)
-            protected IP4namemapclass(SerializationInfo info, StreamingContext ctx) : base(info, ctx) { }
+            protected inmdict(SerializationInfo info, StreamingContext ctx) : base(info, ctx) { }
             // need to explicitly declare an empty constructor, because without this, new tries to use the above constructor
-            public IP4namemapclass() { }
+            public inmdict() { }
 
-            public IP4nametableclass maptotable()	// transfers IP4namemap dictionary to a table to support a datagrid
+            public void maptotable(inmtable table)	// transfers IP4namemap dictionary to a table to support a datagrid
             {
-                IP4nametableclass table = new IP4nametableclass();
-
-                foreach (uint k in this.Keys) table.Add(new inmtableitem(k, this[k]));
-                return table;
+                foreach (uint k in this.Keys) table.Add(new inmtableitem(k, this[k], table));
             }
         }
 
-        [Serializable]
-        public class IP4nametableclass : ObservableCollection<inmtableitem>, INotifyPropertyChanged
+BOOKMARK
+            RE-THINK CHANGE PROPAGATION BETWEEN DICT AND TABLE AND GUI
+                DICT CHANGE DUE TO LOAD/APPEND -> REFRESH TABLE -> REFRESH GUI TABLE -> REFRESH REST OF GUI
+                TABLEITEM CHANGE DUE TO USER EDITING -> REFRESH REST OF GUI -> UPDATE DICT
+            REVISE IMPLEMENATION OF FILE LOAD/SAVE/APPEND
+
+
+        public class inmtable : ObservableCollection<inmtableitem>, INotifyPropertyChanged
         // view model for mapping of IP4 values to aliases
         {
-            public IP4namemapclass tabletomap()	// transfers IP4name table from a datagrid to a IP4namemap dictionary
+            public void tabletomap(inmdict dict)	// transfers IP4name table from a datagrid to a IP4namemap dictionary
             {
-                IP4namemapclass map = new IP4namemapclass();
-
                 // need to catch exceptions in case table has duplicate IP4 entries - if this is the case, just return null
-                try
-                {
-                    foreach (inmtableitem i in this) map.Add(i.IP4, i.alias);
+                foreach (inmtableitem i in this)
+                { 
+                    try
+                    {
+                        dict.Add(i.IP4, i.alias);
+                    }
+                    catch { }
                 }
-                catch
-                {
-                    return null;
-                }
-                return map;
+                
             }
         }
 
@@ -193,11 +194,13 @@ namespace pviewer5
         {
             public uint IP4 { get; set; }
             public string alias { get; set; }
+            public inmtable parent;
 
-            public inmtableitem(uint u, string s)
+            public inmtableitem(uint u, string s, inmtable p)
             {
-                this.IP4 = u;
-                this.alias = s;
+                IP4 = u;
+                alias = s;
+                parent = p;
             }
         }
 
@@ -315,193 +318,4 @@ namespace pviewer5
 
     }
 
-
-
-    public partial class MainWindow : Window, INotifyPropertyChanged
-	{
-
-
-		public bool inmIsValid(DependencyObject parent)
-		{
-			// this is from http://stackoverflow.com/questions/17951045/wpf-datagrid-validation-haserror-is-always-false-mvvm
-
-			if (Validation.GetHasError(parent))
-				return false;
-
-			// Validate all the bindings on the children
-			for (int i = 0; i != VisualTreeHelper.GetChildrenCount(parent); ++i)
-			{
-				DependencyObject child = VisualTreeHelper.GetChild(parent, i);
-				if (!inmIsValid(child)) { return false; }
-			}
-
-			return true;
-		}
-
-		private void inmApply(object sender, RoutedEventArgs e)
-		{
-			IP4Util.IP4namemapclass map = new IP4Util.IP4namemapclass();
-
-			if (!inmIsValid(inmgrid))
-			{
-				MessageBox.Show("Resolve Validation Errors");
-				return;
-			}
-			else
-			{
-				map = inmdgtable.tabletomap();
-				if (map == null)		// if error transferring table due to duplicate IP4s, inform user and return to dialog		
-				{
-					MessageBox.Show("Duplicate IP4 addresses not allowed");
-					return;
-				}
-				else        // else transfer local map to official map and close dialog
-				{
-					IP4Util.Instance.map = map;
-                    GUIUtil.Instance.Hex = GUIUtil.Instance.Hex; // no-op but causes change notifications to gui
-				}
-			}
-		}
-
-        private void inmAccept(object sender, RoutedEventArgs e)
-        // close window with saving changes
-        {
-            inmApply(this, null);
-            Close();
-        }
-
-        private void inmCancel(object sender, RoutedEventArgs e)
-        // close window without saving changes
-		{
-			Close();
-		}
-
-        private void inmcelleditending(object sender, DataGridCellEditEndingEventArgs e)
-        // handle CellEditEnding event from the datagrid
-        {
-            inmchangedsincesavedtodisk = true;
-        }
-
-        private void inmSaveToDisk(object sender, RoutedEventArgs e)
-		{
-			SaveFileDialog dlg = new SaveFileDialog();
-			FileStream fs;
-			IFormatter formatter = new BinaryFormatter();
-			IP4Util.IP4namemapclass map = new IP4Util.IP4namemapclass();
-
-			// first need to transfer datagrid table to official map
-			if (!inmIsValid(inmgrid))
-			{
-				MessageBox.Show("Resolve Validation Errors.\nTable not saved.");
-				return;
-			}
-			else
-			{
-				map = inmdgtable.tabletomap();
-				if (map == null)		// if error transferring table due to duplicate IP4s, inform user and return to dialog		
-				{
-					MessageBox.Show("Duplicate IP4 addresses not allowed.\nTable not saved.");
-					return;
-				}
-				else
-				{
-					dlg.InitialDirectory = "c:\\pviewer\\";
-					dlg.DefaultExt = ".IP4namemap";
-					dlg.OverwritePrompt = true;
-
-					if (dlg.ShowDialog() == true)
-					{
-						fs = new FileStream(dlg.FileName, FileMode.OpenOrCreate);
-						formatter.Serialize(fs, map);
-                        inmchangedsincesavedtodisk = false;
-						fs.Close();
-					}
-				}
-			}
-		}
-
-		private void inmLoadFromDisk(object sender, RoutedEventArgs e)
-		{
-			OpenFileDialog dlg = new OpenFileDialog();
-			FileStream fs;
-			IFormatter formatter = new BinaryFormatter();
-
-			dlg.InitialDirectory = "c:\\pviewer\\";
-			dlg.DefaultExt = ".IP4namemap";
-			dlg.Multiselect = false;
-
-			if (dlg.ShowDialog() == true)
-			{
-				fs = new FileStream(dlg.FileName, FileMode.Open);
-
-				try
-				{
-					inmdgtable = ((IP4Util.IP4namemapclass)formatter.Deserialize(fs)).maptotable();
-					// next command re-sets ItemsSource, window on screen does not update to show new contents of dgtable, don't know why
-					// there is probably some mechanism to get the display to update without re-setting the ItemsSource, but this seems to work
-					INMDG.ItemsSource = inmdgtable;
-                    inmchangedsincesavedtodisk = false;
-				}
-				catch
-				{
-					MessageBox.Show("File not read");
-				}
-				finally
-				{
-					fs.Close();
-				}
-			}
-		}
-		private void inmAppendFromDisk(object sender, RoutedEventArgs e)
-		{
-			OpenFileDialog dlg = new OpenFileDialog();
-			FileStream fs;
-			IFormatter formatter = new BinaryFormatter();
-
-			dlg.InitialDirectory = "c:\\pviewer\\";
-			dlg.DefaultExt = ".IP4namemap";
-			dlg.Multiselect = false;
-
-			if (dlg.ShowDialog() == true)
-			{
-				fs = new FileStream(dlg.FileName, FileMode.Open);
-
-				try
-				{
-					foreach (IP4Util.inmtableitem i in ((IP4Util.IP4namemapclass)formatter.Deserialize(fs)).maptotable()) inmdgtable.Add(i);
-					// next command re-sets ItemsSource, window on screen does not update to show new contents of dgtable, don't know why
-					// there is probably some mechanism to get the display to update without re-setting the ItemsSource, but this seems to work
-					INMDG.ItemsSource = inmdgtable;
-                    inmchangedsincesavedtodisk = true;
-				}
-				catch
-				{
-					MessageBox.Show("File not read"); fs.Close(); return;
-				}
-				finally
-				{
-					fs.Close();
-				}
-			}
-		}
-		private static void inmExecutedaddrow(object sender, ExecutedRoutedEventArgs e)
-		{
-			IP4Util.IP4nametableclass q;
-			DataGrid dg = (DataGrid)e.Source;
-
-			q = (IP4Util.IP4nametableclass)(dg.ItemsSource);
-
-			q.Add(new IP4Util.inmtableitem(0, ""));
-		}
-
-		private static void inmPreviewExecutedaddrow(object sender, ExecutedRoutedEventArgs e)
-		{
-		}
-		private static void inmCanExecuteaddrow(object sender, CanExecuteRoutedEventArgs e)
-		{
-			e.CanExecute = true;
-		}
-
-
-	}
 }

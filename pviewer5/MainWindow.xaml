@@ -519,36 +519,23 @@
             <Grid x:Name="inmgrid"
                     Grid.Row="2"
             		ShowGridLines="True">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <WrapPanel x:Name="inmbuttonbar"
-			        Grid.ColumnSpan="2"
 			        Grid.Row="0"
 			        HorizontalAlignment="Left"
 			        Margin="5,5,5,5">
                             <Button Content="Apply"
-				        Click="inmApply"
-                            IsEnabled="{Binding Path=changedsinceapplied}"/>
-                            <Button Content="Accept and Close"
-				        Click="inmAccept"
-                            IsEnabled="{Binding Path=changedsinceapplied}"/>
-                            <Button Content="Cancel"
-				        Click="inmCancel"/>
-                            <Button Content="Save To Disk"
 				        Click="inmSaveToDisk"
-                            IsEnabled="{Binding Path=changedsincesaved}"/>
+                            IsEnabled="{Binding Path=inmchangedsincesaved}"/>
                             <Button Content="Load from Disk"
 				        Click="inmLoadFromDisk"/>
                             <Button Content="Append From Disk"
 				        Click="inmAppendFromDisk"/>
                 </WrapPanel>
                 <GroupBox Header="Map of IP4 Addresses To Aliases"
-			        Grid.Column="0"
 			        Grid.Row="1"
 			        Margin="5,5,5,5">   
                     <!-- added Enable*Virtualization lines based on http://www.elegant-software.net/2014/05/performance-of-the-wpf-datagrid.html -->
