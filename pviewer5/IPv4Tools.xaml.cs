@@ -37,7 +37,7 @@ namespace pviewer5
         private static readonly IP4Util instance = new IP4Util();
         public static IP4Util Instance { get { return instance; } }
 
-      // private constructor below was set up per the "singleton" pattern, so that no further instances of this class could be created
+        // private constructor below was set up per the "singleton" pattern, so that no further instances of this class could be created
         // however, for some reason this caused the data binding to IP4Hex to stop working, so i have commented this out
         /* private IP4Util()
         // constructor is private, so no one else can call it - the singleton instance was created in the initialization of Instance above
@@ -45,51 +45,63 @@ namespace pviewer5
             return;
         }*/
 
-  
-        [Serializable]
-        public class inmdict : Dictionary<uint, string>
-        // data model for a mapping of IP4 addresses to aliases
-        {
-            // need the following constructor (from ISerializable, which is inherited by Dictionary)
-            protected inmdict(SerializationInfo info, StreamingContext ctx) : base(info, ctx) { }
-            // need to explicitly declare an empty constructor, because without this, new tries to use the above constructor
-            public inmdict() { }
 
-            public void maptotable(inmtable table)	// transfers IP4namemap dictionary to a table to support a datagrid
-            {
-                foreach (uint k in this.Keys) table.Add(new inmtableitem(k, this[k], table));
-            }
-        }
+        /*
+        COMMENTING OUT BECAUSE TRYING TO MAKE THE DICT AND TABLE JUST PROPERTIES, NOT CLASSES
+                [Serializable]
+                public class inmdict : Dictionary<uint, string>
+                // data model for a mapping of IP4 addresses to aliases
+                {
+                    // need the following constructor (from ISerializable, which is inherited by Dictionary)
+                    protected inmdict(SerializationInfo info, StreamingContext ctx) : base(info, ctx) { }
+                    // need to explicitly declare an empty constructor, because without this, new tries to use the above constructor
+                    public inmdict() { }
 
-        public inmdict map = new inmdict()
+                    public void maptotable(inmtable table)	// transfers IP4namemap dictionary to a table to support a datagrid
+                    {
+                        foreach (uint k in this.Keys) table.Add(new inmtableitem(k, this[k], table));
+                    }
+                }
+        */
+
+        // backing model for ip4 name map - it is a dictionary since we want to be able to look up by just indexing the map with an ip4 address
+        public static Dictionary<uint, string> inmdict = new Dictionary<uint, string>()
         {
                 {0x00000000, "ALL ZEROES"},
         };
 
+        // view model for mapping of IP4 values to aliases
+        public static ObservableCollection<inmtableitem> inmtable = new ObservableCollection<inmtableitem>();
 
+/*
         BOOKMARK
             RE-THINK CHANGE PROPAGATION BETWEEN DICT AND TABLE AND GUI
                 DICT CHANGE DUE TO LOAD/APPEND -> REFRESH TABLE -> REFRESH GUI TABLE -> REFRESH REST OF GUI
                 TABLEITEM CHANGE DUE TO USER EDITING -> REFRESH REST OF GUI -> UPDATE DICT
             REVISE IMPLEMENATION OF FILE LOAD/SAVE/APPEND
+            */
 
-
-        public ObservableCollection<inmtableitem> inmtable = new ObservableCollection<inmtableitem>();
-        // view model for mapping of IP4 values to aliases
-
-
-
-        public class inmtableitem
+        public class inmtableitem : INotifyPropertyChanged
         {
-            public uint IP4 { get; set; }
-            public string alias { get; set; }
-            public inmtable parent;
+            private uint _ip4;
+            public uint IP4 { get { return _ip4; } set { _ip4 = value; NotifyPropertyChanged(); } }
+            private string _alias;
+            public string alias { get { return _alias; } set { _alias = value; NotifyPropertyChanged(); } }
 
-            public inmtableitem(uint u, string s, inmtable p)
+            public inmtableitem(uint u, string s)
             {
                 IP4 = u;
                 alias = s;
-                parent = p;
+            }
+
+            // implement INotifyPropertyChanged
+            public event PropertyChangedEventHandler PropertyChanged;
+            private void NotifyPropertyChanged(String propertyName = "")
+            {
+                if (PropertyChanged != null)
+                {
+                    PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+                }
             }
         }
 
@@ -100,8 +112,8 @@ namespace pviewer5
         {
 
             if (usealiasesthistime && GUIUtil.Instance.UseAliases)
-                if (IP4Util.Instance.map.ContainsKey(value))
-                    return IP4Util.Instance.map[value];
+                if (IP4Util.inmdict.ContainsKey(value))
+                    return IP4Util.inmdict[value];
 
             uint[] b = new uint[4];
             string s;
@@ -127,12 +139,12 @@ namespace pviewer5
 
             s = IP4Util.ToString(value, true, false);
             s += "\n";
-            if (IP4Util.Instance.map.ContainsKey(value))
+            if (IP4Util.inmdict.ContainsKey(value))
             {
                 // if UseAliases, then, if this IP has an alias, we want to append the non-inverthex numerical form
                 if (GUIUtil.Instance.UseAliases) s += IP4Util.ToString(value, false, false);
                 // else return the alias
-                else s += IP4Util.Instance.map[value];
+                else s += IP4Util.inmdict[value];
             }
 
             return s;
@@ -179,8 +191,8 @@ namespace pviewer5
                     catch { }
                 }
                 // if we have gotten this far, s was not parsed as a simple number or dot notation number, so check if it is a valid alias
-                foreach (uint u in IP4Util.Instance.map.Keys)
-                    if (s == IP4Util.Instance.map[u])
+                foreach (uint u in IP4Util.inmdict.Keys)
+                    if (s == IP4Util.inmdict[u])
                     {
                         value = u;
                         return true;
@@ -191,8 +203,6 @@ namespace pviewer5
             }
 
         }
-
-
 
     }
 
