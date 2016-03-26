@@ -319,32 +319,9 @@ namespace pviewer5
 
     public partial class MainWindow : Window, INotifyPropertyChanged
 	{
-		public static RoutedCommand inmaddrow = new RoutedCommand();
-
-		public IP4Util.IP4nametableclass dgtable { get; set; }
-
-        private bool _chgsincesave = false;
-        public bool changedsincesavedtodisk { get { return _chgsincesave; } set { _chgsincesave = value; NotifyPropertyChanged(); } }
-        private bool _chgsinceapplied = false;
-        public bool changedsinceapplied { get { return _chgsinceapplied; } set { _chgsinceapplied = value; NotifyPropertyChanged(); } }
 
 
-        public IP4NameMapDialog()
-		{
-			CommandBinding inmaddrowbinding;
-            
-			dgtable = IP4Util.Instance.map.maptotable();
-
-            InitializeComponent();
-            inmbuttonbar.DataContext = this;
-			INMDG.DataContext = this;
-			inmaddrowbinding = new CommandBinding(inmaddrow, Executedaddrow, CanExecuteaddrow);
-			INMDG.CommandBindings.Add(inmaddrowbinding);
-			inmaddrowmenuitem.CommandTarget = INMDG;   // added this so that menu command would not be disabled when datagrid first created; not sure exactly why this works, books/online articles refer to WPF not correctly determining the intended command target based on focus model (logical focus? keyboard focus?), so you have to set the command target explicitly
-            
-		}
-
-		public bool IsValid(DependencyObject parent)
+		public bool inmIsValid(DependencyObject parent)
 		{
 			// this is from http://stackoverflow.com/questions/17951045/wpf-datagrid-validation-haserror-is-always-false-mvvm
 
@@ -355,7 +332,7 @@ namespace pviewer5
 			for (int i = 0; i != VisualTreeHelper.GetChildrenCount(parent); ++i)
 			{
 				DependencyObject child = VisualTreeHelper.GetChild(parent, i);
-				if (!IsValid(child)) { return false; }
+				if (!inmIsValid(child)) { return false; }
 			}
 
 			return true;
@@ -365,14 +342,14 @@ namespace pviewer5
 		{
 			IP4Util.IP4namemapclass map = new IP4Util.IP4namemapclass();
 
-			if (!IsValid(inmgrid))
+			if (!inmIsValid(inmgrid))
 			{
 				MessageBox.Show("Resolve Validation Errors");
 				return;
 			}
 			else
 			{
-				map = dgtable.tabletomap();
+				map = inmdgtable.tabletomap();
 				if (map == null)		// if error transferring table due to duplicate IP4s, inform user and return to dialog		
 				{
 					MessageBox.Show("Duplicate IP4 addresses not allowed");
@@ -380,7 +357,6 @@ namespace pviewer5
 				}
 				else        // else transfer local map to official map and close dialog
 				{
-                    changedsinceapplied = false;
 					IP4Util.Instance.map = map;
                     GUIUtil.Instance.Hex = GUIUtil.Instance.Hex; // no-op but causes change notifications to gui
 				}
@@ -403,8 +379,7 @@ namespace pviewer5
         private void inmcelleditending(object sender, DataGridCellEditEndingEventArgs e)
         // handle CellEditEnding event from the datagrid
         {
-            changedsinceapplied = true;
-            changedsincesavedtodisk = true;
+            inmchangedsincesavedtodisk = true;
         }
 
         private void inmSaveToDisk(object sender, RoutedEventArgs e)
@@ -415,14 +390,14 @@ namespace pviewer5
 			IP4Util.IP4namemapclass map = new IP4Util.IP4namemapclass();
 
 			// first need to transfer datagrid table to official map
-			if (!IsValid(inmgrid))
+			if (!inmIsValid(inmgrid))
 			{
 				MessageBox.Show("Resolve Validation Errors.\nTable not saved.");
 				return;
 			}
 			else
 			{
-				map = dgtable.tabletomap();
+				map = inmdgtable.tabletomap();
 				if (map == null)		// if error transferring table due to duplicate IP4s, inform user and return to dialog		
 				{
 					MessageBox.Show("Duplicate IP4 addresses not allowed.\nTable not saved.");
@@ -438,7 +413,7 @@ namespace pviewer5
 					{
 						fs = new FileStream(dlg.FileName, FileMode.OpenOrCreate);
 						formatter.Serialize(fs, map);
-                        changedsincesavedtodisk = false;
+                        inmchangedsincesavedtodisk = false;
 						fs.Close();
 					}
 				}
@@ -461,11 +436,11 @@ namespace pviewer5
 
 				try
 				{
-					dgtable = ((IP4Util.IP4namemapclass)formatter.Deserialize(fs)).maptotable();
+					inmdgtable = ((IP4Util.IP4namemapclass)formatter.Deserialize(fs)).maptotable();
 					// next command re-sets ItemsSource, window on screen does not update to show new contents of dgtable, don't know why
 					// there is probably some mechanism to get the display to update without re-setting the ItemsSource, but this seems to work
-					INMDG.ItemsSource = dgtable;
-                    changedsincesavedtodisk = false;
+					INMDG.ItemsSource = inmdgtable;
+                    inmchangedsincesavedtodisk = false;
 				}
 				catch
 				{
@@ -493,11 +468,11 @@ namespace pviewer5
 
 				try
 				{
-					foreach (IP4Util.inmtableitem i in ((IP4Util.IP4namemapclass)formatter.Deserialize(fs)).maptotable()) dgtable.Add(i);
+					foreach (IP4Util.inmtableitem i in ((IP4Util.IP4namemapclass)formatter.Deserialize(fs)).maptotable()) inmdgtable.Add(i);
 					// next command re-sets ItemsSource, window on screen does not update to show new contents of dgtable, don't know why
 					// there is probably some mechanism to get the display to update without re-setting the ItemsSource, but this seems to work
-					INMDG.ItemsSource = dgtable;
-                    changedsincesavedtodisk = true;
+					INMDG.ItemsSource = inmdgtable;
+                    inmchangedsincesavedtodisk = true;
 				}
 				catch
 				{
@@ -509,7 +484,7 @@ namespace pviewer5
 				}
 			}
 		}
-		private static void Executedaddrow(object sender, ExecutedRoutedEventArgs e)
+		private static void inmExecutedaddrow(object sender, ExecutedRoutedEventArgs e)
 		{
 			IP4Util.IP4nametableclass q;
 			DataGrid dg = (DataGrid)e.Source;
@@ -519,10 +494,10 @@ namespace pviewer5
 			q.Add(new IP4Util.inmtableitem(0, ""));
 		}
 
-		private static void PreviewExecutedaddrow(object sender, ExecutedRoutedEventArgs e)
+		private static void inmPreviewExecutedaddrow(object sender, ExecutedRoutedEventArgs e)
 		{
 		}
-		private static void CanExecuteaddrow(object sender, CanExecuteRoutedEventArgs e)
+		private static void inmCanExecuteaddrow(object sender, CanExecuteRoutedEventArgs e)
 		{
 			e.CanExecute = true;
 		}

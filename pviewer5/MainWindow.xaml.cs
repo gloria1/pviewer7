@@ -116,30 +116,36 @@ namespace pviewer5
 
     public partial class MainWindow : Window, INotifyPropertyChanged
 	{
+        // properties for packet list view
         public PacketViewer pview;
         private string _packetfilename = null;
         public string PacketFileName { get { return _packetfilename; } set { _packetfilename = value; NotifyPropertyChanged(); } }
         private bool _fileloaded = false;
         public bool FileLoaded { get { return _fileloaded; } set { _fileloaded = value; NotifyPropertyChanged(); } }
         public ObservableCollection<Packet> pkts { get; set; }
-        public FilterSet filters { get; set; }
         public ObservableCollection<GList> grouplistlist { get; set; }
         public ListCollectionView gllview;
 
-        public UDPGList udplisttemp;
+        // properties for filter view
+        public FilterSet filters { get; set; }
+
+        // properties for domain map view
+
+        // properties for ip4 map view
+        public static RoutedCommand inmaddrow = new RoutedCommand();
+        CommandBinding inmaddrowbinding;
+        public IP4Util.IP4nametableclass inmdgtable { get; set; }
+        private bool _inmchgsincesave = false;
+        public bool inmchangedsincesavedtodisk { get { return _inmchgsincesave; } set { _inmchgsincesave = value; NotifyPropertyChanged(); } }
+
+        // properties for mac map view
+
+
 
         public MainWindow()
         {
+            // set up packet list view
             pkts = new ObservableCollection<Packet>();
-
-            filters = new FilterSet();
-            try
-            {
-                filters.LoadFromDisk("c:\\pviewer\\autosave.filterset");
-            }
-            catch { }
-            filters.Filename = null;    // reset the filename to null after loading from autosave file
-
             grouplistlist = new ObservableCollection<GList>();
             gllview = (ListCollectionView)CollectionViewSource.GetDefaultView(grouplistlist);
             grouplistlist.Add(new DNSGList("DNS Groups"));
@@ -148,9 +154,30 @@ namespace pviewer5
             grouplistlist.Add(new UDPGList("UDP Groups"));
             grouplistlist.Add(new ARPGList("ARP Groups"));
             grouplistlist.Add(new GList("Ungrouped Packets"));
-
-            InitializeComponent();
             
+            // set up filter view
+            filters = new FilterSet();
+            try
+            {
+                filters.LoadFromDisk("c:\\pviewer\\autosave.filterset");
+            }
+            catch { }
+            filters.Filename = null;    // reset the filename to null after loading from autosave file
+
+            // set up domain map view
+
+            // set up ip4 map view
+            inmdgtable = IP4Util.Instance.map.maptotable();
+            inmbuttonbar.DataContext = this;
+            INMDG.DataContext = this;
+            inmaddrowbinding = new CommandBinding(inmaddrow, inmExecutedaddrow, inmCanExecuteaddrow);
+            INMDG.CommandBindings.Add(inmaddrowbinding);
+            inmaddrowmenuitem.CommandTarget = INMDG;   // added this so that menu command would not be disabled when datagrid first created; not sure exactly why this works, books/online articles refer to WPF not correctly determining the intended command target based on focus model (logical focus? keyboard focus?), so you have to set the command target explicitly
+
+            // set up mac map view
+
+            // initialize window
+            InitializeComponent();
 			gridmain.DataContext = this;
 
             // try to restore window position and other settings - see "Programing WPF Second Edition" page 321
@@ -228,7 +255,6 @@ namespace pviewer5
                 LoadPCAPFile(dlg.FileName);
 			}
 		}
-
         private void LoadPCAPFile(string filename)
         {
             PcapFile pfh;
@@ -268,6 +294,22 @@ namespace pviewer5
 
             fs.Close();
         }
+        private void grouptree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            if (e.NewValue == null) return;
+
+            if (e.NewValue.GetType() == typeof(Packet))
+            {
+                if (pview == null) pview = new PacketViewer();
+                pview.Pkt = (Packet)(e.NewValue);
+
+                if (!(pview.Visibility == System.Windows.Visibility.Visible)) pview.Show();
+            }
+
+            //BOOKMARK
+
+            // IF IT IS A PACKET, OPEN PACKET VIEW WINDOW ON IT
+        }
 
         private void ApplyFilterToView(object sender, RoutedEventArgs e)
         {
@@ -288,59 +330,6 @@ namespace pviewer5
             if (PacketFileName != null) LoadPCAPFile(PacketFileName);
             filters.ChangedSinceApplied = false;
         }
-
-        /* obsolete
-        private void qfbutton(object sender, RoutedEventArgs e)
-		{
-			Window qfd = new QuickFilterDialog();
-			qfd.ShowDialog();
-		}*/
-		private void mnmbutton(object sender, RoutedEventArgs e)
-		{
-			Window w1 = new MACNameMapDialog();
-			w1.ShowDialog();
-			CollectionViewSource.GetDefaultView(grouptree.ItemsSource).Refresh();
-			// deprecated CollectionViewSource.GetDefaultView(QFExclGrid.ItemsSource).Refresh();
-		}
-		private void inmbutton(object sender, RoutedEventArgs e)
-		{
-			Window w1 = new IP4NameMapDialog();
-			w1.Show();
-        }
-
-        private static void Executedtabulate(object sender, ExecutedRoutedEventArgs e)
-		{
-			//ulong q;
-
-			DataGrid dg = (DataGrid)e.Source;
-			DataGridTextColumn col = (DataGridTextColumn)(dg.CurrentColumn);
-			if (col == null) return;
-//			string path = ((Binding)(col.Binding)).Path.Path;		// col.Binding is of type BindingBase - Path property does not exist in BindingBase, so had to cast to Binding - don't know if this will cause problems.....
-
-	//		foreach (PcapPkt p in dg.ItemsSource) q = (ulong)(col.GetCellContent(p).GetValue();
-		}
-		private static void CanExecutetabulate(object sender, CanExecuteRoutedEventArgs e)
-		{
-			e.CanExecute = true;
-		}
-
-        private void grouptree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
-        {
-            if (e.NewValue == null) return;
-
-            if (e.NewValue.GetType() == typeof(Packet))
-            {
-                if (pview == null) pview = new PacketViewer();
-                pview.Pkt = (Packet)(e.NewValue);
-
-                if (!(pview.Visibility == System.Windows.Visibility.Visible)) pview.Show();
-            }
-
-            //BOOKMARK
-
-                // IF IT IS A PACKET, OPEN PACKET VIEW WINDOW ON IT
-        }
-
         private void filterset_save(object sender, RoutedEventArgs e)
         {
             filters.SaveToDisk(null);
@@ -432,7 +421,6 @@ namespace pviewer5
             }
 
         }
-
         private void TextBox_GotFocus(object sender, RoutedEventArgs e)
         {
             TextBox tBox = (TextBox)sender;
