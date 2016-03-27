@@ -46,24 +46,6 @@ namespace pviewer5
         }*/
 
 
-        /*
-        COMMENTING OUT BECAUSE TRYING TO MAKE THE DICT AND TABLE JUST PROPERTIES, NOT CLASSES
-                [Serializable]
-                public class inmdict : Dictionary<uint, string>
-                // data model for a mapping of IP4 addresses to aliases
-                {
-                    // need the following constructor (from ISerializable, which is inherited by Dictionary)
-                    protected inmdict(SerializationInfo info, StreamingContext ctx) : base(info, ctx) { }
-                    // need to explicitly declare an empty constructor, because without this, new tries to use the above constructor
-                    public inmdict() { }
-
-                    public void maptotable(inmtable table)	// transfers IP4namemap dictionary to a table to support a datagrid
-                    {
-                        foreach (uint k in this.Keys) table.Add(new inmtableitem(k, this[k], table));
-                    }
-                }
-        */
-
         // backing model for ip4 name map - it is a dictionary since we want to be able to look up by just indexing the map with an ip4 address
         public static Dictionary<uint, string> inmdict = new Dictionary<uint, string>()
         {
@@ -95,6 +77,13 @@ namespace pviewer5
                 get { return _ip4; }
                 set
                 {
+                    // fail if this ip4 is a duplicate of one already in the dictionary - this should have been prevented by the validation logic in the gui code
+                    if (inmdict.ContainsKey(value))
+                    {
+                        MessageBox.Show("ATTEMPT TO CREATE DUPLICATE ADDRESS IN IP4 NAME MAP DICTIONARY\nTHIS SHOULD NEVER HAPPEN");
+                        return;
+                    }
+
                     // need to update inmdict to keep in sync - i think we need to delete old item and add a new one
                     string s = inmdict[_ip4];
                     inmdict.Remove(_ip4);
@@ -122,6 +111,9 @@ namespace pviewer5
 
             public inmtableitem(uint u, string s)
             {
+                // prevent adding a new item with a duplicate ip4 address
+                while (inmdict.ContainsKey(u)) u++;
+
                 IP4 = u;
                 alias = s;
             }
@@ -246,8 +238,21 @@ namespace pviewer5
         {
             uint i = 0;
 
-            if (IP4Util.TryParse((string)value, ref i)) return new ValidationResult(true, "Valid IP4 Address");
-            else return new ValidationResult(false, "Not a valid IP4 address");
+            if (!IP4Util.TryParse((string)value, ref i)) return new ValidationResult(false, "Not a valid IP4 address");
+            else return new ValidationResult(true, "Valid IP4 Address");
+        }
+    }
+
+    public class ValidateIP4NonDup : ValidationRule
+    // apply regular validation logic, plus check that this is not a duplicate of an entry already in dictionary
+    {
+        public override ValidationResult Validate(object value, System.Globalization.CultureInfo cultureInfo)
+        {
+            uint i = 0;
+
+            if (!IP4Util.TryParse((string)value, ref i)) return new ValidationResult(false, "Not a valid IP4 address");
+            else if (IP4Util.inmdict.ContainsKey(i)) return new ValidationResult(false, "Duplicate of IP4 address already in table");
+            else return new ValidationResult(true, "Valid IP4 Address");
         }
     }
 
@@ -313,6 +318,36 @@ namespace pviewer5
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
             return IP4Util.ToString((uint)values[0], false, true);
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            uint i = 0;
+            object[] v = new object[3];
+            v[0] = (uint)0;
+            // set v[1] and v[2] - not sure if they need to be set to their actual values, but not setting them at all leaves
+            // them null, and then validation fails even if input if valid
+            v[1] = GUIUtil.Instance.Hex;
+            v[2] = GUIUtil.Instance.UseAliases;
+
+            if (IP4Util.TryParse((string)value, ref i))
+            {
+                v[0] = i;
+                return v;
+            }
+            // the tryparse should never fail because Validation should have prevented any errors, but just in case, return a zero value
+            else return v;
+        }
+    }
+
+    public class IP4MVConverterNumberOnly : IMultiValueConverter
+    {
+        // converts number to/from display format IP4 address
+        // takes two additional arguments, because this will be used as part of a MultiBinding that also binds to Hex and UseAliases
+
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            return IP4Util.ToString((uint)values[0], false, false);
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)

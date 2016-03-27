@@ -25,6 +25,7 @@
         <local:IP4Converter x:Key="IP4converter"/>
         <local:IP4ConverterForTooltip x:Key="IP4converterfortooltip"/>
         <local:IP4MVConverter x:Key="IP4mvconverter"/>
+        <local:IP4MVConverterNumberOnly x:Key="IP4mvconverternumberonly"/>
         <local:IP4MVConverterForTooltip x:Key="IP4mvconverterfortooltip"/>
         <local:MACConverter x:Key="MACconverter"/>
         <local:MACConverterForTooltip x:Key="MACconverterfortooltip"/>
@@ -555,11 +556,15 @@
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="IP4 Address">
                                 <DataGridTextColumn.Binding>
-                                    <Binding Path="IP4" Converter="{StaticResource IP4converternumberonly}" >
-                                        <Binding.ValidationRules>
-                                            <local:ValidateIP4/>
-                                        </Binding.ValidationRules>
-                                    </Binding>
+                                    <MultiBinding Converter="{StaticResource IP4mvconverternumberonly}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
+                                        <MultiBinding.ValidationRules>
+                                            <local:ValidateIP4NonDup ValidationStep="RawProposedValue"/>
+                                        </MultiBinding.ValidationRules>
+                                        <Binding Path="Value" Mode="TwoWay">
+                                        </Binding>
+                                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
+                                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                                    </MultiBinding>
                                 </DataGridTextColumn.Binding>
                             </DataGridTextColumn>
                             <DataGridTextColumn Header="Alias" Binding="{Binding alias}"/>
