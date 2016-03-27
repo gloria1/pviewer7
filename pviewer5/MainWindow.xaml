@@ -548,7 +548,7 @@
 				            VirtualizingPanel.IsVirtualizing="True"
 				            VirtualizingPanel.VirtualizationMode="Recycling"
 				            AutoGenerateColumns="False"
-				            ItemsSource="{Binding Path=inmdgtable}"
+				            ItemsSource="{Binding Path=IP4Util.inmtable}"
 				            ItemStringFormat="x"
 				            CanUserAddRows="False"
                             CellEditEnding="inmcelleditending"> 

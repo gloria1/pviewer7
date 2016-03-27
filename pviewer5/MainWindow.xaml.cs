@@ -134,7 +134,6 @@ namespace pviewer5
         // properties for ip4 map view
         public static RoutedCommand inmaddrow = new RoutedCommand();
         CommandBinding inmaddrowbinding;
-        public IP4Util.IP4nametableclass inmdgtable { get; set; }
         private bool _inmchgsincesave = false;
         public bool inmchangedsincesavedtodisk { get { return _inmchgsincesave; } set { _inmchgsincesave = value; NotifyPropertyChanged(); } }
 
@@ -167,9 +166,8 @@ namespace pviewer5
             // set up domain map view
 
             // set up ip4 map view
-            inmdgtable = IP4Util.Instance.map.maptotable();
             inmbuttonbar.DataContext = this;
-            INMDG.DataContext = this;
+            INMDG.DataContext = IP4Util.inmtable;
             inmaddrowbinding = new CommandBinding(inmaddrow, inmExecutedaddrow, inmCanExecuteaddrow);
             INMDG.CommandBindings.Add(inmaddrowbinding);
             inmaddrowmenuitem.CommandTarget = INMDG;   // added this so that menu command would not be disabled when datagrid first created; not sure exactly why this works, books/online articles refer to WPF not correctly determining the intended command target based on focus model (logical focus? keyboard focus?), so you have to set the command target explicitly

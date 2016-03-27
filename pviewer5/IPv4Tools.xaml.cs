@@ -75,6 +75,12 @@ namespace pviewer5
 
 /*
         BOOKMARK
+            HANDLE CASE WHERE TRY TO CHNAGE IP4 TO SAME VALUE AS ANOTHER IN THE DICT
+                CAN A PROPERTY SETTER THROW AND EXCEPTION? --> don't do this, data binding will not know how to handle exception
+                --> NEED TO REJECT THE DUP IN THE SETTER
+                --> NEED TO CATCH USER INPUT DUPS IN VALIDATION
+            
+            
             RE-THINK CHANGE PROPAGATION BETWEEN DICT AND TABLE AND GUI
                 DICT CHANGE DUE TO LOAD/APPEND -> REFRESH TABLE -> REFRESH GUI TABLE -> REFRESH REST OF GUI
                 TABLEITEM CHANGE DUE TO USER EDITING -> REFRESH REST OF GUI -> UPDATE DICT
@@ -84,9 +90,35 @@ namespace pviewer5
         public class inmtableitem : INotifyPropertyChanged
         {
             private uint _ip4;
-            public uint IP4 { get { return _ip4; } set { _ip4 = value; NotifyPropertyChanged(); } }
+            public uint IP4
+            {
+                get { return _ip4; }
+                set
+                {
+                    // need to update inmdict to keep in sync - i think we need to delete old item and add a new one
+                    string s = inmdict[_ip4];
+                    inmdict.Remove(_ip4);
+                    inmdict.Add(value, s);
+
+                    _ip4 = value;
+                    NotifyPropertyChanged();        // notify the datagrid
+                    GUIUtil.Instance.UseAliases = GUIUtil.Instance.UseAliases;    // this will trigger notification of any other gui items that use aliases
+                }
+            }
             private string _alias;
-            public string alias { get { return _alias; } set { _alias = value; NotifyPropertyChanged(); } }
+            public string alias
+            {
+                get { return _alias; }
+                set
+                {
+                    // update inmdict
+                    inmdict[_ip4] = value;
+
+                    _alias = value;
+                    NotifyPropertyChanged();        // notify the datagrid
+                    GUIUtil.Instance.UseAliases = GUIUtil.Instance.UseAliases;    // this will trigger notifications of any other gui items that use aliases
+                }
+            }
 
             public inmtableitem(uint u, string s)
             {
