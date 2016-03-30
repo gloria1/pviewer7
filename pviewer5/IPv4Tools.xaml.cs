@@ -47,27 +47,12 @@ namespace pviewer5
 
 
         // backing model for ip4 name map - it is a dictionary since we want to be able to look up by just indexing the map with an ip4 address
+        // viewmodel is in MainWindow class
         public static Dictionary<uint, string> inmdict = new Dictionary<uint, string>()
         {
                 {0x00000000, "ALL ZEROES"},
         };
 
-        // view model for mapping of IP4 values to aliases
-        public static ObservableCollection<inmtableitem> inmtable = new ObservableCollection<inmtableitem>();
-
-/*
-        BOOKMARK
-            HANDLE CASE WHERE TRY TO CHNAGE IP4 TO SAME VALUE AS ANOTHER IN THE DICT
-                CAN A PROPERTY SETTER THROW AND EXCEPTION? --> don't do this, data binding will not know how to handle exception
-                --> NEED TO REJECT THE DUP IN THE SETTER
-                --> NEED TO CATCH USER INPUT DUPS IN VALIDATION
-            
-            
-            RE-THINK CHANGE PROPAGATION BETWEEN DICT AND TABLE AND GUI
-                DICT CHANGE DUE TO LOAD/APPEND -> REFRESH TABLE -> REFRESH GUI TABLE -> REFRESH REST OF GUI
-                TABLEITEM CHANGE DUE TO USER EDITING -> REFRESH REST OF GUI -> UPDATE DICT
-            REVISE IMPLEMENATION OF FILE LOAD/SAVE/APPEND
-            */
 
         public class inmtableitem : INotifyPropertyChanged
         {

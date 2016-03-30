@@ -132,10 +132,12 @@ namespace pviewer5
         // properties for domain map view
 
         // properties for ip4 map view
-        public static RoutedCommand inmaddrow = new RoutedCommand();
+        public RoutedCommand inmaddrow = new RoutedCommand();
         CommandBinding inmaddrowbinding;
         private bool _inmchgsincesave = false;
         public bool inmchangedsincesavedtodisk { get { return _inmchgsincesave; } set { _inmchgsincesave = value; NotifyPropertyChanged(); } }
+                // view model for mapping of IP4 values to aliases
+        public ObservableCollection<IP4Util.inmtableitem> inmtable = new ObservableCollection<IP4Util.inmtableitem>();
 
         // properties for mac map view
 
@@ -143,6 +145,10 @@ namespace pviewer5
 
         public MainWindow()
         {
+            // initialize window
+            InitializeComponent();
+            gridmain.DataContext = this;
+
             // set up packet list view
             pkts = new ObservableCollection<Packet>();
             grouplistlist = new ObservableCollection<GList>();
@@ -167,16 +173,12 @@ namespace pviewer5
 
             // set up ip4 map view
             inmbuttonbar.DataContext = this;
-            INMDG.DataContext = IP4Util.inmtable;
+            INMDG.DataContext = this;
             inmaddrowbinding = new CommandBinding(inmaddrow, inmExecutedaddrow, inmCanExecuteaddrow);
             INMDG.CommandBindings.Add(inmaddrowbinding);
             inmaddrowmenuitem.CommandTarget = INMDG;   // added this so that menu command would not be disabled when datagrid first created; not sure exactly why this works, books/online articles refer to WPF not correctly determining the intended command target based on focus model (logical focus? keyboard focus?), so you have to set the command target explicitly
 
             // set up mac map view
-
-            // initialize window
-            InitializeComponent();
-			gridmain.DataContext = this;
 
             // try to restore window position and other settings - see "Programing WPF Second Edition" page 321
             try
@@ -428,7 +430,7 @@ namespace pviewer5
             if (dlg.ShowDialog() == true)
             {
                 fs = new FileStream(dlg.FileName, FileMode.OpenOrCreate);
-                foreach (IP4Util.inmtableitem i in IP4Util.inmtable) formatter.Serialize(fs, i);
+                foreach (IP4Util.inmtableitem i in inmtable) formatter.Serialize(fs, i);
                 inmchangedsincesavedtodisk = false;
                 fs.Close();
             }

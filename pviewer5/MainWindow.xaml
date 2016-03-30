@@ -549,7 +549,7 @@
 				            VirtualizingPanel.IsVirtualizing="True"
 				            VirtualizingPanel.VirtualizationMode="Recycling"
 				            AutoGenerateColumns="False"
-				            ItemsSource="{Binding Path=IP4Util.inmtable}"
+				            ItemsSource="{Binding Path=inmtable}"
 				            ItemStringFormat="x"
 				            CanUserAddRows="False"
                             CellEditEnding="inmcelleditending"> 
@@ -571,7 +571,7 @@
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu>
-                                <MenuItem x:Name="inmaddrowmenuitem" Header="Add Row" Command="{x:Static local:IP4NameMapDialog.inmaddrow}"/>
+                                <MenuItem x:Name="inmaddrowmenuitem" Header="Add Row" Command="inmaddrow"/>
                                 <MenuItem x:Name="inmdelrowmenuitem" Header="Delete Row"/>
                             </ContextMenu>
                         </DataGrid.ContextMenu>
