@@ -558,7 +558,7 @@
                                         <MultiBinding.ValidationRules>
                                             <local:ValidateIP4NonDup ValidationStep="RawProposedValue"/>
                                         </MultiBinding.ValidationRules>
-                                        <Binding Path="Value" Mode="TwoWay">
+                                        <Binding Path="IP4" Mode="TwoWay">
                                         </Binding>
                                         <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                                         <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>

@@ -132,7 +132,7 @@ namespace pviewer5
         // properties for domain map view
 
         // properties for ip4 map view
-        public IP4Util inm {get; set;}
+        public IP4Util inm { get; set; } = IP4Util.Instance;
         CommandBinding inmaddrowbinding;
         CommandBinding inmdelrowbinding;
         CommandBinding inmsavebinding;
@@ -173,7 +173,6 @@ namespace pviewer5
             // set up domain map view
 
             // set up ip4 map view
-            inm = new IP4Util();
             inmaddrowbinding = new CommandBinding(IP4Util.inmaddrow, IP4Util.inmExecutedaddrow, IP4Util.inmCanExecuteaddrow);
             inmdelrowbinding = new CommandBinding(IP4Util.inmdelrow, IP4Util.inmExecuteddelrow, IP4Util.inmCanExecutedelrow);
             inmsavebinding = new CommandBinding(IP4Util.inmsave, IP4Util.inmExecutedsave, IP4Util.inmCanExecutesave);
