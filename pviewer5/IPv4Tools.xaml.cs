@@ -44,7 +44,7 @@ namespace pviewer5
 
         // view model for mapping of IP4 values to aliases
         // needs to be non-static so that it can be part of an instance that
-        // is part of the MainWindow instance so that the xaml can
+        // is referenced by the MainWindow instance so that the xaml can
         // reference it in a databinding
         public ObservableCollection<inmtableitem> inmtable { get; set; } = new ObservableCollection<inmtableitem>();
         public bool inmchangedsincesavedtodisk = false;
@@ -90,8 +90,13 @@ namespace pviewer5
 
             public inmtableitem(uint u, string s)
             {
-                // prevent adding a new item with a duplicate ip4 address
-                while (IP4Util.inmdict.ContainsKey(u)) u++;
+                // fail if adding a new item with a duplicate ip4 address
+                // this should never happen - consistency between table and dict 
+                // should be maintained elsewhere
+                if (IP4Util.inmdict.ContainsKey(u))
+                {
+                    MessageBox.Show("ATTEMPT TO CREATE DUPLICATE IP4 ENTRY IN IP4 NAME MAP\nTHIS SHOULD NEVER HAPPEN");
+                }
 
                 IP4 = u;
                 alias = s;

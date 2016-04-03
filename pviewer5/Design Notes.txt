@@ -3,12 +3,18 @@
 next:
 
 	next on ip4 map
+		review design for how inm dict and table are kept in sync
+			--> make dict readonly
+			--> all chnage operations are done to table
+			--> table code updates dict accordingly
+			--> what is stored on disk is inmtableitems,
+					
+
 		handle validation of additions/changes to table
             HANDLE CASE WHERE TRY TO CHNAGE IP4 TO SAME VALUE AS ANOTHER IN THE DICT
                 CAN A PROPERTY SETTER THROW AND EXCEPTION? --> don't do this, data binding will not know how to handle exception
                 --> NEED TO REJECT THE DUP IN THE SETTER
                 --> NEED TO CATCH USER INPUT DUPS IN VALIDATION
-            
             
         RE-THINK CHANGE PROPAGATION BETWEEN DICT AND TABLE AND GUI
                 DICT CHANGE DUE TO LOAD/APPEND -> REFRESH TABLE -> REFRESH GUI TABLE -> REFRESH REST OF GUI
