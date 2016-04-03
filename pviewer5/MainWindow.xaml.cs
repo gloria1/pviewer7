@@ -402,6 +402,20 @@ namespace pviewer5
             return;
         }
 
+        public void inmcelleditending(object sender, DataGridCellEditEndingEventArgs e)
+        // this is part of the ip4 name map logic but it needs to be in MainWindow class
+        // because it is an event handler and that needs to be in the
+        // class 
+            
+            // handle CellEditEnding event from the datagrid
+        {
+            IP4Util.Instance.inmchangedsincesavedtodisk = true;
+        }
+
+
+
+
+
         private void TextBox_KeyUp(object sender, KeyEventArgs e)
         {
             TextBox tBox = (TextBox)sender;

@@ -251,12 +251,6 @@ namespace pviewer5
 
             return true;
         }
-        private void inmcelleditending(object sender, DataGridCellEditEndingEventArgs e)
-        // handle CellEditEnding event from the datagrid
-        {
-            inmchangedsincesavedtodisk = true;
-        }
-
 
 
         private void inmSaveToDisk(object sender, RoutedEventArgs e)
