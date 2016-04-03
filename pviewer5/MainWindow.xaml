@@ -546,7 +546,7 @@
 				            VirtualizingPanel.IsVirtualizing="True"
 				            VirtualizingPanel.VirtualizationMode="Recycling"
 				            AutoGenerateColumns="False"
-				            ItemsSource="{Binding Path=inmtable}"
+				            ItemsSource="{Binding Path=inm.inmtable}"
 				            ItemStringFormat="x"
 				            CanUserAddRows="False"
                         CellEditEnding="inmcelleditending">
@@ -573,6 +573,7 @@
                                 <MenuItem x:Name="inmdelrowmenuitem" Header="Delete Row" Command="{x:Static local:IP4Util.inmdelrow}"/>
                             </ContextMenu>
                         </DataGrid.ContextMenu>
+
                     </DataGrid>
                 </GroupBox>
 

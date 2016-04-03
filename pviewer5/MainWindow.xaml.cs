@@ -132,6 +132,7 @@ namespace pviewer5
         // properties for domain map view
 
         // properties for ip4 map view
+        public IP4Util inm {get; set;}
         CommandBinding inmaddrowbinding;
         CommandBinding inmdelrowbinding;
         CommandBinding inmsavebinding;
@@ -172,8 +173,7 @@ namespace pviewer5
             // set up domain map view
 
             // set up ip4 map view
-            inmbuttonbar.DataContext = this;
-            INMDG.DataContext = this;
+            inm = new IP4Util();
             inmaddrowbinding = new CommandBinding(IP4Util.inmaddrow, IP4Util.inmExecutedaddrow, IP4Util.inmCanExecuteaddrow);
             inmdelrowbinding = new CommandBinding(IP4Util.inmdelrow, IP4Util.inmExecuteddelrow, IP4Util.inmCanExecutedelrow);
             inmsavebinding = new CommandBinding(IP4Util.inmsave, IP4Util.inmExecutedsave, IP4Util.inmCanExecutesave);
@@ -181,12 +181,18 @@ namespace pviewer5
             inmappendbinding = new CommandBinding(IP4Util.inmappend, IP4Util.inmExecutedappend, IP4Util.inmCanExecuteappend);
             inmloadbinding = new CommandBinding(IP4Util.inmload, IP4Util.inmExecutedload, IP4Util.inmCanExecuteload);
 
-            INMDG.CommandBindings.Add(inmaddrowbinding);
-            inmaddrowmenuitem.CommandTarget = INMDG;   // added this so that menu command would not be disabled when datagrid first created; not sure exactly why this works, books/online articles refer to WPF not correctly determining the intended command target based on focus model (logical focus? keyboard focus?), so you have to set the command target explicitly
+            inmgrid.CommandBindings.Add(inmaddrowbinding);
+            inmgrid.CommandBindings.Add(inmdelrowbinding);
+            inmgrid.CommandBindings.Add(inmsavebinding);
+            inmgrid.CommandBindings.Add(inmsaveasbinding);
+            inmgrid.CommandBindings.Add(inmappendbinding);
+            inmgrid.CommandBindings.Add(inmloadbinding);
+            inmaddrowmenuitem.CommandTarget = inmgrid;   // added this so that menu command would not be disabled when datagrid first created; not sure exactly why this works, books/online articles refer to WPF not correctly determining the intended command target based on focus model, and it seems the data grid (and even the whole window) do not have keyboard focus when the application starts up
+            inmdelrowmenuitem.CommandTarget = inmgrid;   // ditto
 
             // set up mac map view
 
-            // try to restore window position and other settings - see "Programing WPF Second Edition" page 321
+            // try to restore window position and other settings - see "Programming WPF Second Edition" page 321
             try
             {
                 Rect bounds = Properties.Settings.Default.WindowPositionMain;
@@ -404,17 +410,15 @@ namespace pviewer5
 
         public void inmcelleditending(object sender, DataGridCellEditEndingEventArgs e)
         // this is part of the ip4 name map logic but it needs to be in MainWindow class
-        // because it is an event handler and that needs to be in the
-        // class 
+        // because it is an event handler and the reference in the xaml needs to 
+        // be to something in the object to which it belongs, in this case the
+        // MainWindow instance
             
-            // handle CellEditEnding event from the datagrid
+        // this handles the CellEditEnding event from the datagrid
+        // by marking the "changed since saved" flag true
         {
             IP4Util.Instance.inmchangedsincesavedtodisk = true;
         }
-
-
-
-
 
         private void TextBox_KeyUp(object sender, KeyEventArgs e)
         {

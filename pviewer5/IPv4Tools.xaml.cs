@@ -30,51 +30,24 @@ namespace pviewer5
 
     public class IP4Util : INotifyPropertyChanged
     // class containing:
-    //      utility functions related to IP4 addresses (value converters, etc.)
+    // utility functions related to IP4 addresses (value converters, etc.)
     // this is implemented as a dynamic class as a Singleton, i.e., there can only ever be one instance
-    // this is because static classes cannot implement interfaces (or at least INotifyPropertyChanged)
+    // this is because static classes cannot implement interfaces (or at least not INotifyPropertyChanged)
     {
         private static readonly IP4Util instance = new IP4Util();
         public static IP4Util Instance { get { return instance; } }
 
-        public static RoutedCommand inmaddrow = new RoutedCommand();
-        public static RoutedCommand inmdelrow = new RoutedCommand();
-        public static RoutedCommand inmload = new RoutedCommand();
-        public static RoutedCommand inmappend = new RoutedCommand();
-        public static RoutedCommand inmsave = new RoutedCommand();
-        public static RoutedCommand inmsaveas = new RoutedCommand();
+        // backing model for ip4 name map - it is a dictionary since we want to be able to look up by just indexing the map with an ip4 address
+        // dictionary needs to be static so that utility functions, validation, etc. can be called from
+        // anywhere without needing an object reference
+        public static Dictionary<uint, string> inmdict = new Dictionary<uint, string>();
 
         // view model for mapping of IP4 values to aliases
-        public ObservableCollection<IP4Util.inmtableitem> inmtable = new ObservableCollection<IP4Util.inmtableitem>();
+        // needs to be non-static so that it can be part of an instance that
+        // is part of the MainWindow instance so that the xaml can
+        // reference it in a databinding
+        public ObservableCollection<inmtableitem> inmtable { get; set; } = new ObservableCollection<inmtableitem>();
         public bool inmchangedsincesavedtodisk = false;
-
-        // private constructor below was set up per the "singleton" pattern, so that no further instances of this class could be created
-        // however, for some reason this caused the data binding to IP4Hex to stop working, so i have commented this out
-        /* private IP4Util()
-        // constructor is private, so no one else can call it - the singleton instance was created in the initialization of Instance above
-        {
-            return;
-        }*/
-
-
-        // backing model for ip4 name map - it is a dictionary since we want to be able to look up by just indexing the map with an ip4 address
-        // viewmodel is in MainWindow class
-        public static Dictionary<uint, string> inmdict = new Dictionary<uint, string>()
-        {
-                {0x00000000, "ALL ZEROES"},
-        };
-
-        // implement INotifyPropertyChanged
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void NotifyPropertyChanged(String propertyName = "")
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
-
-
         public class inmtableitem : INotifyPropertyChanged
         {
             private uint _ip4;
@@ -84,16 +57,16 @@ namespace pviewer5
                 set
                 {
                     // fail if this ip4 is a duplicate of one already in the dictionary - this should have been prevented by the validation logic in the gui code
-                    if (inmdict.ContainsKey(value))
+                    if (IP4Util.inmdict.ContainsKey(value))
                     {
                         MessageBox.Show("ATTEMPT TO CREATE DUPLICATE ADDRESS IN IP4 NAME MAP DICTIONARY\nTHIS SHOULD NEVER HAPPEN");
                         return;
                     }
 
                     // need to update inmdict to keep in sync - i think we need to delete old item and add a new one
-                    string s = inmdict[_ip4];
-                    inmdict.Remove(_ip4);
-                    inmdict.Add(value, s);
+                    string s = IP4Util.inmdict[_ip4];
+                    IP4Util.inmdict.Remove(_ip4);
+                    IP4Util.inmdict.Add(value, s);
 
                     _ip4 = value;
                     NotifyPropertyChanged();        // notify the datagrid
@@ -107,7 +80,7 @@ namespace pviewer5
                 set
                 {
                     // update inmdict
-                    inmdict[_ip4] = value;
+                    IP4Util.inmdict[_ip4] = value;
 
                     _alias = value;
                     NotifyPropertyChanged();        // notify the datagrid
@@ -118,7 +91,7 @@ namespace pviewer5
             public inmtableitem(uint u, string s)
             {
                 // prevent adding a new item with a duplicate ip4 address
-                while (inmdict.ContainsKey(u)) u++;
+                while (IP4Util.inmdict.ContainsKey(u)) u++;
 
                 IP4 = u;
                 alias = s;
@@ -135,6 +108,34 @@ namespace pviewer5
             }
 
         }
+
+        public static RoutedCommand inmaddrow = new RoutedCommand();
+        public static RoutedCommand inmdelrow = new RoutedCommand();
+        public static RoutedCommand inmload = new RoutedCommand();
+        public static RoutedCommand inmappend = new RoutedCommand();
+        public static RoutedCommand inmsave = new RoutedCommand();
+        public static RoutedCommand inmsaveas = new RoutedCommand();
+
+        /*  had set up private constructor below as part of Singleton design pattern
+        but it seems to break reference to Command properties in xaml        
+        private IP4Util()
+        // constructor is private, so no one else can call it - the singleton instance was created in the initialization of Instance above
+        {
+            return;
+        }
+        */
+        
+                
+        // implement INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged(String propertyName = "")
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
 
 
         public static string ToString(uint value, bool inverthex, bool usealiasesthistime)
@@ -251,8 +252,6 @@ namespace pviewer5
 
             return true;
         }
-
-
         private void inmSaveToDisk(object sender, RoutedEventArgs e)
         {
             SaveFileDialog dlg = new SaveFileDialog();
@@ -324,29 +323,21 @@ namespace pviewer5
             // PLACEHOLDER - ADAPT NEW LOGIC FROM LOAD FROM DISK
 
         }
+
         public static void inmExecutedaddrow(object sender, ExecutedRoutedEventArgs e)
         {
+            uint newip4 = 0;
 
-            // PLACEHOLDER
-            //       ADD ROW TO DICT
-            //       ADD ROW TO TABLE
-            //       REFRESH DATAGRID
-            //       REFRESH USEALIASES 
+            // find unique value for new entry
+            while (inmdict.ContainsKey(newip4)) newip4++;
 
-
-            /*            IP4Util.IP4nametableclass q;
-                        DataGrid dg = (DataGrid)e.Source;
-
-                        q = (IP4Util.IP4nametableclass)(dg.ItemsSource);
-
-                        q.Add(new IP4Util.inmtableitem(0, ""));
-              */
+            inmdict.Add(newip4, "new");
+            IP4Util.Instance.inmtable.Add(new inmtableitem(newip4, "new"));
         }
         public static void inmCanExecuteaddrow(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = true;
         }
-
         public static void inmExecuteddelrow(object sender, ExecutedRoutedEventArgs e)
         {
         }
@@ -359,14 +350,14 @@ namespace pviewer5
         }
         public static void inmCanExecutesave(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = true;
+            e.CanExecute = IP4Util.Instance.inmchangedsincesavedtodisk;
         }
         public static void inmExecutedsaveas(object sender, ExecutedRoutedEventArgs e)
         {
         }
         public static void inmCanExecutesaveas(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = true;
+            e.CanExecute = IP4Util.Instance.inmchangedsincesavedtodisk;
         }
         public static void inmExecutedload(object sender, ExecutedRoutedEventArgs e)
         {
