@@ -528,13 +528,10 @@
 			        Grid.Row="0"
 			        HorizontalAlignment="Left"
 			        Margin="5,5,5,5">
-                            <Button Content="Apply"
-				        Click="inmSaveToDisk"
-                            IsEnabled="{Binding Path=inmchangedsincesaved}"/>
-                            <Button Content="Load from Disk"
-				        Click="inmLoadFromDisk"/>
-                            <Button Content="Append From Disk"
-				        Click="inmAppendFromDisk"/>
+                    <Button Content="Save To Disk" Command="{x:Static local:IP4Util.inmsave}"/>
+                    <Button Content="Save As To Disk" Command="{x:Static local:IP4Util.inmsaveas}"/>
+                    <Button Content="Load from Disk" Command="{x:Static local:IP4Util.inmload}"/>
+                    <Button Content="Append From Disk"  Command="{x:Static local:IP4Util.inmappend}"/>
                 </WrapPanel>
                 <GroupBox Header="Map of IP4 Addresses To Aliases"
 			        Grid.Row="1"
@@ -552,7 +549,7 @@
 				            ItemsSource="{Binding Path=inmtable}"
 				            ItemStringFormat="x"
 				            CanUserAddRows="False"
-                            CellEditEnding="inmcelleditending"> 
+                            CellEditEnding="IP4Util.inmcelleditending"> 
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="IP4 Address">
                                 <DataGridTextColumn.Binding>
@@ -571,8 +568,8 @@
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu>
-                                <MenuItem x:Name="inmaddrowmenuitem" Header="Add Row" Command="inmaddrow"/>
-                                <MenuItem x:Name="inmdelrowmenuitem" Header="Delete Row"/>
+                                <MenuItem x:Name="inmaddrowmenuitem" Header="Add Row" Command="{x:Static local:IP4Util.inmaddrow}"/>
+                                <MenuItem x:Name="inmdelrowmenuitem" Header="Delete Row" Command="{x:Static local:IP4Util.inmdelrow}"/>
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                     </DataGrid>

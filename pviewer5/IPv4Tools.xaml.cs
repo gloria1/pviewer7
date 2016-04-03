@@ -28,7 +28,7 @@ namespace pviewer5
 
 
 
-    public class IP4Util
+    public class IP4Util : INotifyPropertyChanged
     // class containing:
     //      utility functions related to IP4 addresses (value converters, etc.)
     // this is implemented as a dynamic class as a Singleton, i.e., there can only ever be one instance
@@ -36,6 +36,17 @@ namespace pviewer5
     {
         private static readonly IP4Util instance = new IP4Util();
         public static IP4Util Instance { get { return instance; } }
+
+        public static RoutedCommand inmaddrow = new RoutedCommand();
+        public static RoutedCommand inmdelrow = new RoutedCommand();
+        public static RoutedCommand inmload = new RoutedCommand();
+        public static RoutedCommand inmappend = new RoutedCommand();
+        public static RoutedCommand inmsave = new RoutedCommand();
+        public static RoutedCommand inmsaveas = new RoutedCommand();
+
+        // view model for mapping of IP4 values to aliases
+        public ObservableCollection<IP4Util.inmtableitem> inmtable = new ObservableCollection<IP4Util.inmtableitem>();
+        public bool inmchangedsincesavedtodisk = false;
 
         // private constructor below was set up per the "singleton" pattern, so that no further instances of this class could be created
         // however, for some reason this caused the data binding to IP4Hex to stop working, so i have commented this out
@@ -52,6 +63,16 @@ namespace pviewer5
         {
                 {0x00000000, "ALL ZEROES"},
         };
+
+        // implement INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged(String propertyName = "")
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
 
 
         public class inmtableitem : INotifyPropertyChanged
@@ -112,6 +133,7 @@ namespace pviewer5
                     PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
                 }
             }
+
         }
 
 
@@ -212,6 +234,163 @@ namespace pviewer5
             }
 
         }
+
+        public bool inmIsValid(DependencyObject parent)
+        {
+            // this is from http://stackoverflow.com/questions/17951045/wpf-datagrid-validation-haserror-is-always-false-mvvm
+
+            if (Validation.GetHasError(parent))
+                return false;
+
+            // Validate all the bindings on the children
+            for (int i = 0; i != VisualTreeHelper.GetChildrenCount(parent); ++i)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(parent, i);
+                if (!inmIsValid(child)) { return false; }
+            }
+
+            return true;
+        }
+        private void inmcelleditending(object sender, DataGridCellEditEndingEventArgs e)
+        // handle CellEditEnding event from the datagrid
+        {
+            inmchangedsincesavedtodisk = true;
+        }
+
+
+
+        private void inmSaveToDisk(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog dlg = new SaveFileDialog();
+            FileStream fs;
+            IFormatter formatter = new BinaryFormatter();
+
+            dlg.InitialDirectory = "c:\\pviewer\\";
+            dlg.DefaultExt = ".IP4namemap";
+            dlg.OverwritePrompt = true;
+
+            if (dlg.ShowDialog() == true)
+            {
+                fs = new FileStream(dlg.FileName, FileMode.OpenOrCreate);
+                foreach (inmtableitem i in inmtable) formatter.Serialize(fs, i);
+                inmchangedsincesavedtodisk = false;
+                fs.Close();
+            }
+
+        }
+        private void inmLoadFromDisk(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog dlg = new OpenFileDialog();
+            FileStream fs;
+            IFormatter formatter = new BinaryFormatter();
+
+            dlg.InitialDirectory = "c:\\pviewer\\";
+            dlg.DefaultExt = ".IP4namemap";
+            dlg.Multiselect = false;
+
+            if (dlg.ShowDialog() == true)
+            {
+                fs = new FileStream(dlg.FileName, FileMode.Open);
+
+                try
+                {
+                    // PLACEHOLDER
+                    //      LOAD FROM FILE TO DICT
+                    //      TRANSFER DICT TO TABLE
+                    //      TRIGGER UPDATE OF DATAGRID
+                    //      TRIGGER UPDATE OF USEALIASES DEPENDENCIES
+
+                    // inmdgtable = ((IP4Util.IP4namemapclass)formatter.Deserialize(fs)).maptotable();
+
+                    // next command re-sets ItemsSource, window on screen does not update to show new contents of dgtable, don't know why
+                    // there is probably some mechanism to get the display to update without re-setting the ItemsSource, but this seems to work
+                    //INMDG.ItemsSource = inmdgtable;
+                    //inmchangedsincesavedtodisk = false;
+                }
+                catch
+                {
+                    MessageBox.Show("File not read");
+                }
+                finally
+                {
+                    fs.Close();
+                }
+            }
+        }
+        private void inmAppendFromDisk(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog dlg = new OpenFileDialog();
+            FileStream fs;
+            IFormatter formatter = new BinaryFormatter();
+
+            dlg.InitialDirectory = "c:\\pviewer\\";
+            dlg.DefaultExt = ".IP4namemap";
+            dlg.Multiselect = false;
+
+            // PLACEHOLDER - ADAPT NEW LOGIC FROM LOAD FROM DISK
+
+        }
+        public static void inmExecutedaddrow(object sender, ExecutedRoutedEventArgs e)
+        {
+
+            // PLACEHOLDER
+            //       ADD ROW TO DICT
+            //       ADD ROW TO TABLE
+            //       REFRESH DATAGRID
+            //       REFRESH USEALIASES 
+
+
+            /*            IP4Util.IP4nametableclass q;
+                        DataGrid dg = (DataGrid)e.Source;
+
+                        q = (IP4Util.IP4nametableclass)(dg.ItemsSource);
+
+                        q.Add(new IP4Util.inmtableitem(0, ""));
+              */
+        }
+        public static void inmCanExecuteaddrow(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+
+        public static void inmExecuteddelrow(object sender, ExecutedRoutedEventArgs e)
+        {
+        }
+        public static void inmCanExecutedelrow(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+        public static void inmExecutedsave(object sender, ExecutedRoutedEventArgs e)
+        {
+        }
+        public static void inmCanExecutesave(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+        public static void inmExecutedsaveas(object sender, ExecutedRoutedEventArgs e)
+        {
+        }
+        public static void inmCanExecutesaveas(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+        public static void inmExecutedload(object sender, ExecutedRoutedEventArgs e)
+        {
+        }
+        public static void inmCanExecuteload(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+        public static void inmExecutedappend(object sender, ExecutedRoutedEventArgs e)
+        {
+        }
+        public static void inmCanExecuteappend(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+
+
+
 
     }
 
@@ -369,5 +548,11 @@ namespace pviewer5
         }
 
     }
+
+
+
+
+
+
 
 }

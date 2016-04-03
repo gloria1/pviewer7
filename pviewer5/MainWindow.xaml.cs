@@ -132,12 +132,12 @@ namespace pviewer5
         // properties for domain map view
 
         // properties for ip4 map view
-        public RoutedCommand inmaddrow = new RoutedCommand();
         CommandBinding inmaddrowbinding;
-        private bool _inmchgsincesave = false;
-        public bool inmchangedsincesavedtodisk { get { return _inmchgsincesave; } set { _inmchgsincesave = value; NotifyPropertyChanged(); } }
-                // view model for mapping of IP4 values to aliases
-        public ObservableCollection<IP4Util.inmtableitem> inmtable = new ObservableCollection<IP4Util.inmtableitem>();
+        CommandBinding inmdelrowbinding;
+        CommandBinding inmsavebinding;
+        CommandBinding inmsaveasbinding;
+        CommandBinding inmloadbinding;
+        CommandBinding inmappendbinding;
 
         // properties for mac map view
 
@@ -174,7 +174,13 @@ namespace pviewer5
             // set up ip4 map view
             inmbuttonbar.DataContext = this;
             INMDG.DataContext = this;
-            inmaddrowbinding = new CommandBinding(inmaddrow, inmExecutedaddrow, inmCanExecuteaddrow);
+            inmaddrowbinding = new CommandBinding(IP4Util.inmaddrow, IP4Util.inmExecutedaddrow, IP4Util.inmCanExecuteaddrow);
+            inmdelrowbinding = new CommandBinding(IP4Util.inmdelrow, IP4Util.inmExecuteddelrow, IP4Util.inmCanExecutedelrow);
+            inmsavebinding = new CommandBinding(IP4Util.inmsave, IP4Util.inmExecutedsave, IP4Util.inmCanExecutesave);
+            inmsaveasbinding = new CommandBinding(IP4Util.inmsaveas, IP4Util.inmExecutedsaveas, IP4Util.inmCanExecutesaveas);
+            inmappendbinding = new CommandBinding(IP4Util.inmappend, IP4Util.inmExecutedappend, IP4Util.inmCanExecuteappend);
+            inmloadbinding = new CommandBinding(IP4Util.inmload, IP4Util.inmExecutedload, IP4Util.inmCanExecuteload);
+
             INMDG.CommandBindings.Add(inmaddrowbinding);
             inmaddrowmenuitem.CommandTarget = INMDG;   // added this so that menu command would not be disabled when datagrid first created; not sure exactly why this works, books/online articles refer to WPF not correctly determining the intended command target based on focus model (logical focus? keyboard focus?), so you have to set the command target explicitly
 
@@ -395,126 +401,6 @@ namespace pviewer5
             filters.ChangedSinceApplied = filters.ChangedSinceSave = true;
             return;
         }
-
-        public bool inmIsValid(DependencyObject parent)
-        {
-            // this is from http://stackoverflow.com/questions/17951045/wpf-datagrid-validation-haserror-is-always-false-mvvm
-
-            if (Validation.GetHasError(parent))
-                return false;
-
-            // Validate all the bindings on the children
-            for (int i = 0; i != VisualTreeHelper.GetChildrenCount(parent); ++i)
-            {
-                DependencyObject child = VisualTreeHelper.GetChild(parent, i);
-                if (!inmIsValid(child)) { return false; }
-            }
-
-            return true;
-        }
-        private void inmcelleditending(object sender, DataGridCellEditEndingEventArgs e)
-        // handle CellEditEnding event from the datagrid
-        {
-            inmchangedsincesavedtodisk = true;
-        }
-        private void inmSaveToDisk(object sender, RoutedEventArgs e)
-        {
-            SaveFileDialog dlg = new SaveFileDialog();
-            FileStream fs;
-            IFormatter formatter = new BinaryFormatter();
-
-            dlg.InitialDirectory = "c:\\pviewer\\";
-            dlg.DefaultExt = ".IP4namemap";
-            dlg.OverwritePrompt = true;
-
-            if (dlg.ShowDialog() == true)
-            {
-                fs = new FileStream(dlg.FileName, FileMode.OpenOrCreate);
-                foreach (IP4Util.inmtableitem i in inmtable) formatter.Serialize(fs, i);
-                inmchangedsincesavedtodisk = false;
-                fs.Close();
-            }
-            
-        }
-        private void inmLoadFromDisk(object sender, RoutedEventArgs e)
-        {
-            OpenFileDialog dlg = new OpenFileDialog();
-            FileStream fs;
-            IFormatter formatter = new BinaryFormatter();
-
-            dlg.InitialDirectory = "c:\\pviewer\\";
-            dlg.DefaultExt = ".IP4namemap";
-            dlg.Multiselect = false;
-
-            if (dlg.ShowDialog() == true)
-            {
-                fs = new FileStream(dlg.FileName, FileMode.Open);
-
-                try
-                {
-    // PLACEHOLDER
-    //      LOAD FROM FILE TO DICT
-    //      TRANSFER DICT TO TABLE
-    //      TRIGGER UPDATE OF DATAGRID
-    //      TRIGGER UPDATE OF USEALIASES DEPENDENCIES
-
-                    // inmdgtable = ((IP4Util.IP4namemapclass)formatter.Deserialize(fs)).maptotable();
-                    
-                    // next command re-sets ItemsSource, window on screen does not update to show new contents of dgtable, don't know why
-                    // there is probably some mechanism to get the display to update without re-setting the ItemsSource, but this seems to work
-                    //INMDG.ItemsSource = inmdgtable;
-                    //inmchangedsincesavedtodisk = false;
-                }
-                catch
-                {
-                    MessageBox.Show("File not read");
-                }
-                finally
-                {
-                    fs.Close();
-                }
-            }
-        }
-        private void inmAppendFromDisk(object sender, RoutedEventArgs e)
-        {
-            OpenFileDialog dlg = new OpenFileDialog();
-            FileStream fs;
-            IFormatter formatter = new BinaryFormatter();
-
-            dlg.InitialDirectory = "c:\\pviewer\\";
-            dlg.DefaultExt = ".IP4namemap";
-            dlg.Multiselect = false;
-
-        // PLACEHOLDER - ADAPT NEW LOGIC FROM LOAD FROM DISK
-
-        }
-        private static void inmExecutedaddrow(object sender, ExecutedRoutedEventArgs e)
-        {
-
-       // PLACEHOLDER
-       //       ADD ROW TO DICT
-       //       ADD ROW TO TABLE
-       //       REFRESH DATAGRID
-       //       REFRESH USEALIASES 
-
-
-            /*            IP4Util.IP4nametableclass q;
-                        DataGrid dg = (DataGrid)e.Source;
-
-                        q = (IP4Util.IP4nametableclass)(dg.ItemsSource);
-
-                        q.Add(new IP4Util.inmtableitem(0, ""));
-              */
-        }
-        private static void inmPreviewExecutedaddrow(object sender, ExecutedRoutedEventArgs e)
-        {
-        }
-        private static void inmCanExecuteaddrow(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = true;
-        }
-
-
 
         private void TextBox_KeyUp(object sender, KeyEventArgs e)
         {
