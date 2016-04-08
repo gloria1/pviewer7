@@ -3,6 +3,33 @@
 next:
 
 	next on ip4 map
+
+		why has this been such a mess?
+			-> complications of keeping table and dict in sync
+			-> wanting to have ip4 map funtionality in separate class
+			-> wanting to have static version of map to static utility functions
+				can access it without a "this" object reference
+
+		essential elements
+			ip4 addresses - make a class for IP4
+				inherit notifypropertychanged
+				include utilities for tostring, parse, etc.
+			map of ip4-alias
+				dictionary
+				static so it's global
+				read-only
+			table of ip4-alias 
+				make is a class, friended to ip4 dict
+				make it a singleton, so i cannot accidentally create more than one
+					cannot be staic because the data binding won't work
+					or at least it is eaiser to set up binidng if table is a regular member of the window instance
+				will be viewmodel, instnace is a member of MainWindow
+			classes with validators, converters
+
+
+
+
+
 		review design for how inm dict and table are kept in sync
 			--> make dict readonly
 			--> all chnage operations are done to table
