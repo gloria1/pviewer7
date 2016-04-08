@@ -62,8 +62,8 @@ namespace pviewer5
         public DateTime Time = new DateTime(0);
         public ulong SrcMAC = 0;
         public ulong DestMAC = 0;
-        public uint SrcIP4 { get; set; } = 0;
-        public uint DestIP4 = 0;
+        public IP4 SrcIP4 { get; set; } = 0;
+        public IP4 DestIP4 = 0;
         public uint SrcPort = 0;       // UPD or TCP port, if any
         public uint DestPort = 0;
         public UDPH udphdr = null;

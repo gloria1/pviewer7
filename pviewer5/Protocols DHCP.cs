@@ -33,10 +33,10 @@ namespace pviewer5
         public uint DHCP4XID { get; set; }
         public uint DHCP4Secs { get; set; }
         public uint DHCP4Flags { get; set; }
-        public uint DHCP4ClientIP4 { get; set; }
-        public uint DHCP4YourIP4 { get; set; }
-        public uint DHCP4ServerIP4 { get; set; }
-        public uint DHCP4GatewayIP4 { get; set; }
+        public IP4 DHCP4ClientIP4 { get; set; }
+        public IP4 DHCP4YourIP4 { get; set; }
+        public IP4 DHCP4ServerIP4 { get; set; }
+        public IP4 DHCP4GatewayIP4 { get; set; }
         public ulong DHCP4ClientHWAddr { get; set; }   // lower order 8 bytes of HW address
         public ulong DHCP4ClientHWAddrHigh { get; set; }  // higher order 8 bytes of HW address
         public uint DHCP4Cookie { get; set; }
@@ -65,10 +65,10 @@ namespace pviewer5
             DHCP4XID = (uint)pkt.PData[i++]  * 0x000001000000 + (uint)pkt.PData[i++]  * 0x000000010000 + (uint)pkt.PData[i++]  * 0x000000000100 + (uint)pkt.PData[i++] ;
             DHCP4Secs = (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
             DHCP4Flags = (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
-            DHCP4ClientIP4 = (uint)pkt.PData[i++]  * 0x000001000000 + (uint)pkt.PData[i++]  * 0x000000010000 + (uint)pkt.PData[i++]  * 0x000000000100 + (uint)pkt.PData[i++] ;
-            DHCP4YourIP4 = (uint)pkt.PData[i++]  * 0x000001000000 + (uint)pkt.PData[i++]  * 0x000000010000 + (uint)pkt.PData[i++]  * 0x000000000100 + (uint)pkt.PData[i++] ;
-            DHCP4ServerIP4 = (uint)pkt.PData[i++]  * 0x000001000000 + (uint)pkt.PData[i++]  * 0x000000010000 + (uint)pkt.PData[i++]  * 0x000000000100 + (uint)pkt.PData[i++] ;
-            DHCP4GatewayIP4 = (uint)pkt.PData[i++]  * 0x000001000000 + (uint)pkt.PData[i++]  * 0x000000010000 + (uint)pkt.PData[i++]  * 0x000000000100 + (uint)pkt.PData[i++] ;
+            DHCP4ClientIP4 = (IP4)pkt.PData[i++]  * 0x000001000000 + (IP4)pkt.PData[i++]  * 0x000000010000 + (IP4)pkt.PData[i++]  * 0x000000000100 + (IP4)pkt.PData[i++] ;
+            DHCP4YourIP4 = (IP4)pkt.PData[i++]  * 0x000001000000 + (IP4)pkt.PData[i++]  * 0x000000010000 + (IP4)pkt.PData[i++]  * 0x000000000100 + (IP4)pkt.PData[i++] ;
+            DHCP4ServerIP4 = (IP4)pkt.PData[i++]  * 0x000001000000 + (IP4)pkt.PData[i++]  * 0x000000010000 + (IP4)pkt.PData[i++]  * 0x000000000100 + (IP4)pkt.PData[i++] ;
+            DHCP4GatewayIP4 = (IP4)pkt.PData[i++]  * 0x000001000000 + (IP4)pkt.PData[i++]  * 0x000000010000 + (IP4)pkt.PData[i++]  * 0x000000000100 + (IP4)pkt.PData[i++] ;
             // read bytes of client hardware addrsess, handle variable length, handle fact that bytes are "left justified" within the 16 byte field
             int ii = 0; DHCP4ClientHWAddrHigh = 0;
             while (ii < ((int)DHCP4HWAddrLen - 8)) { DHCP4ClientHWAddrHigh = DHCP4ClientHWAddrHigh * 0x100 + (ulong)pkt.PData[i++] ; ii++; }

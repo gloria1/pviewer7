@@ -6,7 +6,6 @@ next:
 
 
 		TO DO
-			revise existing code to use IP4 struct
 
 			make ip4-alias dictionary a static class
 			make properties readonly, changeable only by ip4-alias table

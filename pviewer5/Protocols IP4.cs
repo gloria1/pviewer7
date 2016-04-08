@@ -35,8 +35,8 @@ namespace pviewer5
         public uint TTL { get; set; }
         public uint Prot { get; set; }
         public uint Checksum { get; set; }
-        public uint SrcIP4 { get; set; }
-        public uint DestIP4 { get; set; }
+        public IP4 SrcIP4 { get; set; }
+        public IP4 DestIP4 { get; set; }
         public uint OptionLen { get; set; }
 
         public override string displayinfo
@@ -44,9 +44,9 @@ namespace pviewer5
             get
             {
                 return String.Format("IPv4 header, Protocol = {0:X4}, Src IP = ", Prot)
-                    + IP4Util.ToString(SrcIP4, false, true)
+                    + SrcIP4.ToString(false, true)
                     + ", Dest IP = "
-                    + IP4Util.ToString(DestIP4, false, true);
+                    + DestIP4.ToString(false, true);
             }
         }
 
@@ -69,8 +69,8 @@ namespace pviewer5
             TTL = (uint)pkt.PData[i++] ;
             Prot = (uint)pkt.PData[i++] ;
             Checksum = (uint)pkt.PData[i++]  * 0x0100 + (uint)pkt.PData[i++] ;
-            SrcIP4 = (uint)pkt.PData[i++]  * 0x01000000 + (uint)pkt.PData[i++]  * 0x00010000 + (uint)pkt.PData[i++]  * 0x0100 + (uint)pkt.PData[i++] ;
-            DestIP4 = (uint)pkt.PData[i++]  * 0x01000000 + (uint)pkt.PData[i++]  * 0x00010000 + (uint)pkt.PData[i++]  * 0x0100 + (uint)pkt.PData[i++] ;
+            SrcIP4 = (IP4)pkt.PData[i++]  * 0x01000000 + (IP4)pkt.PData[i++]  * 0x00010000 + (IP4)pkt.PData[i++]  * 0x0100 + (IP4)pkt.PData[i++] ;
+            DestIP4 = (IP4)pkt.PData[i++]  * 0x01000000 + (IP4)pkt.PData[i++]  * 0x00010000 + (IP4)pkt.PData[i++]  * 0x0100 + (IP4)pkt.PData[i++] ;
 
             OptionLen = (HdrLen * 4) - 0x14;
             i += OptionLen;

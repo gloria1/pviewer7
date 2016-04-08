@@ -32,18 +32,18 @@ namespace pviewer5
         public uint ProtAddrLen { get; set; }
         public uint Opn { get; set; }
         public ulong SenderHW { get; set; }
-        public uint SenderProt { get; set; }
+        public IP4 SenderProt { get; set; }
         public ulong TargetHW { get; set; }
-        public uint TargetProt { get; set; }
+        public IP4 TargetProt { get; set; }
   
         public override string displayinfo {
            get { 
                 if (Prot == 0x0800)     // IPv4
                     return String.Format("ARP OpCode: {0:X4}, HWType: {1:X4}, Prot {2:X4}", Opn, HWType, Prot)
                             + ", SenderHW " + MACUtil.ToString(SenderHW, true)
-                            + ", Sender IP4 " + IP4Util.ToString(SenderProt, false, true)
+                            + ", Sender IP4 " + SenderProt.ToString(false, true)
                             + ", TargetHW " + MACUtil.ToString(TargetHW, true)
-                            + ", Target IP4 " + IP4Util.ToString(TargetProt, false, true);
+                            + ", Target IP4 " + TargetProt.ToString(false, true);
                 else
                     return String.Format("ARP OpCode: {0:X4}, HWType: {1:X4}, Prot {2:X4}", Opn, HWType, Prot)
                             + ", SenderHW " + MACUtil.ToString(SenderHW, true)
@@ -91,8 +91,8 @@ namespace pviewer5
         public uint HWType;      // these are the header fields that define an ARP group
         public uint Prot;
         public ulong SenderHW;
-        public uint SenderProt;
-        public uint TargetProt;
+        public IP4 SenderProt;
+        public IP4 TargetProt;
         public override string displayinfo
         {
             get
@@ -100,8 +100,8 @@ namespace pviewer5
                 if (Prot == 0x0800)     // IPv4
                     return String.Format("ARP Group, HWType: {0:X4}, Prot {1:X4}", HWType, Prot)
                             + ", SenderHW " + MACUtil.ToString(SenderHW, true)
-                            + ", SenderIP4 " + IP4Util.ToString(SenderProt, false, true)
-                            + ", TargetIP4 " + IP4Util.ToString(TargetProt, false, true)
+                            + ", SenderIP4 " + SenderProt.ToString(false, true)
+                            + ", TargetIP4 " + TargetProt.ToString(false, true)
                             + String.Format(", Packets in Group = {0:X2}", L.Count());
 
                 else

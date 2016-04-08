@@ -34,6 +34,8 @@ namespace pviewer5
         { IP4 r = new IP4(); r.A = i; return r; }
         public static IP4 operator +(IP4 a, IP4 b)
         { IP4 r = new IP4(); r.A = a.A + b.A; return r; }
+        public static IP4 operator *(IP4 a, IP4 b)
+        { IP4 r = new IP4(); r.A = a.A * b.A; return r; }
         public static IP4 operator &(IP4 a, IP4 b)
         { IP4 r = new IP4(); r.A = a.A & b.A; return r; }
         public static IP4 operator |(IP4 a, IP4 b)
