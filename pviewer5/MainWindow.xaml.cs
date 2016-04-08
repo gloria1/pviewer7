@@ -132,7 +132,7 @@ namespace pviewer5
         // properties for domain map view
 
         // properties for ip4 map view
-        public IP4Util inm { get; set; } = IP4Util.Instance;
+        public IP4AliasMap inm { get; set; } = new IP4AliasMap();
         CommandBinding inmaddrowbinding;
         CommandBinding inmdelrowbinding;
         CommandBinding inmsavebinding;
@@ -173,12 +173,12 @@ namespace pviewer5
             // set up domain map view
 
             // set up ip4 map view
-            inmaddrowbinding = new CommandBinding(IP4Util.inmaddrow, IP4Util.inmExecutedaddrow, IP4Util.inmCanExecuteaddrow);
-            inmdelrowbinding = new CommandBinding(IP4Util.inmdelrow, IP4Util.inmExecuteddelrow, IP4Util.inmCanExecutedelrow);
-            inmsavebinding = new CommandBinding(IP4Util.inmsave, IP4Util.inmExecutedsave, IP4Util.inmCanExecutesave);
-            inmsaveasbinding = new CommandBinding(IP4Util.inmsaveas, IP4Util.inmExecutedsaveas, IP4Util.inmCanExecutesaveas);
-            inmappendbinding = new CommandBinding(IP4Util.inmappend, IP4Util.inmExecutedappend, IP4Util.inmCanExecuteappend);
-            inmloadbinding = new CommandBinding(IP4Util.inmload, IP4Util.inmExecutedload, IP4Util.inmCanExecuteload);
+            inmaddrowbinding = new CommandBinding(IP4AliasMap.inmaddrow, IP4AliasMap.inmExecutedaddrow, IP4AliasMap.inmCanExecuteaddrow);
+            inmdelrowbinding = new CommandBinding(IP4AliasMap.inmdelrow, IP4AliasMap.inmExecuteddelrow, IP4AliasMap.inmCanExecutedelrow);
+            inmsavebinding = new CommandBinding(IP4AliasMap.inmsave, IP4AliasMap.inmExecutedsave, IP4AliasMap.inmCanExecutesave);
+            inmsaveasbinding = new CommandBinding(IP4AliasMap.inmsaveas, IP4AliasMap.inmExecutedsaveas, IP4AliasMap.inmCanExecutesaveas);
+            inmappendbinding = new CommandBinding(IP4AliasMap.inmappend, IP4AliasMap.inmExecutedappend, IP4AliasMap.inmCanExecuteappend);
+            inmloadbinding = new CommandBinding(IP4AliasMap.inmload, IP4AliasMap.inmExecutedload, IP4AliasMap.inmCanExecuteload);
 
             inmgrid.CommandBindings.Add(inmaddrowbinding);
             inmgrid.CommandBindings.Add(inmdelrowbinding);
@@ -416,7 +416,7 @@ namespace pviewer5
         // this handles the CellEditEnding event from the datagrid
         // by marking the "changed since saved" flag true
         {
-            IP4Util.Instance.inmchangedsincesavedtodisk = true;
+            inm.inmchangedsincesavedtodisk = true;
         }
 
         private void TextBox_KeyUp(object sender, KeyEventArgs e)

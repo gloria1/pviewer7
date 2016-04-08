@@ -71,9 +71,9 @@ namespace pviewer5
     public class UDPG : G
     {
         // define properties of a specific group here
-        public uint SrcIP4;      // these are the header fields that define an UDP group
+        public IP4 SrcIP4;      // these are the header fields that define an UDP group
         public uint SrcPort;
-        public uint DestIP4;
+        public IP4 DestIP4;
         public uint DestPort;
 
         // define a property that will be used by the xaml data templates for the one-line display of this header in the tree
@@ -82,9 +82,9 @@ namespace pviewer5
             get
             {
                 return "UDP Group"
-                        + ", Source IP4 " + IP4Util.ToString(SrcIP4, false, true)
+                        + ", Source IP4 " + SrcIP4.ToString(false, true)
                         + String.Format(", Source Port {0:X4}", SrcPort)
-                        + ", Dest IP4 " + IP4Util.ToString(DestIP4, false, true)
+                        + ", Dest IP4 " + DestIP4.ToString(false, true)
                         + String.Format(", Dest Port {0:X4}", DestPort)
                         + String.Format(", Packets in Group = {0:X2}", L.Count());
             }

@@ -528,10 +528,10 @@
 			        Grid.Row="0"
 			        HorizontalAlignment="Left"
 			        Margin="5,5,5,5">
-                    <Button Content="Save To Disk" Command="{x:Static local:IP4Util.inmsave}"/>
-                    <Button Content="Save As To Disk" Command="{x:Static local:IP4Util.inmsaveas}"/>
-                    <Button Content="Load from Disk" Command="{x:Static local:IP4Util.inmload}"/>
-                    <Button Content="Append From Disk"  Command="{x:Static local:IP4Util.inmappend}"/>
+                    <Button Content="Save To Disk" Command="{x:Static local:IP4AliasMap.inmsave}"/>
+                    <Button Content="Save As To Disk" Command="{x:Static local:IP4AliasMap.inmsaveas}"/>
+                    <Button Content="Load from Disk" Command="{x:Static local:IP4AliasMap.inmload}"/>
+                    <Button Content="Append From Disk"  Command="{x:Static local:IP4AliasMap.inmappend}"/>
                 </WrapPanel>
                 <GroupBox Header="Map of IP4 Addresses To Aliases"
 			        Grid.Row="1"
@@ -546,7 +546,7 @@
 				            VirtualizingPanel.IsVirtualizing="True"
 				            VirtualizingPanel.VirtualizationMode="Recycling"
 				            AutoGenerateColumns="False"
-				            ItemsSource="{Binding Path=inm.inmtable}"
+				            ItemsSource="{Binding Path=inm.table}"
 				            ItemStringFormat="x"
 				            CanUserAddRows="False"
                         CellEditEnding="inmcelleditending">
@@ -569,8 +569,8 @@
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu>
-                                <MenuItem x:Name="inmaddrowmenuitem" Header="Add Row" Command="{x:Static local:IP4Util.inmaddrow}"/>
-                                <MenuItem x:Name="inmdelrowmenuitem" Header="Delete Row" Command="{x:Static local:IP4Util.inmdelrow}"/>
+                                <MenuItem x:Name="inmaddrowmenuitem" Header="Add Row" Command="{x:Static local:IP4AliasMap.inmaddrow}"/>
+                                <MenuItem x:Name="inmdelrowmenuitem" Header="Delete Row" Command="{x:Static local:IP4AliasMap.inmdelrow}"/>
                             </ContextMenu>
                         </DataGrid.ContextMenu>
 

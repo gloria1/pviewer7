@@ -199,9 +199,9 @@ namespace pviewer5
     public class TCPG : G
     {
         // define properties of a specific group here
-        public uint S1IP4;      // these are the header fields that define a TCP group
+        public IP4 S1IP4;      // these are the header fields that define a TCP group
         public uint S1Port;     // S1 indicates the sender of the first packet observed
-        public uint S2IP4;      // S2 indicates the destination of the first packet observed, i.e., the sender in the other direction
+        public IP4 S2IP4;      // S2 indicates the destination of the first packet observed, i.e., the sender in the other direction
         public uint S2Port;
 
         public enum TCPGState { NotSequencedYet, NormalStart, SequenceFailed };
@@ -410,9 +410,9 @@ namespace pviewer5
                 string r;
 
                 r = "TCP Group"
-                            + ", Stream1 IP4 " + IP4Util.ToString(S1IP4, false, true);
+                            + ", Stream1 IP4 " + S1IP4.ToString(false, true);
                 r += String.Format(", Stream1 Port {0}", S1Port);
-                r += ", Stream2 IP4 " + IP4Util.ToString(S2IP4, false, true);
+                r += ", Stream2 IP4 " + S2IP4.ToString(false, true);
                 r += String.Format(", Stream2 Port {0}", S2Port);
                 r += String.Format(", Packets in Group = {0}", L.Count())
                              + State;

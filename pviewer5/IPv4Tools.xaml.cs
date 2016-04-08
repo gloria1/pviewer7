@@ -436,7 +436,7 @@ namespace pviewer5
             IP4 i = 0;
 
             if (!i.TryParse((string)value)) return new ValidationResult(false, "Not a valid IP4 address");
-            else if (IP4AliasMap.map.ContainsKey(i)) return new ValidationResult(false, "Duplicate of IP4 address already in table");
+            else if (IP4AliasMap.Instance.ContainsKey(i)) return new ValidationResult(false, "Duplicate of IP4 address already in table");
             else return new ValidationResult(true, "Valid IP4 Address");
         }
     }
