@@ -333,10 +333,10 @@ namespace pviewer5
     {
         private SrcDest _srcdest = SrcDest.Either;
         public SrcDest Srcdest{ get { return _srcdest; } set { _srcdest = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
-        private uint _value = 0;
-        public uint Value { get { return _value; } set { _value = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
-        private uint _mask = 0xffffffff;
-        public uint Mask { get { return _mask; } set { _mask = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }     // bit mask applied to Value and to the packet being tested
+        private IP4 _value;
+        public IP4 Value { get { return _value; } set { _value = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
+        private IP4 _mask;
+        public IP4 Mask { get { return _mask; } set { _mask = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }     // bit mask applied to Value and to the packet being tested
         private Relations _relation = Relations.Equal;
         public Relations Relation { get { return _relation; } set { _relation = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
 
@@ -344,7 +344,7 @@ namespace pviewer5
         {
             bool result = false; // default result is to return no match
 
-            uint maskedtarget, maskeddata;
+            IP4 maskedtarget, maskeddata;
             maskedtarget = Value & Mask;
 
             if ((Srcdest == SrcDest.Source) || (Srcdest == SrcDest.Either))
@@ -383,6 +383,8 @@ namespace pviewer5
         public FilterItemIP4() : this(null) { }
         public FilterItemIP4(Filter parent) : base(parent)
         {
+            _value.A = 0;
+            _mask.A = 0xffffffff;
             Type = FilterType.IPv4;
             Parent = parent;
         }

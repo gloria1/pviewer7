@@ -28,7 +28,28 @@ namespace pviewer5
 
     public struct IP4
     {
-        public uint Addr;
+        public uint A;
+
+        public static implicit operator IP4(uint i)
+        { IP4 r = new IP4(); r.A = i; return r; }
+        public static IP4 operator +(IP4 a, IP4 b)
+        { IP4 r = new IP4(); r.A = a.A + b.A; return r; }
+        public static IP4 operator &(IP4 a, IP4 b)
+        { IP4 r = new IP4(); r.A = a.A & b.A; return r; }
+        public static IP4 operator |(IP4 a, IP4 b)
+        { IP4 r = new IP4(); r.A = a.A | b.A; return r; }
+        public static bool operator ==(IP4 a, IP4 b)
+        { return a.A == b.A; }
+        public static bool operator !=(IP4 a, IP4 b)
+        { return a.A != b.A; }
+        public static bool operator <=(IP4 a, IP4 b)
+        { return a.A <= b.A; }
+        public static bool operator <(IP4 a, IP4 b)
+        { return a.A < b.A; }
+        public static bool operator >=(IP4 a, IP4 b)
+        { return a.A >= b.A; }
+        public static bool operator >(IP4 a, IP4 b)
+        { return a.A > b.A; }
 
         public string ToString(bool inverthex, bool usealiasesthistime)
         // if inverthex==true, return based on !Hex
@@ -36,16 +57,16 @@ namespace pviewer5
         {
 
             if (usealiasesthistime && GUIUtil.Instance.UseAliases)
-                if (IP4Util.inmdict.ContainsKey(Addr))
-                    return IP4Util.inmdict[Addr];
+                if (IP4Util.inmdict.ContainsKey(A))
+                    return IP4Util.inmdict[A];
 
             uint[] b = new uint[4];
             string s;
 
-            b[0] = ((Addr & 0xff000000) / 0x1000000);
-            b[1] = ((Addr & 0xff0000) / 0x10000);
-            b[2] = ((Addr & 0xff00) / 0x100);
-            b[3] = ((Addr & 0xff) / 0x1);
+            b[0] = ((A & 0xff000000) / 0x1000000);
+            b[1] = ((A & 0xff0000) / 0x10000);
+            b[2] = ((A & 0xff00) / 0x100);
+            b[3] = ((A & 0xff) / 0x1);
 
             if (inverthex ^ GUIUtil.Instance.Hex) s = String.Format("{0:x2}.{1:x2}.{2:x2}.{3:x2}", b[0], b[1], b[2], b[3]);
             else s = String.Format("{0}.{1}.{2}.{3}", b[0], b[1], b[2], b[3]);
@@ -63,12 +84,12 @@ namespace pviewer5
 
             s = ToString(true, false);
             s += "\n";
-            if (IP4Util.inmdict.ContainsKey(Addr))
+            if (IP4Util.inmdict.ContainsKey(A))
             {
                 // if UseAliases, then, if this IP has an alias, we want to append the non-inverthex numerical form
                 if (GUIUtil.Instance.UseAliases) s += ToString(false, false);
                 // else return the alias
-                else s += IP4Util.inmdict[Addr];
+                else s += IP4Util.inmdict[A];
             }
 
             return s;
@@ -88,7 +109,7 @@ namespace pviewer5
 
             try
             {
-                Addr = uint.Parse(s, style);
+                A = uint.Parse(s, style);
                 return true;
             }
             // if could not parse as simple number
@@ -106,7 +127,7 @@ namespace pviewer5
 
                     try
                     {
-                        Addr = uint.Parse(IP4bits[0], style) * 0x0000000001000000 +
+                        A = uint.Parse(IP4bits[0], style) * 0x0000000001000000 +
                             uint.Parse(IP4bits[1], style) * 0x0000000000010000 +
                             uint.Parse(IP4bits[2], style) * 0x0000000000000100 +
                             uint.Parse(IP4bits[3], style) * 0x0000000000000001;
@@ -118,7 +139,7 @@ namespace pviewer5
                 foreach (uint u in IP4Util.inmdict.Keys)
                     if (s == IP4Util.inmdict[u])
                     {
-                        Addr = u;
+                        A = u;
                         return true;
                     }
 
@@ -398,9 +419,9 @@ namespace pviewer5
     {
         public override ValidationResult Validate(object value, System.Globalization.CultureInfo cultureInfo)
         {
-            uint i = 0;
+            IP4 i = 0;
 
-            if (!IP4Util.TryParse((string)value, ref i)) return new ValidationResult(false, "Not a valid IP4 address");
+            if (!i.TryParse((string)value)) return new ValidationResult(false, "Not a valid IP4 address");
             else return new ValidationResult(true, "Valid IP4 Address");
         }
     }
@@ -410,9 +431,9 @@ namespace pviewer5
     {
         public override ValidationResult Validate(object value, System.Globalization.CultureInfo cultureInfo)
         {
-            uint i = 0;
+            IP4 i = 0;
 
-            if (!IP4Util.TryParse((string)value, ref i)) return new ValidationResult(false, "Not a valid IP4 address");
+            if (!i.TryParse((string)value)) return new ValidationResult(false, "Not a valid IP4 address");
             else if (IP4Util.inmdict.ContainsKey(i)) return new ValidationResult(false, "Duplicate of IP4 address already in table");
             else return new ValidationResult(true, "Valid IP4 Address");
         }
@@ -424,13 +445,13 @@ namespace pviewer5
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return IP4Util.ToString((uint)value, false, true);
+            return ((IP4)value).ToString(false, true);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            uint i = 0;
-            if (IP4Util.TryParse((string)value, ref i)) return i;
+            IP4 i = 0;
+            if (i.TryParse((string)value)) return i;
             // the tryparse should never fail because Validation should have prevented any errors, but just in case, return a zero value
             else return 0;
         }
@@ -443,13 +464,13 @@ namespace pviewer5
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return IP4Util.ToString((uint)value, false, false);
+            return ((IP4)value).ToString(false, false);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            uint i = 0;
-            if (IP4Util.TryParse((string)value, ref i)) return i;
+            IP4 i = 0;
+            if (i.TryParse((string)value)) return i;
             // the tryparse should never fail because Validation should have prevented any errors, but just in case, return a zero value
             else return 0;
         }
@@ -463,7 +484,7 @@ namespace pviewer5
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return IP4Util.ToStringAlts((uint)value);
+            return ((IP4)value).ToStringAlts();
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -479,12 +500,12 @@ namespace pviewer5
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            return IP4Util.ToString((uint)values[0], false, true);
+            return ((IP4)values[0]).ToString(false, true);
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
-            uint i = 0;
+            IP4 i = 0;
             object[] v = new object[3];
             v[0] = (uint)0;
             // set v[1] and v[2] - not sure if they need to be set to their actual values, but not setting them at all leaves
@@ -492,7 +513,7 @@ namespace pviewer5
             v[1] = GUIUtil.Instance.Hex;
             v[2] = GUIUtil.Instance.UseAliases;
 
-            if (IP4Util.TryParse((string)value, ref i))
+            if (i.TryParse((string)value))
             {
                 v[0] = i;
                 return v;
@@ -509,12 +530,12 @@ namespace pviewer5
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            return IP4Util.ToString((uint)values[0], false, false);
+            return ((IP4)values[0]).ToString(false, false);
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
-            uint i = 0;
+            IP4 i = 0;
             object[] v = new object[3];
             v[0] = (uint)0;
             // set v[1] and v[2] - not sure if they need to be set to their actual values, but not setting them at all leaves
@@ -522,7 +543,7 @@ namespace pviewer5
             v[1] = GUIUtil.Instance.Hex;
             v[2] = GUIUtil.Instance.UseAliases;
 
-            if (IP4Util.TryParse((string)value, ref i))
+            if (i.TryParse((string)value))
             {
                 v[0] = i;
                 return v;
@@ -537,7 +558,7 @@ namespace pviewer5
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            return IP4Util.ToStringAlts((uint)values[0]);
+            return ((IP4)values[0]).ToStringAlts();
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)

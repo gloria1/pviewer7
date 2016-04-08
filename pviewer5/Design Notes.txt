@@ -10,6 +10,9 @@ next:
 
 			make ip4-alias dictionary a static class
 			make properties readonly, changeable only by ip4-alias table
+				can the IP4 struct be the key? yes, but use the int for perf reasons
+				load/save functions in here
+				throw exception if try to create duplicate ip4 entry
 			make ip4-alias table class
 				make it a singleton i.e., don't allow construction of more than one - if the time comes that we need more than one, 
 			make instance of table in mainwindow
