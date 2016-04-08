@@ -196,7 +196,9 @@ namespace pviewer5
                 get { return _ip4; }
                 set
                 {
-                    // fail if this ip4 is a duplicate of one already in the dictionary - this should have been prevented by the validation logic in the gui code
+                    // fail if this ip4 is a duplicate of one already in the dictionary 
+                    // this should never happen
+                    // gui validator logic should prevent it
                     if (IP4AliasMap.Instance.ContainsKey(value))
                     {
                         MessageBox.Show("ATTEMPT TO CREATE DUPLICATE ADDRESS IN IP4 NAME MAP DICTIONARY\nTHIS SHOULD NEVER HAPPEN");
@@ -238,8 +240,16 @@ namespace pviewer5
                     MessageBox.Show("ATTEMPT TO CREATE DUPLICATE IP4 ENTRY IN IP4 NAME MAP\nTHIS SHOULD NEVER HAPPEN");
                 }
 
-                IP4 = u;
-                alias = s;
+                // directly set the private fields, to avoid going through dictionary update logic in property setters
+                // since that logic is geared for changing an IP4 entry that already exists in the dictionary
+                _ip4 = u;
+                _alias = s;
+
+                // add new entry to map dictionary
+                Instance.map.Add(u, s);
+
+                NotifyPropertyChanged();
+
             }
 
             // implement INotifyPropertyChanged
@@ -367,7 +377,6 @@ namespace pviewer5
             // find unique value for new entry
             while (Instance.ContainsKey(newip4)) newip4 += 1;
 
-            Instance.MapAdd(newip4, "new");
             IP4AliasMap.Instance.table.Add(new inmtableitem(newip4, "new"));
         }
         public static void inmCanExecuteaddrow(object sender, CanExecuteRoutedEventArgs e)
@@ -502,7 +511,7 @@ namespace pviewer5
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            return ((IP4)values[0]).ToString(false, true);
+            return ((IP4)(values[0])).ToString(false, true);
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
@@ -532,7 +541,7 @@ namespace pviewer5
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            return ((IP4)values[0]).ToString(false, false);
+            return ((IP4)(values[0])).ToString(false, false);
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
@@ -560,7 +569,7 @@ namespace pviewer5
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            return ((IP4)values[0]).ToStringAlts();
+            return ((IP4)(values[0])).ToStringAlts();
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
