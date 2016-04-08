@@ -63,8 +63,8 @@ namespace pviewer5
         {
 
             if (usealiasesthistime && GUIUtil.Instance.UseAliases)
-                if (IP4AliasMap.map.ContainsKey(A))
-                    return IP4AliasMap.map[A];
+                if (IP4AliasMap.Instance.ContainsKey(A))
+                    return IP4AliasMap.Instance.GetAlias(A);
 
             uint[] b = new uint[4];
             string s;
@@ -90,12 +90,12 @@ namespace pviewer5
 
             s = ToString(true, false);
             s += "\n";
-            if (IP4AliasMap.map.ContainsKey(A))
+            if (IP4AliasMap.Instance.ContainsKey(A))
             {
                 // if UseAliases, then, if this IP has an alias, we want to append the non-inverthex numerical form
                 if (GUIUtil.Instance.UseAliases) s += ToString(false, false);
                 // else return the alias
-                else s += IP4AliasMap.map[A];
+                else s += IP4AliasMap.Instance.GetAlias(A);
             }
 
             return s;
@@ -142,8 +142,8 @@ namespace pviewer5
                     catch { }
                 }
                 // if we have gotten this far, s was not parsed as a simple number or dot notation number, so check if it is a valid alias
-                foreach (IP4 u in IP4AliasMap.map.Keys)
-                    if (s == IP4AliasMap.map[u])
+                foreach (IP4 u in IP4AliasMap.Instance.GetKeys())
+                    if (s == IP4AliasMap.Instance.GetAlias(u))
                     {
                         A = u.A;
                         return true;
@@ -171,9 +171,15 @@ namespace pviewer5
 
 
         // backing model for ip4 name map - it is a dictionary since we want to be able to look up by just indexing the map with an ip4 address
-        // dictionary needs to be static so that utility functions, validation, etc. can be called from
-        // anywhere without needing an object reference
-        public static Dictionary<IP4, string> map = new Dictionary<IP4, string>();
+        // this is private so there is no way anything outside this class can alter the dictionary  without updating the table
+        // i.e., all external access to the map will be through the table
+        private Dictionary<IP4, string> map = new Dictionary<IP4, string>();
+        public bool ContainsKey(IP4 i) { return map.ContainsKey(i); }
+        public string GetAlias(IP4 i) { return map[i]; }
+        public void SetAlias(IP4 i, string s) { map[i] = s; }
+        public Dictionary<IP4, string>.KeyCollection GetKeys() { return map.Keys; }
+        public void MapAdd(IP4 i, string s) { map.Add(i, s); }
+        public void MapRemove(IP4 i) { map.Remove(i); }
         
         // view model for mapping of IP4 values to aliases
         // needs to be non-static so that it can be part of an instance that
@@ -191,19 +197,19 @@ namespace pviewer5
                 set
                 {
                     // fail if this ip4 is a duplicate of one already in the dictionary - this should have been prevented by the validation logic in the gui code
-                    if (map.ContainsKey(value))
+                    if (IP4AliasMap.Instance.ContainsKey(value))
                     {
                         MessageBox.Show("ATTEMPT TO CREATE DUPLICATE ADDRESS IN IP4 NAME MAP DICTIONARY\nTHIS SHOULD NEVER HAPPEN");
                         return;
                     }
 
-                    // need to update inmdict to keep in sync - i think we need to delete old item and add a new one
-                    string s = map[_ip4];
-                    map.Remove(_ip4);
-                    map.Add(value, s);
+                    // need to update dict to keep in sync - i think we need to delete old item and add a new one
+                    string s = Instance.GetAlias(_ip4);
+                    Instance.MapRemove(_ip4);
+                    Instance.MapAdd(value, s);
 
                     _ip4 = value;
-                    NotifyPropertyChanged();        // notify the datagrid
+                    NotifyPropertyChanged();        // notify the gui
                     GUIUtil.Instance.UseAliases = GUIUtil.Instance.UseAliases;    // this will trigger notification of any other gui items that use aliases
                 }
             }
@@ -213,11 +219,11 @@ namespace pviewer5
                 get { return _alias; }
                 set
                 {
-                    // update inmdict
-                    map[_ip4] = value;
+                    // update dict
+                    Instance.SetAlias(_ip4, value);
 
                     _alias = value;
-                    NotifyPropertyChanged();        // notify the datagrid
+                    NotifyPropertyChanged();        // notify the gui
                     GUIUtil.Instance.UseAliases = GUIUtil.Instance.UseAliases;    // this will trigger notifications of any other gui items that use aliases
                 }
             }
@@ -227,7 +233,7 @@ namespace pviewer5
                 // fail if adding a new item with a duplicate ip4 address
                 // this should never happen - consistency between table and dict 
                 // should be maintained elsewhere
-                if (map.ContainsKey(u))
+                if (Instance.ContainsKey(u))
                 {
                     MessageBox.Show("ATTEMPT TO CREATE DUPLICATE IP4 ENTRY IN IP4 NAME MAP\nTHIS SHOULD NEVER HAPPEN");
                 }
@@ -359,9 +365,9 @@ namespace pviewer5
             IP4 newip4 = 0;
 
             // find unique value for new entry
-            while (map.ContainsKey(newip4)) newip4 += 1;
+            while (Instance.ContainsKey(newip4)) newip4 += 1;
 
-            map.Add(newip4, "new");
+            Instance.MapAdd(newip4, "new");
             IP4AliasMap.Instance.table.Add(new inmtableitem(newip4, "new"));
         }
         public static void inmCanExecuteaddrow(object sender, CanExecuteRoutedEventArgs e)
@@ -380,14 +386,14 @@ namespace pviewer5
         }
         public static void inmCanExecutesave(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = IP4AliasMap.Instance.inmchangedsincesavedtodisk;
+            e.CanExecute = Instance.inmchangedsincesavedtodisk;
         }
         public static void inmExecutedsaveas(object sender, ExecutedRoutedEventArgs e)
         {
         }
         public static void inmCanExecutesaveas(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = IP4AliasMap.Instance.inmchangedsincesavedtodisk;
+            e.CanExecute = Instance.inmchangedsincesavedtodisk;
         }
         public static void inmExecutedload(object sender, ExecutedRoutedEventArgs e)
         {
