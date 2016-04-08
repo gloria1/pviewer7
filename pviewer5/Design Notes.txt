@@ -17,6 +17,10 @@ next:
 			make instance of table in mainwindow
 			update ip4 validators/converters
 
+			make new MAC data type
+			do all of above for MAC
+			re-vamp mac name map stuff
+
 	
 		essential elements
 			ip4 addresses - make a class for IP4

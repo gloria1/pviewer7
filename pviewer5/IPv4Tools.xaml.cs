@@ -30,6 +30,10 @@ namespace pviewer5
     {
         public uint A;
 
+        public override bool Equals(object a)
+        { return ((IP4)a).A == A; }
+        public override int GetHashCode()
+        { return A.GetHashCode(); }
         public static implicit operator IP4(uint i)
         { IP4 r = new IP4(); r.A = i; return r; }
         public static IP4 operator +(IP4 a, IP4 b)
@@ -59,8 +63,8 @@ namespace pviewer5
         {
 
             if (usealiasesthistime && GUIUtil.Instance.UseAliases)
-                if (IP4Util.inmdict.ContainsKey(A))
-                    return IP4Util.inmdict[A];
+                if (IP4AliasMap.map.ContainsKey(A))
+                    return IP4AliasMap.map[A];
 
             uint[] b = new uint[4];
             string s;
@@ -86,12 +90,12 @@ namespace pviewer5
 
             s = ToString(true, false);
             s += "\n";
-            if (IP4Util.inmdict.ContainsKey(A))
+            if (IP4AliasMap.map.ContainsKey(A))
             {
                 // if UseAliases, then, if this IP has an alias, we want to append the non-inverthex numerical form
                 if (GUIUtil.Instance.UseAliases) s += ToString(false, false);
                 // else return the alias
-                else s += IP4Util.inmdict[A];
+                else s += IP4AliasMap.map[A];
             }
 
             return s;
@@ -138,10 +142,10 @@ namespace pviewer5
                     catch { }
                 }
                 // if we have gotten this far, s was not parsed as a simple number or dot notation number, so check if it is a valid alias
-                foreach (uint u in IP4Util.inmdict.Keys)
-                    if (s == IP4Util.inmdict[u])
+                foreach (IP4 u in IP4AliasMap.map.Keys)
+                    if (s == IP4AliasMap.map[u])
                     {
-                        A = u;
+                        A = u.A;
                         return true;
                     }
 
@@ -151,52 +155,52 @@ namespace pviewer5
 
         }
 
-
     }
 
 
 
 
-
-    public class IP4Util : INotifyPropertyChanged
-    // class containing:
-    // utility functions related to IP4 addresses (value converters, etc.)
-    // this is implemented as a dynamic class as a Singleton, i.e., there can only ever be one instance
-    // this is because static classes cannot implement interfaces (or at least not INotifyPropertyChanged)
+    public class IP4AliasMap : INotifyPropertyChanged
     {
-        private static readonly IP4Util instance = new IP4Util();
-        public static IP4Util Instance { get { return instance; } }
+        public static IP4AliasMap Instance = null;
+        public IP4AliasMap()
+        {
+            if (Instance != null) MessageBox.Show("Something is instantiating a second instance of IP4AliasMap, which should never happen.");
+            else Instance = this;
+        }
+
 
         // backing model for ip4 name map - it is a dictionary since we want to be able to look up by just indexing the map with an ip4 address
         // dictionary needs to be static so that utility functions, validation, etc. can be called from
         // anywhere without needing an object reference
-        public static Dictionary<uint, string> inmdict = new Dictionary<uint, string>();
-
+        public static Dictionary<IP4, string> map = new Dictionary<IP4, string>();
+        
         // view model for mapping of IP4 values to aliases
         // needs to be non-static so that it can be part of an instance that
         // is referenced by the MainWindow instance so that the xaml can
         // reference it in a databinding
-        public ObservableCollection<inmtableitem> inmtable { get; set; } = new ObservableCollection<inmtableitem>();
+        public ObservableCollection<inmtableitem> table { get; set; } = new ObservableCollection<inmtableitem>();
+
         public bool inmchangedsincesavedtodisk = false;
         public class inmtableitem : INotifyPropertyChanged
         {
-            private uint _ip4;
-            public uint IP4
+            private IP4 _ip4;
+            public IP4 IP4
             {
                 get { return _ip4; }
                 set
                 {
                     // fail if this ip4 is a duplicate of one already in the dictionary - this should have been prevented by the validation logic in the gui code
-                    if (IP4Util.inmdict.ContainsKey(value))
+                    if (map.ContainsKey(value))
                     {
                         MessageBox.Show("ATTEMPT TO CREATE DUPLICATE ADDRESS IN IP4 NAME MAP DICTIONARY\nTHIS SHOULD NEVER HAPPEN");
                         return;
                     }
 
                     // need to update inmdict to keep in sync - i think we need to delete old item and add a new one
-                    string s = IP4Util.inmdict[_ip4];
-                    IP4Util.inmdict.Remove(_ip4);
-                    IP4Util.inmdict.Add(value, s);
+                    string s = map[_ip4];
+                    map.Remove(_ip4);
+                    map.Add(value, s);
 
                     _ip4 = value;
                     NotifyPropertyChanged();        // notify the datagrid
@@ -210,7 +214,7 @@ namespace pviewer5
                 set
                 {
                     // update inmdict
-                    IP4Util.inmdict[_ip4] = value;
+                    map[_ip4] = value;
 
                     _alias = value;
                     NotifyPropertyChanged();        // notify the datagrid
@@ -218,12 +222,12 @@ namespace pviewer5
                 }
             }
 
-            public inmtableitem(uint u, string s)
+            public inmtableitem(IP4 u, string s)
             {
                 // fail if adding a new item with a duplicate ip4 address
                 // this should never happen - consistency between table and dict 
                 // should be maintained elsewhere
-                if (IP4Util.inmdict.ContainsKey(u))
+                if (map.ContainsKey(u))
                 {
                     MessageBox.Show("ATTEMPT TO CREATE DUPLICATE IP4 ENTRY IN IP4 NAME MAP\nTHIS SHOULD NEVER HAPPEN");
                 }
@@ -251,16 +255,6 @@ namespace pviewer5
         public static RoutedCommand inmsave = new RoutedCommand();
         public static RoutedCommand inmsaveas = new RoutedCommand();
 
-        /*  had set up private constructor below as part of Singleton design pattern
-        but it seems to break reference to Command properties in xaml        
-        private IP4Util()
-        // constructor is private, so no one else can call it - the singleton instance was created in the initialization of Instance above
-        {
-            return;
-        }
-        */
-        
-                
         // implement INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;
         private void NotifyPropertyChanged(String propertyName = "")
@@ -301,7 +295,7 @@ namespace pviewer5
             if (dlg.ShowDialog() == true)
             {
                 fs = new FileStream(dlg.FileName, FileMode.OpenOrCreate);
-                foreach (inmtableitem i in inmtable) formatter.Serialize(fs, i);
+                foreach (inmtableitem i in table) formatter.Serialize(fs, i);
                 inmchangedsincesavedtodisk = false;
                 fs.Close();
             }
@@ -362,13 +356,13 @@ namespace pviewer5
 
         public static void inmExecutedaddrow(object sender, ExecutedRoutedEventArgs e)
         {
-            uint newip4 = 0;
+            IP4 newip4 = 0;
 
             // find unique value for new entry
-            while (inmdict.ContainsKey(newip4)) newip4++;
+            while (map.ContainsKey(newip4)) newip4 += 1;
 
-            inmdict.Add(newip4, "new");
-            IP4Util.Instance.inmtable.Add(new inmtableitem(newip4, "new"));
+            map.Add(newip4, "new");
+            IP4AliasMap.Instance.table.Add(new inmtableitem(newip4, "new"));
         }
         public static void inmCanExecuteaddrow(object sender, CanExecuteRoutedEventArgs e)
         {
@@ -386,14 +380,14 @@ namespace pviewer5
         }
         public static void inmCanExecutesave(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = IP4Util.Instance.inmchangedsincesavedtodisk;
+            e.CanExecute = IP4AliasMap.Instance.inmchangedsincesavedtodisk;
         }
         public static void inmExecutedsaveas(object sender, ExecutedRoutedEventArgs e)
         {
         }
         public static void inmCanExecutesaveas(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = IP4Util.Instance.inmchangedsincesavedtodisk;
+            e.CanExecute = IP4AliasMap.Instance.inmchangedsincesavedtodisk;
         }
         public static void inmExecutedload(object sender, ExecutedRoutedEventArgs e)
         {
@@ -412,9 +406,9 @@ namespace pviewer5
 
 
 
-
     }
 
+    
 
 
     public class ValidateIP4 : ValidationRule
@@ -436,7 +430,7 @@ namespace pviewer5
             IP4 i = 0;
 
             if (!i.TryParse((string)value)) return new ValidationResult(false, "Not a valid IP4 address");
-            else if (IP4Util.inmdict.ContainsKey(i)) return new ValidationResult(false, "Duplicate of IP4 address already in table");
+            else if (IP4AliasMap.map.ContainsKey(i)) return new ValidationResult(false, "Duplicate of IP4 address already in table");
             else return new ValidationResult(true, "Valid IP4 Address");
         }
     }
