@@ -141,6 +141,13 @@ namespace pviewer5
         CommandBinding inmappendbinding;
 
         // properties for mac map view
+        public MACAliasMap mnm { get; set; } = new MACAliasMap();
+        CommandBinding mnmaddrowbinding;
+        CommandBinding mnmdelrowbinding;
+        CommandBinding mnmsavebinding;
+        CommandBinding mnmsaveasbinding;
+        CommandBinding mnmloadbinding;
+        CommandBinding mnmappendbinding;
 
 
 
@@ -190,6 +197,22 @@ namespace pviewer5
             inmdelrowmenuitem.CommandTarget = inmgrid;   // ditto
 
             // set up mac map view
+            mnmaddrowbinding = new CommandBinding(MACAliasMap.mnmaddrow, MACAliasMap.mnmExecutedaddrow, MACAliasMap.mnmCanExecuteaddrow);
+            mnmdelrowbinding = new CommandBinding(MACAliasMap.mnmdelrow, MACAliasMap.mnmExecuteddelrow, MACAliasMap.mnmCanExecutedelrow);
+            mnmsavebinding = new CommandBinding(MACAliasMap.mnmsave, MACAliasMap.mnmExecutedsave, MACAliasMap.mnmCanExecutesave);
+            mnmsaveasbinding = new CommandBinding(MACAliasMap.mnmsaveas, MACAliasMap.mnmExecutedsaveas, MACAliasMap.mnmCanExecutesaveas);
+            mnmappendbinding = new CommandBinding(MACAliasMap.mnmappend, MACAliasMap.mnmExecutedappend, MACAliasMap.mnmCanExecuteappend);
+            mnmloadbinding = new CommandBinding(MACAliasMap.mnmload, MACAliasMap.mnmExecutedload, MACAliasMap.mnmCanExecuteload);
+
+            mnmgrid.CommandBindings.Add(mnmaddrowbinding);
+            mnmgrid.CommandBindings.Add(mnmdelrowbinding);
+            mnmgrid.CommandBindings.Add(mnmsavebinding);
+            mnmgrid.CommandBindings.Add(mnmsaveasbinding);
+            mnmgrid.CommandBindings.Add(mnmappendbinding);
+            mnmgrid.CommandBindings.Add(mnmloadbinding);
+            mnmaddrowmenuitem.CommandTarget = mnmgrid;   // added this so that menu command would not be disabled when datagrid first created; not sure exactly why this works, books/online articles refer to WPF not correctly determining the intended command target based on focus model, and it seems the data grid (and even the whole window) do not have keyboard focus when the application starts up
+            mnmdelrowmenuitem.CommandTarget = mnmgrid;   // ditto
+
 
             // try to restore window position and other settings - see "Programming WPF Second Edition" page 321
             try

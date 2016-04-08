@@ -30,6 +30,7 @@
         <local:MACConverter x:Key="MACconverter"/>
         <local:MACConverterForTooltip x:Key="MACconverterfortooltip"/>
         <local:MACMVConverter x:Key="MACmvconverter"/>
+        <local:MACMVConverterNumberOnly x:Key="MACmvconverternumberonly"/>
         <local:MACMVConverterForTooltip x:Key="MACmvconverterfortooltip"/>
         <local:UInt16Converter x:Key="UInt16converter"/>
         <local:UInt16ConverterForTooltip x:Key="UInt16converterfortooltip"/>
@@ -558,8 +559,7 @@
                                         <MultiBinding.ValidationRules>
                                             <local:ValidateIP4NonDup ValidationStep="RawProposedValue"/>
                                         </MultiBinding.ValidationRules>
-                                        <Binding Path="IP4" Mode="TwoWay">
-                                        </Binding>
+                                        <Binding Path="IP4" Mode="TwoWay"/>
                                         <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                                         <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
                                     </MultiBinding>
@@ -571,6 +571,66 @@
                             <ContextMenu>
                                 <MenuItem x:Name="inmaddrowmenuitem" Header="Add Row" Command="{x:Static local:IP4AliasMap.inmaddrow}"/>
                                 <MenuItem x:Name="inmdelrowmenuitem" Header="Delete Row" Command="{x:Static local:IP4AliasMap.inmdelrow}"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+
+                    </DataGrid>
+                </GroupBox>
+
+            </Grid>
+            <Grid x:Name="mnmgrid"
+                    Grid.Row="4"
+            		ShowGridLines="True">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <WrapPanel x:Name="mnmbuttonbar"
+			        Grid.Row="0"
+			        HorizontalAlignment="Left"
+			        Margin="5,5,5,5">
+                    <Button Content="Save To Disk" Command="{x:Static local:MACAliasMap.inmsave}"/>
+                    <Button Content="Save As To Disk" Command="{x:Static local:MACAliasMap.inmsaveas}"/>
+                    <Button Content="Load from Disk" Command="{x:Static local:MACAliasMap.inmload}"/>
+                    <Button Content="Append From Disk"  Command="{x:Static local:MACAliasMap.inmappend}"/>
+                </WrapPanel>
+                <GroupBox Header="Map of MAC Addresses To Aliases"
+			        Grid.Row="1"
+			        Margin="5,5,5,5">
+                    <!-- added Enable*Virtualization lines based on http://www.elegant-software.net/2014/05/performance-of-the-wpf-datagrid.html -->
+                    <!-- added VirtualizingPanel lines based on http://www.codewrecks.com/blog/index.php/2012/07/06/wpf-datagrid-poor-performance-on-sorting/ -->
+                    <!-- added CanUserAddRows="False" to prevent display of blank row at end-->
+                    <DataGrid
+				            x:Name="MNMDG"
+				            EnableColumnVirtualization="True"
+				            EnableRowVirtualization="True"
+				            VirtualizingPanel.IsVirtualizing="True"
+				            VirtualizingPanel.VirtualizationMode="Recycling"
+				            AutoGenerateColumns="False"
+				            ItemsSource="{Binding Path=mnm.table}"
+				            ItemStringFormat="x"
+				            CanUserAddRows="False"
+                            CellEditEnding="mnmcelleditending">
+
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="MAC Address">
+                                <DataGridTextColumn.Binding>
+                                    <MultiBinding Converter="{StaticResource MACmvconverternumberonly}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
+                                        <MultiBinding.ValidationRules>
+                                            <local:ValidateMACNonDup ValidationStep="RawProposedValue"/>
+                                        </MultiBinding.ValidationRules>
+                                        <Binding Path="MAC" Mode="TwoWay"/>
+                                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
+                                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                                    </MultiBinding>
+                                </DataGridTextColumn.Binding>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Alias" Binding="{Binding alias}"/>
+                        </DataGrid.Columns>
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem x:Name="mnmaddrowmenuitem" Header="Add Row" Command="{x:Static local:MACAliasMap.mnmaddrow}"/>
+                                <MenuItem x:Name="mnmdelrowmenuitem" Header="Delete Row" Command="{x:Static local:MACAliasMap.mnmdelrow}"/>
                             </ContextMenu>
                         </DataGrid.ContextMenu>
 

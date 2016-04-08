@@ -57,6 +57,8 @@ namespace pviewer5
         public static bool operator >(IP4 a, IP4 b)
         { return a.A > b.A; }
 
+        public override string ToString() { return ToString(false, true); }
+
         public string ToString(bool inverthex, bool usealiasesthistime)
         // if inverthex==true, return based on !Hex
         // if usealiasesthistime == true, then if global UseAliases is true, return the alias

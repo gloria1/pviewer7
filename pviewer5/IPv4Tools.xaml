@@ -8,8 +8,5 @@
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False" Height="468.667" Width="351">
     
-    <Window.Resources>
-        <local:IP4ConverterNumberOnly x:Key="IP4converternumberonly"/>
-    </Window.Resources>
     
 </Window>
