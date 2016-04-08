@@ -4,12 +4,18 @@ next:
 
 	next on ip4 map
 
-		why has this been such a mess?
-			-> complications of keeping table and dict in sync
-			-> wanting to have ip4 map funtionality in separate class
-			-> wanting to have static version of map to static utility functions
-				can access it without a "this" object reference
 
+		TO DO
+			revise existing code to use IP4 struct
+
+			make ip4-alias dictionary a static class
+			make properties readonly, changeable only by ip4-alias table
+			make ip4-alias table class
+				make it a singleton i.e., don't allow construction of more than one - if the time comes that we need more than one, 
+			make instance of table in mainwindow
+			update ip4 validators/converters
+
+	
 		essential elements
 			ip4 addresses - make a class for IP4
 				inherit notifypropertychanged
@@ -26,6 +32,12 @@ next:
 				will be viewmodel, instnace is a member of MainWindow
 			classes with validators, converters
 
+
+		why has this been such a mess?
+			-> complications of keeping table and dict in sync
+			-> wanting to have ip4 map funtionality in separate class
+			-> wanting to have static version of map to static utility functions
+				can access it without a "this" object reference
 
 
 

@@ -26,6 +26,113 @@ using System.Runtime.Serialization.Formatters.Binary;
 namespace pviewer5
 {
 
+    public struct IP4
+    {
+        public uint Addr;
+
+        public string ToString(bool inverthex, bool usealiasesthistime)
+        // if inverthex==true, return based on !Hex
+        // if usealiasesthistime == true, then if global UseAliases is true, return the alias
+        {
+
+            if (usealiasesthistime && GUIUtil.Instance.UseAliases)
+                if (IP4Util.inmdict.ContainsKey(Addr))
+                    return IP4Util.inmdict[Addr];
+
+            uint[] b = new uint[4];
+            string s;
+
+            b[0] = ((Addr & 0xff000000) / 0x1000000);
+            b[1] = ((Addr & 0xff0000) / 0x10000);
+            b[2] = ((Addr & 0xff00) / 0x100);
+            b[3] = ((Addr & 0xff) / 0x1);
+
+            if (inverthex ^ GUIUtil.Instance.Hex) s = String.Format("{0:x2}.{1:x2}.{2:x2}.{3:x2}", b[0], b[1], b[2], b[3]);
+            else s = String.Format("{0}.{1}.{2}.{3}", b[0], b[1], b[2], b[3]);
+
+            return s;
+        }
+
+        public string ToStringAlts()
+        // return strings of forms other than what would be returned by ToString
+        //      numerical form indicated by !Hex
+        //      if UseAliases, then numerical form based on Hex
+        //      if !UseAliases, then alias if there is one
+        {
+            string s = null;
+
+            s = ToString(true, false);
+            s += "\n";
+            if (IP4Util.inmdict.ContainsKey(Addr))
+            {
+                // if UseAliases, then, if this IP has an alias, we want to append the non-inverthex numerical form
+                if (GUIUtil.Instance.UseAliases) s += ToString(false, false);
+                // else return the alias
+                else s += IP4Util.inmdict[Addr];
+            }
+
+            return s;
+        }
+
+        public bool TryParse(string s)
+        // tries to parse string into Addr
+        // first tries to parse a simple number, respecting global Hex flag
+        // if that fails, tries to parse as a numerical dot format address, respecting global Hex flag
+        // if that fails, checks for match of an alias
+        // if no match or any errors, returns false and does not assign value
+        {
+            // first try to parse as a raw IP4 address
+            string[] IP4bits = new string[4];
+            NumberStyles style = (GUIUtil.Instance.Hex ? NumberStyles.HexNumber : NumberStyles.Integer);
+            string regexIP4 = (GUIUtil.Instance.Hex ? "^(0*[a-fA-F0-9]{0,2}.){0,3}0*[a-fA-F0-9]{0,2}$" : "^([0-9]{0,3}.){0,3}[0-9]{0,3}$");
+
+            try
+            {
+                Addr = uint.Parse(s, style);
+                return true;
+            }
+            // if could not parse as simple number
+            catch (FormatException ex)
+            {
+                // try parsing as dot notation
+                if (Regex.IsMatch(s, regexIP4))
+                {
+                    IP4bits = Regex.Split(s, "\\.");
+                    // resize array to 4 - we want to tolerate missing dots, i.e., user entering less than 4 segments,
+                    // split will produce array with number of elements equal to nmber of dots + 1
+                    Array.Resize<string>(ref IP4bits, 4);
+
+                    for (int i = 0; i < 4; i++) { IP4bits[i] = "0" + IP4bits[i]; }
+
+                    try
+                    {
+                        Addr = uint.Parse(IP4bits[0], style) * 0x0000000001000000 +
+                            uint.Parse(IP4bits[1], style) * 0x0000000000010000 +
+                            uint.Parse(IP4bits[2], style) * 0x0000000000000100 +
+                            uint.Parse(IP4bits[3], style) * 0x0000000000000001;
+                        return true;
+                    }
+                    catch { }
+                }
+                // if we have gotten this far, s was not parsed as a simple number or dot notation number, so check if it is a valid alias
+                foreach (uint u in IP4Util.inmdict.Keys)
+                    if (s == IP4Util.inmdict[u])
+                    {
+                        Addr = u;
+                        return true;
+                    }
+
+                // if we get to here, s could not be parsed in any valid way, so return false;
+                return false;
+            }
+
+        }
+
+
+    }
+
+
+
 
 
     public class IP4Util : INotifyPropertyChanged
@@ -141,105 +248,6 @@ namespace pviewer5
             }
         }
 
-
-
-        public static string ToString(uint value, bool inverthex, bool usealiasesthistime)
-        // if inverthex==true, return based on !Hex
-        // if usealiasesthistime == true, then if global UseAliases is true, return the alias
-        {
-
-            if (usealiasesthistime && GUIUtil.Instance.UseAliases)
-                if (IP4Util.inmdict.ContainsKey(value))
-                    return IP4Util.inmdict[value];
-
-            uint[] b = new uint[4];
-            string s;
-
-            b[0] = ((value & 0xff000000) / 0x1000000);
-            b[1] = ((value & 0xff0000) / 0x10000);
-            b[2] = ((value & 0xff00) / 0x100);
-            b[3] = ((value & 0xff) / 0x1);
-
-            if (inverthex ^ GUIUtil.Instance.Hex) s = String.Format("{0:x2}.{1:x2}.{2:x2}.{3:x2}", b[0], b[1], b[2], b[3]);
-            else s = String.Format("{0}.{1}.{2}.{3}", b[0], b[1], b[2], b[3]);
-
-            return s;
-        }
-
-        public static string ToStringAlts(uint value)
-        // return strings of forms other than what would be returned by ToString
-        //      numerical form indicated by !Hex
-        //      if UseAliases, then numerical form based on Hex
-        //      if !UseAliases, then alias if there is one
-        {
-            string s = null;
-
-            s = IP4Util.ToString(value, true, false);
-            s += "\n";
-            if (IP4Util.inmdict.ContainsKey(value))
-            {
-                // if UseAliases, then, if this IP has an alias, we want to append the non-inverthex numerical form
-                if (GUIUtil.Instance.UseAliases) s += IP4Util.ToString(value, false, false);
-                // else return the alias
-                else s += IP4Util.inmdict[value];
-            }
-
-            return s;
-        }
-
-        public static bool TryParse(string s, ref uint value)
-        // tries to parse string into value
-        // first tries to parse a simple number, respecting global Hex flag
-        // if that fails, tries to parse as a numerical dot format address, respecting global Hex flag
-        // if that fails, checks for match of an alias
-        // if no match or any errors, returns false and does not assign value
-        {
-            // first try to parse as a raw IP4 address
-            string[] IP4bits = new string[4];
-            NumberStyles style = (GUIUtil.Instance.Hex ? NumberStyles.HexNumber : NumberStyles.Integer);
-            string regexIP4 = (GUIUtil.Instance.Hex ? "^(0*[a-fA-F0-9]{0,2}.){0,3}0*[a-fA-F0-9]{0,2}$" : "^([0-9]{0,3}.){0,3}[0-9]{0,3}$");
-
-            try
-            {
-                value = uint.Parse(s, style);
-                return true;
-            }
-            // if could not parse as simple number
-            catch (FormatException ex)
-            {
-                // try parsing as dot notation
-                if (Regex.IsMatch(s, regexIP4))
-                {
-                    IP4bits = Regex.Split(s, "\\.");
-                    // resize array to 4 - we want to tolerate missing dots, i.e., user entering less than 4 segments,
-                    // split will produce array with number of elements equal to nmber of dots + 1
-                    Array.Resize<string>(ref IP4bits, 4);
-
-                    for (int i = 0; i < 4; i++) { IP4bits[i] = "0" + IP4bits[i]; }
-
-                    try
-                    {
-                        value = uint.Parse(IP4bits[0], style) * 0x0000000001000000 +
-                            uint.Parse(IP4bits[1], style) * 0x0000000000010000 +
-                            uint.Parse(IP4bits[2], style) * 0x0000000000000100 +
-                            uint.Parse(IP4bits[3], style) * 0x0000000000000001;
-                        return true;
-                    }
-                    catch { }
-                }
-                // if we have gotten this far, s was not parsed as a simple number or dot notation number, so check if it is a valid alias
-                foreach (uint u in IP4Util.inmdict.Keys)
-                    if (s == IP4Util.inmdict[u])
-                    {
-                        value = u;
-                        return true;
-                    }
-
-                // if we get to here, s could not be parsed in any valid way, so return false;
-                return false;
-            }
-
-        }
 
         public bool inmIsValid(DependencyObject parent)
         {
