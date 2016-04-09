@@ -30,32 +30,19 @@ namespace pviewer5
     {
         public uint A;
 
-        public override bool Equals(object a)
-        { return ((IP4)a).A == A; }
-        public override int GetHashCode()
-        { return A.GetHashCode(); }
-        public static implicit operator IP4(uint i)
-        { IP4 r = new IP4(); r.A = i; return r; }
-        public static IP4 operator +(IP4 a, IP4 b)
-        { IP4 r = new IP4(); r.A = a.A + b.A; return r; }
-        public static IP4 operator *(IP4 a, IP4 b)
-        { IP4 r = new IP4(); r.A = a.A * b.A; return r; }
-        public static IP4 operator &(IP4 a, IP4 b)
-        { IP4 r = new IP4(); r.A = a.A & b.A; return r; }
-        public static IP4 operator |(IP4 a, IP4 b)
-        { IP4 r = new IP4(); r.A = a.A | b.A; return r; }
-        public static bool operator ==(IP4 a, IP4 b)
-        { return a.A == b.A; }
-        public static bool operator !=(IP4 a, IP4 b)
-        { return a.A != b.A; }
-        public static bool operator <=(IP4 a, IP4 b)
-        { return a.A <= b.A; }
-        public static bool operator <(IP4 a, IP4 b)
-        { return a.A < b.A; }
-        public static bool operator >=(IP4 a, IP4 b)
-        { return a.A >= b.A; }
-        public static bool operator >(IP4 a, IP4 b)
-        { return a.A > b.A; }
+        public override bool Equals(object a)           { return ((IP4)a).A == A; }
+        public override int GetHashCode()               { return A.GetHashCode(); }
+        public static implicit operator IP4(uint i)     { IP4 r = new IP4(); r.A = i; return r; }
+        public static IP4 operator +(IP4 a, IP4 b)      { IP4 r = new IP4(); r.A = a.A + b.A; return r; }
+        public static IP4 operator *(IP4 a, IP4 b)      { IP4 r = new IP4(); r.A = a.A * b.A; return r; }
+        public static IP4 operator &(IP4 a, IP4 b)      { IP4 r = new IP4(); r.A = a.A & b.A; return r; }
+        public static IP4 operator |(IP4 a, IP4 b)      { IP4 r = new IP4(); r.A = a.A | b.A; return r; }
+        public static bool operator ==(IP4 a, IP4 b)    { return a.A == b.A; }
+        public static bool operator !=(IP4 a, IP4 b)    { return a.A != b.A; }
+        public static bool operator <=(IP4 a, IP4 b)    { return a.A <= b.A; }
+        public static bool operator <(IP4 a, IP4 b)     { return a.A < b.A; }
+        public static bool operator >=(IP4 a, IP4 b)    { return a.A >= b.A; }
+        public static bool operator >(IP4 a, IP4 b)     { return a.A > b.A; }
 
         public override string ToString() { return ToString(false, true); }
 
@@ -104,7 +91,7 @@ namespace pviewer5
         }
 
         public bool TryParse(string s)
-        // tries to parse string into Addr
+        // tries to parse string into A
         // first tries to parse a simple number, respecting global Hex flag
         // if that fails, tries to parse as a numerical dot format address, respecting global Hex flag
         // if that fails, checks for match of an alias

@@ -30,34 +30,21 @@ namespace pviewer5
     {
         public ulong A;
 
-        public override bool Equals(object a)
-        { return ((MAC)a).A == A; }
-        public override ulong GetHashCode()
-        { return A.GetHashCode(); }
-        public static implicit operator MAC(ulong i)
-        { MAC r = new MAC(); r.A = i; return r; }
-        public static MAC operator +(MAC a, MAC b)
-        { MAC r = new MAC(); r.A = a.A + b.A; return r; }
-        public static MAC operator *(MAC a, MAC b)
-        { MAC r = new MAC(); r.A = a.A * b.A; return r; }
-        public static MAC operator &(MAC a, MAC b)
-        { MAC r = new MAC(); r.A = a.A & b.A; return r; }
-        public static MAC operator |(MAC a, MAC b)
-        { MAC r = new MAC(); r.A = a.A | b.A; return r; }
-        public static bool operator ==(MAC a, MAC b)
-        { return a.A == b.A; }
-        public static bool operator !=(MAC a, MAC b)
-        { return a.A != b.A; }
-        public static bool operator <=(MAC a, MAC b)
-        { return a.A <= b.A; }
-        public static bool operator <(MAC a, MAC b)
-        { return a.A < b.A; }
-        public static bool operator >=(MAC a, MAC b)
-        { return a.A >= b.A; }
-        public static bool operator >(MAC a, MAC b)
-        { return a.A > b.A; }
+        public override bool Equals(object a)           { return ((MAC)a).A == A; }
+        public override ulong GetHashCode()             { return A.GetHashCode(); }
+        public static implicit operator MAC(ulong i)    { MAC r = new MAC(); r.A = i; return r; }
+        public static MAC operator +(MAC a, MAC b)      { MAC r = new MAC(); r.A = a.A + b.A; return r; }
+        public static MAC operator *(MAC a, MAC b)      { MAC r = new MAC(); r.A = a.A * b.A; return r; }
+        public static MAC operator &(MAC a, MAC b)      { MAC r = new MAC(); r.A = a.A & b.A; return r; }
+        public static MAC operator |(MAC a, MAC b)      { MAC r = new MAC(); r.A = a.A | b.A; return r; }
+        public static bool operator ==(MAC a, MAC b)    { return a.A == b.A; }
+        public static bool operator !=(MAC a, MAC b)    { return a.A != b.A; }
+        public static bool operator <=(MAC a, MAC b)    { return a.A <= b.A; }
+        public static bool operator <(MAC a, MAC b)     { return a.A < b.A; }
+        public static bool operator >=(MAC a, MAC b)    { return a.A >= b.A; }
+        public static bool operator >(MAC a, MAC b)     { return a.A > b.A; }
 
-        public override string ToString() { return ToString(false, true); }
+        public override string ToString() { return ToString(true); }
 
         public string ToString(bool usealiasesthistime)
         // if usealiasesthistime == true, then if global UseAliases is true, return the alias
@@ -92,48 +79,49 @@ namespace pviewer5
         }
 
         public bool TryParse(string s)
-        // tries to parse string into Addr
-        // first tries to parse a simple number, respecting global Hex flag
+        // tries to parse string into A
+        // first tries to parse a simple number
         // if that fails, tries to parse as a numerical dot format address, respecting global Hex flag
         // if that fails, checks for match of an alias
         // if no match or any errors, returns false and does not assign value
         {
-            // first try to parse as a raw IP4 address
-            string[] IP4bits = new string[4];
-            NumberStyles style = (GUIUtil.Instance.Hex ? NumberStyles.HexNumber : NumberStyles.Integer);
-            string regexIP4 = (GUIUtil.Instance.Hex ? "^(0*[a-fA-F0-9]{0,2}.){0,3}0*[a-fA-F0-9]{0,2}$" : "^([0-9]{0,3}.){0,3}[0-9]{0,3}$");
+            // first try to parse as a raw MAC address
+            string[] macbits = new string[6];
+            string regexmac = "^([a-fA-F0-9]{0,2}[-:]){0,5}[a-fA-F0-9]{0,2}$";
 
             try
             {
-                A = uint.Parse(s, style);
+                A = ulong.Parse(s, NumberStyles.HexNumber);
                 return true;
             }
             // if could not parse as simple number
             catch (FormatException ex)
             {
-                // try parsing as dot notation
-                if (Regex.IsMatch(s, regexIP4))
+                // try parsing as : notation
+                if (Regex.IsMatch(s, regexmac))
                 {
-                    IP4bits = Regex.Split(s, "\\.");
-                    // resize array to 4 - we want to tolerate missing dots, i.e., user entering less than 4 segments,
+                    macbits = Regex.Split(s, "[:-]");
+                    // resize array to 6 - we want to tolerate missing dots, i.e., user entering less than 4 segments,
                     // split will produce array with number of elements equal to nmber of dots + 1
-                    Array.Resize<string>(ref IP4bits, 4);
+                    Array.Resize<string>(ref macbits, 6);
 
-                    for (int i = 0; i < 4; i++) { IP4bits[i] = "0" + IP4bits[i]; }
+                    for (int i = 0; i < 6; i++) { macbits[i] = "0" + macbits[i]; }
 
                     try
                     {
-                        A = uint.Parse(IP4bits[0], style) * 0x0000000001000000 +
-                            uint.Parse(IP4bits[1], style) * 0x0000000000010000 +
-                            uint.Parse(IP4bits[2], style) * 0x0000000000000100 +
-                            uint.Parse(IP4bits[3], style) * 0x0000000000000001;
-                        return true;
+                        A = ulong.Parse(macbits[0], NumberStyles.HexNumber) * 0x0000010000000000 +
+                            ulong.Parse(macbits[1], NumberStyles.HexNumber) * 0x0000000100000000 +
+                            ulong.Parse(macbits[2], NumberStyles.HexNumber) * 0x0000000001000000 +
+                            ulong.Parse(macbits[3], NumberStyles.HexNumber) * 0x0000000000010000 +
+                            ulong.Parse(macbits[4], NumberStyles.HexNumber) * 0x0000000000000100 +
+                            ulong.Parse(macbits[5], NumberStyles.HexNumber) * 0x0000000000000001;
+                            return true;
                     }
                     catch { }
                 }
                 // if we have gotten this far, s was not parsed as a simple number or dot notation number, so check if it is a valid alias
-                foreach (IP4 u in IP4AliasMap.Instance.GetKeys())
-                    if (s == IP4AliasMap.Instance.GetAlias(u))
+                foreach (MAC u in MACAliasMap.Instance.GetKeys())
+                    if (s == MACAliasMap.Instance.GetAlias(u))
                     {
                         A = u.A;
                         return true;
@@ -445,7 +433,7 @@ namespace pviewer5
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return ((MAC)value).ToString(false, true);
+            return ((MAC)value).ToString(true);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -464,7 +452,7 @@ namespace pviewer5
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return ((MAC)value).ToString(false, false);
+            return ((MAC)value).ToString(false);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -500,7 +488,7 @@ namespace pviewer5
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            return ((MAC)(values[0])).ToString(false, true);
+            return ((MAC)(values[0])).ToString(true);
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
@@ -530,7 +518,7 @@ namespace pviewer5
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            return ((MAC)(values[0])).ToString(false, false);
+            return ((MAC)(values[0])).ToString(false);
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
