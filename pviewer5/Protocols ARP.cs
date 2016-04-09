@@ -31,24 +31,24 @@ namespace pviewer5
         public uint HWAddrLen { get; set; }
         public uint ProtAddrLen { get; set; }
         public uint Opn { get; set; }
-        public ulong SenderHW { get; set; }
+        public MAC SenderHW { get; set; }
         public IP4 SenderProt { get; set; }
-        public ulong TargetHW { get; set; }
+        public MAC TargetHW { get; set; }
         public IP4 TargetProt { get; set; }
   
         public override string displayinfo {
            get { 
                 if (Prot == 0x0800)     // IPv4
                     return String.Format("ARP OpCode: {0:X4}, HWType: {1:X4}, Prot {2:X4}", Opn, HWType, Prot)
-                            + ", SenderHW " + MACUtil.ToString(SenderHW, true)
+                            + ", SenderHW " + SenderHW.ToString(true)
                             + ", Sender IP4 " + SenderProt.ToString(false, true)
-                            + ", TargetHW " + MACUtil.ToString(TargetHW, true)
+                            + ", TargetHW " + TargetHW.ToString(true)
                             + ", Target IP4 " + TargetProt.ToString(false, true);
                 else
                     return String.Format("ARP OpCode: {0:X4}, HWType: {1:X4}, Prot {2:X4}", Opn, HWType, Prot)
-                            + ", SenderHW " + MACUtil.ToString(SenderHW, true)
+                            + ", SenderHW " + SenderHW.ToString(true)
                             + String.Format(", SenderProto {0:X8}", SenderProt)
-                            + ", TargetHW " + MACUtil.ToString(TargetHW, true)
+                            + ", TargetHW " + TargetHW.ToString(true)
                             + String.Format(", TargetProto {0:X8}", TargetProt);
             }
         }
@@ -90,7 +90,7 @@ namespace pviewer5
         // define properties of a specific group here
         public uint HWType;      // these are the header fields that define an ARP group
         public uint Prot;
-        public ulong SenderHW;
+        public MAC SenderHW;
         public IP4 SenderProt;
         public IP4 TargetProt;
         public override string displayinfo
@@ -99,14 +99,14 @@ namespace pviewer5
             {
                 if (Prot == 0x0800)     // IPv4
                     return String.Format("ARP Group, HWType: {0:X4}, Prot {1:X4}", HWType, Prot)
-                            + ", SenderHW " + MACUtil.ToString(SenderHW, true)
+                            + ", SenderHW " + SenderHW.ToString(true)
                             + ", SenderIP4 " + SenderProt.ToString(false, true)
                             + ", TargetIP4 " + TargetProt.ToString(false, true)
                             + String.Format(", Packets in Group = {0:X2}", L.Count());
 
                 else
                     return String.Format("ARP Group, HWType: {0:X4}, Prot {1:X4}", HWType, Prot)
-                            + ", SenderHW " + MACUtil.ToString(SenderHW, true)
+                            + ", SenderHW " + SenderHW.ToString(true)
                             + String.Format(", SenderProto {0:X8}", SenderProt)
                             + String.Format(", TargetProto {0:X8}", TargetProt)
                             + String.Format(", Packets in Group = {0:X2}", L.Count());

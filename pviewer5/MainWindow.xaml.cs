@@ -60,8 +60,8 @@ namespace pviewer5
         public ulong SeqNo = 0; // absolute sequence number in packet file
         public Protocols Prots = Protocols.Generic;     // flags for protocols present in this packet
         public DateTime Time = new DateTime(0);
-        public ulong SrcMAC = 0;
-        public ulong DestMAC = 0;
+        public MAC SrcMAC = 0;
+        public MAC DestMAC = 0;
         public IP4 SrcIP4 { get; set; } = 0;
         public IP4 DestIP4 = 0;
         public uint SrcPort = 0;       // UPD or TCP port, if any
@@ -148,8 +148,6 @@ namespace pviewer5
         CommandBinding mnmsaveasbinding;
         CommandBinding mnmloadbinding;
         CommandBinding mnmappendbinding;
-
-
 
         public MainWindow()
         {
@@ -440,6 +438,18 @@ namespace pviewer5
         // by marking the "changed since saved" flag true
         {
             inm.inmchangedsincesavedtodisk = true;
+        }
+
+        public void mnmcelleditending(object sender, DataGridCellEditEndingEventArgs e)
+        // this is part of the ip4 name map logic but it needs to be in MainWindow class
+        // because it is an event handler and the reference in the xaml needs to 
+        // be to something in the object to which it belongs, in this case the
+        // MainWindow instance
+
+        // this handles the CellEditEnding event from the datagrid
+        // by marking the "changed since saved" flag true
+        {
+            mnm.mnmchangedsincesavedtodisk = true;
         }
 
         private void TextBox_KeyUp(object sender, KeyEventArgs e)

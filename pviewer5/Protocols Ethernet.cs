@@ -24,8 +24,8 @@ namespace pviewer5
 {
     public class EthernetH : H
     {
-        public ulong DestMAC { get; set; }
-        public ulong SrcMAC { get; set; }
+        public MAC DestMAC { get; set; }
+        public MAC SrcMAC { get; set; }
         public uint TypeLen { get; set; }
         public override string displayinfo { get { return "Ethernet header"; } }
 

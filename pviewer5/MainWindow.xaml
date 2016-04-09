@@ -559,7 +559,7 @@
                                         <MultiBinding.ValidationRules>
                                             <local:ValidateIP4NonDup ValidationStep="RawProposedValue"/>
                                         </MultiBinding.ValidationRules>
-                                        <Binding Path="IP4" Mode="TwoWay"/>
+                                        <Binding Path="IP4.A" Mode="TwoWay"/>
                                         <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                                         <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
                                     </MultiBinding>
@@ -589,10 +589,10 @@
 			        Grid.Row="0"
 			        HorizontalAlignment="Left"
 			        Margin="5,5,5,5">
-                    <Button Content="Save To Disk" Command="{x:Static local:MACAliasMap.inmsave}"/>
-                    <Button Content="Save As To Disk" Command="{x:Static local:MACAliasMap.inmsaveas}"/>
-                    <Button Content="Load from Disk" Command="{x:Static local:MACAliasMap.inmload}"/>
-                    <Button Content="Append From Disk"  Command="{x:Static local:MACAliasMap.inmappend}"/>
+                    <Button Content="Save To Disk" Command="{x:Static local:MACAliasMap.mnmsave}"/>
+                    <Button Content="Save As To Disk" Command="{x:Static local:MACAliasMap.mnmsaveas}"/>
+                    <Button Content="Load from Disk" Command="{x:Static local:MACAliasMap.mnmload}"/>
+                    <Button Content="Append From Disk"  Command="{x:Static local:MACAliasMap.mnmappend}"/>
                 </WrapPanel>
                 <GroupBox Header="Map of MAC Addresses To Aliases"
 			        Grid.Row="1"
@@ -619,7 +619,7 @@
                                         <MultiBinding.ValidationRules>
                                             <local:ValidateMACNonDup ValidationStep="RawProposedValue"/>
                                         </MultiBinding.ValidationRules>
-                                        <Binding Path="MAC" Mode="TwoWay"/>
+                                        <Binding Path="MAC.A" Mode="TwoWay"/>
                                         <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                                         <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
                                     </MultiBinding>

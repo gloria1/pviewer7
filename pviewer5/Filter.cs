@@ -395,10 +395,10 @@ namespace pviewer5
     {
         private SrcDest _srcdest = SrcDest.Either;
         public SrcDest Srcdest { get { return _srcdest; } set { _srcdest = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
-        private ulong _value = 0;
-        public ulong Value { get { return _value; } set { _value = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
-        private ulong _mask = 0xffffffff;
-        public ulong Mask { get { return _mask; } set { _mask = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }     // bit mask applied to Value and to the packet being tested
+        private MAC _value = 0;
+        public MAC Value { get { return _value; } set { _value = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
+        private MAC _mask = 0xffffffff;
+        public MAC Mask { get { return _mask; } set { _mask = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }     // bit mask applied to Value and to the packet being tested
         private Relations _relation = Relations.Equal;
         public Relations Relation { get { return _relation; } set { _relation = value; if (Parent != null) { Parent.Parent.ChangedSinceApplied = true; Parent.Parent.ChangedSinceSave = true; } } }
 
@@ -406,7 +406,7 @@ namespace pviewer5
         {
             bool result = false; // default result is to return no match
 
-            ulong maskedtarget, maskeddata;
+            MAC maskedtarget, maskeddata;
             maskedtarget = Value & Mask;
 
             if ((Srcdest == SrcDest.Source) || (Srcdest == SrcDest.Either))

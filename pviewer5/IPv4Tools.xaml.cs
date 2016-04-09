@@ -28,7 +28,7 @@ namespace pviewer5
 
     public struct IP4
     {
-        public uint A;
+        public uint A { get; set; }
 
         public override bool Equals(object a)           { return ((IP4)a).A == A; }
         public override int GetHashCode()               { return A.GetHashCode(); }
