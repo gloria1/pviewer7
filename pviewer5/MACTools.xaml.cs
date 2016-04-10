@@ -28,9 +28,13 @@ namespace pviewer5
 
     public struct MAC
     {
-        public ulong A { get; set; }
+        public ulong A;
 
-        public override bool Equals(object a)           { return ((MAC)a).A == A; }
+        public override bool Equals(object a)
+        {
+            if (a == DependencyProperty.UnsetValue) return false;
+            else return ((MAC)a).A == A;
+        }
         public override int GetHashCode()               { return A.GetHashCode(); }
         public static implicit operator MAC(ulong i)    { MAC r = new MAC(); r.A = i; return r; }
         public static MAC operator +(MAC a, MAC b)      { MAC r = new MAC(); r.A = a.A + b.A; return r; }
@@ -177,7 +181,7 @@ namespace pviewer5
                     // fail if this MAC is a duplicate of one already in the dictionary 
                     // this should never happen
                     // gui validator logic should prevent it
-                    if (MACAliasMap.Instance.ContainsKey(value))
+                    if (Instance.ContainsKey(value))
                     {
                         MessageBox.Show("ATTEMPT TO CREATE DUPLICATE ADDRESS IN MAC NAME MAP DICTIONARY\nTHIS SHOULD NEVER HAPPEN");
                         return;
@@ -488,7 +492,9 @@ namespace pviewer5
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            return ((MAC)(values[0])).ToString(true);
+            // handle UnsetValue - this comes to the converter when gui objects are getting initialized and are not fully bound to their data source yet
+            if (values[0] == DependencyProperty.UnsetValue) return "";
+            else return ((MAC)(values[0])).ToString(true);
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
@@ -518,7 +524,9 @@ namespace pviewer5
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            return ((MAC)(values[0])).ToString(false);
+            // handle UnsetValue - this comes to the converter when gui objects are getting initialized and are not fully bound to their data source yet
+            if (values[0] == DependencyProperty.UnsetValue) return "";
+            else return ((MAC)(values[0])).ToString(false);
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
@@ -546,7 +554,9 @@ namespace pviewer5
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            return ((MAC)(values[0])).ToStringAlts();
+            // handle UnsetValue - this comes to the converter when gui objects are getting initialized and are not fully bound to their data source yet
+            if (values[0] == DependencyProperty.UnsetValue) return "";
+            else return ((MAC)(values[0])).ToStringAlts();
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)

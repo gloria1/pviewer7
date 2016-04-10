@@ -559,7 +559,7 @@
                                         <MultiBinding.ValidationRules>
                                             <local:ValidateIP4NonDup ValidationStep="RawProposedValue"/>
                                         </MultiBinding.ValidationRules>
-                                        <Binding Path="IP4.A" Mode="TwoWay"/>
+                                        <Binding Path="IP4" Mode="TwoWay"/>
                                         <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                                         <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
                                     </MultiBinding>
@@ -619,7 +619,7 @@
                                         <MultiBinding.ValidationRules>
                                             <local:ValidateMACNonDup ValidationStep="RawProposedValue"/>
                                         </MultiBinding.ValidationRules>
-                                        <Binding Path="MAC.A" Mode="TwoWay"/>
+                                        <Binding Path="MAC" Mode="TwoWay"/>
                                         <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                                         <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
                                     </MultiBinding>

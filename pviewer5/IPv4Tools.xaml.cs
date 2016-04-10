@@ -28,9 +28,13 @@ namespace pviewer5
 
     public struct IP4
     {
-        public uint A { get; set; }
+        public uint A;
 
-        public override bool Equals(object a)           { return ((IP4)a).A == A; }
+        public override bool Equals(object a)
+        {
+            if (a == DependencyProperty.UnsetValue) return false;
+            else return ((IP4)a).A == A;
+        }
         public override int GetHashCode()               { return A.GetHashCode(); }
         public static implicit operator IP4(uint i)     { IP4 r = new IP4(); r.A = i; return r; }
         public static IP4 operator +(IP4 a, IP4 b)      { IP4 r = new IP4(); r.A = a.A + b.A; return r; }
@@ -188,7 +192,7 @@ namespace pviewer5
                     // fail if this ip4 is a duplicate of one already in the dictionary 
                     // this should never happen
                     // gui validator logic should prevent it
-                    if (IP4AliasMap.Instance.ContainsKey(value))
+                    if (Instance.ContainsKey(value))
                     {
                         MessageBox.Show("ATTEMPT TO CREATE DUPLICATE ADDRESS IN IP4 NAME MAP DICTIONARY\nTHIS SHOULD NEVER HAPPEN");
                         return;
@@ -500,7 +504,9 @@ namespace pviewer5
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            return ((IP4)(values[0])).ToString(false, true);
+            // handle UnsetValue - this comes to the converter when gui objects are getting initialized and are not fully bound to their data source yet
+            if (values[0] == DependencyProperty.UnsetValue) return "";
+            else return ((IP4)(values[0])).ToString(false, true);
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
@@ -530,7 +536,9 @@ namespace pviewer5
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            return ((IP4)(values[0])).ToString(false, false);
+            // handle UnsetValue - this comes to the converter when gui objects are getting initialized and are not fully bound to their data source yet
+            if (values[0] == DependencyProperty.UnsetValue) return "";
+            else return ((IP4)(values[0])).ToString(false, false);
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
@@ -558,7 +566,9 @@ namespace pviewer5
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            return ((IP4)(values[0])).ToStringAlts();
+            // handle UnsetValue - this comes to the converter when gui objects are getting initialized and are not fully bound to their data source yet
+            if (values[0] == DependencyProperty.UnsetValue) return "";
+            else return ((IP4)(values[0])).ToStringAlts();
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
