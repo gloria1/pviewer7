@@ -78,18 +78,12 @@
     <Compile Include="Protocols ARP.cs" />
     <Compile Include="Protocols DHCP.cs" />
     <Compile Include="Protocols DNS.cs" />
-    <Compile Include="Protocols Ethernet.cs" />
+    <Compile Include="Protocols Ethernet and MAC.cs" />
     <Compile Include="Protocols Generic Template.cs" />
     <Compile Include="Protocols ICMP.cs" />
     <Compile Include="Protocols IP4.cs" />
-    <Compile Include="IPv4Tools.xaml.cs">
-      <DependentUpon>IPv4Tools.xaml</DependentUpon>
-    </Compile>
     <Compile Include="ItemTabulationPopup.xaml.cs">
       <DependentUpon>ItemTabulationPopup.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="MACTools.xaml.cs">
-      <DependentUpon>MACTools.xaml</DependentUpon>
     </Compile>
     <Compile Include="Protocols Pcap.cs" />
     <Compile Include="QuickFilterDialog.xaml.cs">
@@ -103,15 +97,7 @@
     <Compile Include="Window1.xaml.cs">
       <DependentUpon>Window1.xaml</DependentUpon>
     </Compile>
-    <Page Include="IPv4Tools.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="ItemTabulationPopup.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="MACTools.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
