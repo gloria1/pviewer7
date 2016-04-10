@@ -1,50 +1,15 @@
 ﻿
 
-next:
+	TO DO
 
-	next on ip4 map
+	file load/save/append still needs fixing for IP4 and MAC
 
+	datetime converters seem busted
 
-		TO DO
-
-			overhauling MAC code
-				still need to fix TryParse
-						
-			unresolved issues to come back to
-				IP4 MVconverter getting UnsetValue when datagrid cell goes into edit mode
-					??related to WPF being uable to set the IP4???
-				MAC override of GetHashCode not working
-				file load/save/append still needs fixing for IP4 and MAC
-
-
-
-		review design for how inm dict and table are kept in sync
-			--> make dict readonly
-			--> all chnage operations are done to table
-			--> table code updates dict accordingly
-			--> what is stored on disk is inmtableitems,
-					
-
-		handle validation of additions/changes to table
-            HANDLE CASE WHERE TRY TO CHNAGE IP4 TO SAME VALUE AS ANOTHER IN THE DICT
-                CAN A PROPERTY SETTER THROW AND EXCEPTION? --> don't do this, data binding will not know how to handle exception
-                --> NEED TO REJECT THE DUP IN THE SETTER
-                --> NEED TO CATCH USER INPUT DUPS IN VALIDATION
-            
-        RE-THINK CHANGE PROPAGATION BETWEEN DICT AND TABLE AND GUI
-                DICT CHANGE DUE TO LOAD/APPEND -> REFRESH TABLE -> REFRESH GUI TABLE -> REFRESH REST OF GUI
-                TABLEITEM CHANGE DUE TO USER EDITING -> REFRESH REST OF GUI -> UPDATE DICT
-
-        REVISE IMPLEMENATION OF FILE LOAD/SAVE/APPEND
-
+			
 
 	window layout
 		next steps:
-			ip4 map window
-				move constructor elements into MainWindow constructor
-				re-think flow of namemap dictionary<->table - they really should be databound
-					how to bind the dictionary directly to the gui?? to eliminate the need for a separate table
-			mac name map window
 			save window divider state
 			implement ip4<->dns map
 			implement code to populate the dns map when reading packet files
