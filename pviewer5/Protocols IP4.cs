@@ -56,10 +56,13 @@ namespace pviewer5
         // if inverthex==true, return based on !Hex
         // if usealiasesthistime == true, then if global UseAliases is true, return the alias
         {
-
             if (usealiasesthistime && GUIUtil.Instance.UseAliases)
-                if (IP4AliasMap.Instance.ContainsKey(A))
-                    return IP4AliasMap.Instance.GetAlias(A);
+            {
+                int aliasindex;
+
+                 aliasindex = IP4AliasMap.Instance.table.IndexOf(A);
+                 if (aliasindex != -1) return IP4AliasMap.Instance.table.Lookup(A);
+            }
 
             uint[] b = new uint[4];
             string s;
@@ -82,15 +85,16 @@ namespace pviewer5
         //      if !UseAliases, then alias if there is one
         {
             string s = null;
-
+            int aliasindex;
             s = ToString(true, false);
             s += "\n";
-            if (IP4AliasMap.Instance.ContainsKey(A))
+            aliasindex = IP4AliasMap.Instance.table.IndexOf(A);
+            if (aliasindex != -1)
             {
                 // if UseAliases, then, if this IP has an alias, we want to append the non-inverthex numerical form
                 if (GUIUtil.Instance.UseAliases) s += ToString(false, false);
                 // else return the alias
-                else s += IP4AliasMap.Instance.GetAlias(A);
+                else s += IP4AliasMap.Instance.table.Lookup(A);
             }
 
             return s;
@@ -137,10 +141,10 @@ namespace pviewer5
                     catch { }
                 }
                 // if we have gotten this far, s was not parsed as a simple number or dot notation number, so check if it is a valid alias
-                foreach (IP4 u in IP4AliasMap.Instance.GetKeys())
-                    if (s == IP4AliasMap.Instance.GetAlias(u))
+                foreach (IP4AliasMap.inmtable.inmtableitem it in IP4AliasMap.Instance.table)
+                    if (s == it.alias)
                     {
-                        A = u.A;
+                        A = it.IP4.A;
                         return true;
                     }
 
@@ -164,23 +168,128 @@ namespace pviewer5
             else Instance = this;
         }
 
-
-        // backing model for ip4 name map - it is a dictionary since we want to be able to look up by just indexing the map with an ip4 address
-        // this is private so there is no way anything outside this class can alter the dictionary  without updating the table
-        // i.e., all external access to the map will be through the table
-        private Dictionary<IP4, string> map = new Dictionary<IP4, string>();
-        public bool ContainsKey(IP4 i) { return map.ContainsKey(i); }
-        public string GetAlias(IP4 i) { return map[i]; }
-        public void SetAlias(IP4 i, string s) { map[i] = s; }
-        public Dictionary<IP4, string>.KeyCollection GetKeys() { return map.Keys; }
-        public void MapAdd(IP4 i, string s) { map.Add(i, s); }
-        public void MapRemove(IP4 i) { map.Remove(i); }
-
         // view model for mapping of IP4 values to aliases
         // needs to be non-static so that it can be part of an instance that
         // is referenced by the MainWindow instance so that the xaml can
         // reference it in a databinding
-        public ObservableCollection<inmtableitem> table { get; set; } = new ObservableCollection<inmtableitem>();
+
+        public class inmtable : ObservableCollection<inmtable.inmtableitem>
+        {
+            // backing model for ip4 name map - it is a dictionary since we want to be able to look up by just indexing the map with an ip4 address
+            // this is private so there is no way anything outside this class can alter the dictionary  without updating the table
+            // i.e., all external access to the map will be through the table
+            private Dictionary<IP4, string> dict = new Dictionary<IP4, string>();
+
+            public new void Add(inmtableitem it)
+            // return without doing anything if it is a duplicate of an IP4 already in table
+            {
+                if (IndexOf(it.IP4) == -1)
+                {
+                    it.parent = this;
+                    base.Add(it);
+                    dict.Add(it.IP4, it.alias);
+                }
+            }
+            public new bool Remove(inmtableitem it)
+            {
+                int ix = IndexOf(it.IP4);
+                if (ix == -1) return false;
+                else return RemoveAt(ix);
+            }
+            public string Lookup(IP4 ip)
+            {
+                return dict[ip];
+            }
+            public int IndexOf(IP4 ip)
+            {
+                for (int i = 0; i < this.Count(); i++) if (this[i].IP4 == ip) return i;
+                return -1;
+            }
+            public new bool RemoveAt(int i)
+            {
+                if ((i < 0) || (i >= this.Count())) return false;
+                dict.Remove(this[i].IP4);
+                base.RemoveAt(i);
+                return true;
+            }
+            public new void Clear()
+            {
+                base.Clear();
+                dict.Clear();
+            }
+
+
+            public class inmtableitem : INotifyPropertyChanged
+            {
+                public inmtable parent = null;
+                private IP4 _ip4;
+                public IP4 IP4
+                {
+                    get { return _ip4; }
+                    set
+                    {
+                        // fail if this ip4 is a duplicate of one already in the dictionary 
+                        // this should never happen
+                        // gui validator logic should prevent it
+                        if (parent != null)
+                        {
+                            if (parent.IndexOf(value) != -1)
+                            {
+                                MessageBox.Show("ATTEMPT TO CREATE DUPLICATE ADDRESS IN IP4 NAME MAP\nTHIS SHOULD NEVER HAPPEN\nGUI VALIDATION LOGIC SHOULD PREVENT THIS");
+                                return;
+                            }
+
+                            // need to update dict to keep in sync - i think we need to delete old item and add a new one
+                            string s = parent.Lookup(_ip4);
+                            parent.dict.Remove(_ip4);
+                            parent.dict.Add(value, s);
+                            _ip4 = value;
+
+                            // if this is part of the main gui viewmodel, update the dirty flag
+                            if (parent == Instance.table) Instance.inmchangedsincesavedtodisk = true;
+                        }
+                        NotifyPropertyChanged();        // notify the gui
+                        GUIUtil.Instance.UseAliases = GUIUtil.Instance.UseAliases;    // this will trigger notification of any other gui items that use aliases
+                    }
+                }
+                private string _alias;
+                public string alias
+                {
+                    get { return _alias; }
+                    set
+                    {
+                        _alias = value;
+
+                        // update dict
+                        if (parent != null) parent.dict[_ip4] = value;
+                        if (parent == Instance.table) Instance.inmchangedsincesavedtodisk = true;
+                        
+                        NotifyPropertyChanged();        // notify the gui
+                        GUIUtil.Instance.UseAliases = GUIUtil.Instance.UseAliases;    // this will trigger notifications of any other gui items that use aliases
+                    }
+                }
+
+                public inmtableitem(IP4 u, string s)
+                {
+                    _ip4 = u;
+                    _alias = s;
+                }
+
+               // implement INotifyPropertyChanged
+                public event PropertyChangedEventHandler PropertyChanged;
+                private void NotifyPropertyChanged(String propertyName = "")
+                {
+                    if (PropertyChanged != null)
+                    {
+                        PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+                    }
+                }
+
+            }
+
+        }
+
+        public inmtable table { get; set; } = new inmtable();
 
         // reference to datagrid this table is bound to
         public DataGrid dg = null;
@@ -188,96 +297,7 @@ namespace pviewer5
         private string _inmfilename = null;
         public string inmfilename { get { return _inmfilename; }set { _inmfilename = value; NotifyPropertyChanged(); } }
         public bool inmchangedsincesavedtodisk = false;
-        public class inmtableitem : INotifyPropertyChanged
-        {
-            private IP4 _ip4;
-            public IP4 IP4
-            {
-                get { return _ip4; }
-                set
-                {
-                    // fail if this ip4 is a duplicate of one already in the dictionary 
-                    // this should never happen
-                    // gui validator logic should prevent it
-                    if (Instance.ContainsKey(value))
-                    {
-                        MessageBox.Show("ATTEMPT TO CREATE DUPLICATE ADDRESS IN IP4 NAME MAP DICTIONARY\nTHIS SHOULD NEVER HAPPEN");
-                        return;
-                    }
 
-                    // need to update dict to keep in sync - i think we need to delete old item and add a new one
-                    string s = Instance.GetAlias(_ip4);
-                    Instance.MapRemove(_ip4);
-                    Instance.MapAdd(value, s);
-
-                    _ip4 = value;
-                    Instance.inmchangedsincesavedtodisk = true;
-                    NotifyPropertyChanged();        // notify the gui
-                    GUIUtil.Instance.UseAliases = GUIUtil.Instance.UseAliases;    // this will trigger notification of any other gui items that use aliases
-                }
-            }
-            private string _alias;
-            public string alias
-            {
-                get { return _alias; }
-                set
-                {
-                    // update dict
-                    Instance.SetAlias(_ip4, value);
-
-                    _alias = value;
-                    Instance.inmchangedsincesavedtodisk = true;
-                    NotifyPropertyChanged();        // notify the gui
-                    GUIUtil.Instance.UseAliases = GUIUtil.Instance.UseAliases;    // this will trigger notifications of any other gui items that use aliases
-                }
-            }
-
-            public inmtableitem(IP4 u, string s)
-            {
-                // fail if adding a new item with a duplicate ip4 address
-                // this should never happen - consistency between table and dict 
-                // should be maintained elsewhere
-                if (Instance.ContainsKey(u))
-                {
-                    MessageBox.Show("ATTEMPT TO CREATE DUPLICATE IP4 ENTRY IN IP4 NAME MAP\nTHIS SHOULD NEVER HAPPEN");
-                }
-
-                // directly set the private fields, to avoid going through dictionary update logic in property setters
-                // since that logic is geared for changing an IP4 entry that already exists in the dictionary
-                _ip4 = u;
-                _alias = s;
-
-                // add new entry to map dictionary
-                Instance.map.Add(u, s);
-
-                Instance.inmchangedsincesavedtodisk = true;
-
-                NotifyPropertyChanged();
-
-            }
-
-
-            // implement INotifyPropertyChanged
-            public event PropertyChangedEventHandler PropertyChanged;
-            private void NotifyPropertyChanged(String propertyName = "")
-            {
-                if (PropertyChanged != null)
-                {
-                    PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-                }
-            }
-
-        }
-
-        public class inmtable : ObservableCollection<inmtableitem>
-        {
-
-            
-            
-            // override Add, Remove methods
-            // indexof method (returns -1 if not found)
-            // getalias method - return
-        }
         public static RoutedCommand inmaddrow = new RoutedCommand();
         public static RoutedCommand inmdelrow = new RoutedCommand();
         public static RoutedCommand inmload = new RoutedCommand();
@@ -317,10 +337,12 @@ namespace pviewer5
         {
             IP4 newip4 = 0;
 
-            // find unique value for new entry
-            while (Instance.ContainsKey(newip4)) newip4 += 1;
+            IP4AliasMap inst = IP4AliasMap.Instance;
 
-            Instance.table.Add(new inmtableitem(newip4, "new"));
+            // find unique value for new entry
+            while (Instance.table.IndexOf(newip4) != -1) newip4 += 1;
+
+            Instance.table.Add(new inmtable.inmtableitem(newip4, "new"));
         }
         public static void inmCanExecuteaddrow(object sender, CanExecuteRoutedEventArgs e)
         {
@@ -328,9 +350,11 @@ namespace pviewer5
         }
         public static void inmExecuteddelrow(object sender, ExecutedRoutedEventArgs e)
         {
-            inmtableitem q = (inmtableitem)(Instance.dg.SelectedItem);
-            
-            Instance.map.Remove(q.IP4);
+            inmtable.inmtableitem q = (inmtable.inmtableitem)(Instance.dg.SelectedItem);
+
+            IP4AliasMap inst = IP4AliasMap.Instance;
+
+
             Instance.table.Remove(q);
             Instance.inmchangedsincesavedtodisk = true;
             Instance.NotifyPropertyChanged();
@@ -353,7 +377,7 @@ namespace pviewer5
             {
                 fs = new FileStream(Instance.inmfilename, FileMode.Open);
                 formatter.Serialize(fs, Instance.table.Count());
-                foreach (inmtableitem i in Instance.table)
+                foreach (inmtable.inmtableitem i in Instance.table)
                 {
                     formatter.Serialize(fs, i.IP4);
                     formatter.Serialize(fs, i.alias);
@@ -388,7 +412,7 @@ namespace pviewer5
                 Instance.inmfilename = dlg.FileName;
                 fs = new FileStream(dlg.FileName, FileMode.OpenOrCreate);
                 formatter.Serialize(fs, Instance.table.Count());
-                foreach (inmtableitem i in Instance.table)
+                foreach (inmtable.inmtableitem i in Instance.table)
                 {
                     formatter.Serialize(fs, i.IP4);
                     formatter.Serialize(fs, i.alias);
@@ -422,12 +446,11 @@ namespace pviewer5
                 {
                     // clear existing table entries
                     Instance.table.Clear();
-                    Instance.map.Clear();
 
                     Instance.inmfilename = dlg.FileName;
 
                     for (int i = (int)formatter.Deserialize(fs); i > 0; i--)
-                        Instance.table.Add(new inmtableitem((IP4)formatter.Deserialize(fs), (string)formatter.Deserialize(fs)));
+                        Instance.table.Add(new inmtable.inmtableitem((IP4)formatter.Deserialize(fs), (string)formatter.Deserialize(fs)));
 
                     Instance.inmchangedsincesavedtodisk = false;
                 }
@@ -460,9 +483,9 @@ namespace pviewer5
             {
                 fs = new FileStream(dlg.FileName, FileMode.Open);
 
-                List<inmtableitem> dupsexisting = new List<inmtableitem>();
-                List<inmtableitem> dupsnewfile = new List<inmtableitem>();
-                inmtableitem item;
+                inmtable dupsexisting = new inmtable();
+                inmtable dupsnewfile = new inmtable();
+                inmtable.inmtableitem item;
 
                 IP4AliasMap inst = Instance;
 
@@ -479,7 +502,7 @@ namespace pviewer5
                     // NEED INM TABE CLASS
                     // NEED FINALIZER FOR TABLEITME THAT DELETES FROM MAP - DO NOT ALLOW DIRECT DELETION
 
-
+                    /*
                     for (int i = (int)formatter.Deserialize(fs); i > 0; i--)
                     {
                         item = new inmtableitem((IP4)formatter.Deserialize(fs), (string)formatter.Deserialize(fs));
@@ -504,6 +527,7 @@ namespace pviewer5
 
 
                     Instance.inmchangedsincesavedtodisk = true;
+                    */
                 }
                 catch
                 {
@@ -547,7 +571,7 @@ namespace pviewer5
             IP4 i = 0;
 
             if (!i.TryParse((string)value)) return new ValidationResult(false, "Not a valid IP4 address");
-            else if (IP4AliasMap.Instance.ContainsKey(i)) return new ValidationResult(false, "Duplicate of IP4 address already in table");
+            else if (IP4AliasMap.Instance.table.IndexOf(i) != -1) return new ValidationResult(false, "Duplicate of IP4 address already in table");
             else return new ValidationResult(true, "Valid IP4 Address");
         }
     }

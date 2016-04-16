@@ -2,8 +2,10 @@
 
 	TO DO
 
+	re-check file load/save logic
 	append logic needs to handle duplicate entries - notify user, show dups in messagebox
 
+	copy new table/item logic to mac
 	copy file logic to mac
 
 
