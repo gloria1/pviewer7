@@ -212,7 +212,7 @@ namespace pviewer5
                     Instance.SetAlias(_MAC, value);
 
                     _alias = value;
-                    Instance.mnmchangedsincesavedtodisk true;
+                    Instance.mnmchangedsincesavedtodisk = true;
                     NotifyPropertyChanged();        // notify the gui
                     GUIUtil.Instance.UseAliases = GUIUtil.Instance.UseAliases;    // this will trigger notifications of any other gui items that use aliases
                 }

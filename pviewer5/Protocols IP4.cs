@@ -185,7 +185,8 @@ namespace pviewer5
         // reference to datagrid this table is bound to
         public DataGrid dg = null;
 
-        public string inmfilename { get; set; } = null;
+        private string _inmfilename = null;
+        public string inmfilename { get { return _inmfilename; }set { _inmfilename = value; NotifyPropertyChanged(); } }
         public bool inmchangedsincesavedtodisk = false;
         public class inmtableitem : INotifyPropertyChanged
         {
@@ -302,25 +303,7 @@ namespace pviewer5
 
             return true;
         }
-
-
-        private void inmLoadFromDisk(object sender, RoutedEventArgs e)
-        {
-        }
-        private void inmAppendFromDisk(object sender, RoutedEventArgs e)
-        {
-            OpenFileDialog dlg = new OpenFileDialog();
-            FileStream fs;
-            IFormatter formatter = new BinaryFormatter();
-
-            dlg.InitialDirectory = "c:\\pviewer\\";
-            dlg.DefaultExt = ".IP4namemap";
-            dlg.Multiselect = false;
-
-            // PLACEHOLDER - ADAPT NEW LOGIC FROM LOAD FROM DISK
-
-        }
-
+        
         public static void inmExecutedaddrow(object sender, ExecutedRoutedEventArgs e)
         {
             IP4 newip4 = 0;
@@ -354,10 +337,30 @@ namespace pviewer5
         }
         public static void inmExecutedsave(object sender, ExecutedRoutedEventArgs e)
         {
+            FileStream fs;
+            IFormatter formatter = new BinaryFormatter();
+
+            try
+            {
+                fs = new FileStream(Instance.inmfilename, FileMode.Open);
+                formatter.Serialize(fs, Instance.table.Count());
+                foreach (inmtableitem i in Instance.table)
+                {
+                    formatter.Serialize(fs, i.IP4);
+                    formatter.Serialize(fs, i.alias);
+                }
+                Instance.inmchangedsincesavedtodisk = false;
+                fs.Close();
+            }
+            catch
+            {
+                MessageBox.Show("Failed to save file");
+            }
+
         }
         public static void inmCanExecutesave(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = (Instance.inmchangedsincesavedtodisk && (Instance.inmfilename != null));
+            e.CanExecute = (Instance.inmchangedsincesavedtodisk && (Instance.inmfilename!= null));
         }
         public static void inmExecutedsaveas(object sender, ExecutedRoutedEventArgs e)
         {
@@ -372,6 +375,8 @@ namespace pviewer5
 
             if (dlg.ShowDialog() == true)
             {
+                IP4AliasMap inst = Instance;
+                Instance.inmfilename = dlg.FileName;
                 fs = new FileStream(dlg.FileName, FileMode.OpenOrCreate);
                 formatter.Serialize(fs, Instance.table.Count());
                 foreach (inmtableitem i in Instance.table)
@@ -386,7 +391,7 @@ namespace pviewer5
         }
         public static void inmCanExecutesaveas(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = Instance.inmchangedsincesavedtodisk;
+            e.CanExecute = true;
         }
         public static void inmExecutedload(object sender, ExecutedRoutedEventArgs e)
         {
@@ -402,15 +407,18 @@ namespace pviewer5
             {
                 fs = new FileStream(dlg.FileName, FileMode.Open);
 
+                IP4AliasMap inst = Instance;
+
                 try
                 {
-                    // clear existing table entries
+                    // clear existing table entriesa
+                    Instance.table.Clear();
+                    Instance.map.Clear();
+
+                    Instance.inmfilename = dlg.FileName;
 
                     for (int i = (int)formatter.Deserialize(fs); i > 0; i--)
                         Instance.table.Add(new inmtableitem((IP4)formatter.Deserialize(fs), (string)formatter.Deserialize(fs)));
-                    
-                    // update gui
-
 
                     Instance.inmchangedsincesavedtodisk = false;
                 }
@@ -431,6 +439,44 @@ namespace pviewer5
         }
         public static void inmExecutedappend(object sender, ExecutedRoutedEventArgs e)
         {
+            OpenFileDialog dlg = new OpenFileDialog();
+            FileStream fs;
+            IFormatter formatter = new BinaryFormatter();
+
+            dlg.InitialDirectory = "c:\\pviewer\\";
+            dlg.DefaultExt = ".IP4namemap";
+            dlg.Multiselect = false;
+
+            if (dlg.ShowDialog() == true)
+            {
+                fs = new FileStream(dlg.FileName, FileMode.Open);
+
+                IP4AliasMap inst = Instance;
+
+                try
+                {
+                    // DO NOT clear existing table entriesa
+                    // Instance.table.Clear();
+                    // Instance.map.Clear();
+
+                    // change the filename to null
+                    Instance.inmfilename = null;
+
+                    for (int i = (int)formatter.Deserialize(fs); i > 0; i--)
+                        Instance.table.Add(new inmtableitem((IP4)formatter.Deserialize(fs), (string)formatter.Deserialize(fs)));
+
+                    Instance.inmchangedsincesavedtodisk = false;
+                }
+                catch
+                {
+                    MessageBox.Show("File not read");
+                }
+                finally
+                {
+                    fs.Close();
+                }
+            }
+
         }
         public static void inmCanExecuteappend(object sender, CanExecuteRoutedEventArgs e)
         {

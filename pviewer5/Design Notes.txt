@@ -2,7 +2,9 @@
 
 	TO DO
 
-	file load/save/append still needs fixing for IP4 and MAC
+	append logic needs to handle duplicate entries - notify user, show dups in messagebox
+
+	copy file logic to mac
 
 
 	datetime converters seem busted
