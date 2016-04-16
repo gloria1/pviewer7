@@ -269,6 +269,15 @@ namespace pviewer5
 
         }
 
+        public class inmtable : ObservableCollection<inmtableitem>
+        {
+
+            
+            
+            // override Add, Remove methods
+            // indexof method (returns -1 if not found)
+            // getalias method - return
+        }
         public static RoutedCommand inmaddrow = new RoutedCommand();
         public static RoutedCommand inmdelrow = new RoutedCommand();
         public static RoutedCommand inmload = new RoutedCommand();
@@ -411,7 +420,7 @@ namespace pviewer5
 
                 try
                 {
-                    // clear existing table entriesa
+                    // clear existing table entries
                     Instance.table.Clear();
                     Instance.map.Clear();
 
@@ -451,6 +460,10 @@ namespace pviewer5
             {
                 fs = new FileStream(dlg.FileName, FileMode.Open);
 
+                List<inmtableitem> dupsexisting = new List<inmtableitem>();
+                List<inmtableitem> dupsnewfile = new List<inmtableitem>();
+                inmtableitem item;
+
                 IP4AliasMap inst = Instance;
 
                 try
@@ -462,10 +475,35 @@ namespace pviewer5
                     // change the filename to null
                     Instance.inmfilename = null;
 
-                    for (int i = (int)formatter.Deserialize(fs); i > 0; i--)
-                        Instance.table.Add(new inmtableitem((IP4)formatter.Deserialize(fs), (string)formatter.Deserialize(fs)));
 
-                    Instance.inmchangedsincesavedtodisk = false;
+                    // NEED INM TABE CLASS
+                    // NEED FINALIZER FOR TABLEITME THAT DELETES FROM MAP - DO NOT ALLOW DIRECT DELETION
+
+
+                    for (int i = (int)formatter.Deserialize(fs); i > 0; i--)
+                    {
+                        item = new inmtableitem((IP4)formatter.Deserialize(fs), (string)formatter.Deserialize(fs));
+                        if (Instance.ContainsKey(item.IP4))
+                        {
+                            dupsexisting.Add(new inmtableitem(item.IP4, Instance.map[item.IP4]));
+                            dupsnewfile.Add(item);
+                        }
+                        else Instance.table.Add(item);
+                    }
+                    if (dupsexisting.Count() != 0)
+                    {
+                        string s = null;
+                        for (int i = 0; i < dupsexisting.Count(); i++)
+                        {
+                            s += "existing: " + dupsexisting[i].IP4.ToString(false, false) + " " + dupsexisting[i].alias + "\n";
+                            s += "New File: " + dupsnewfile[i].IP4.ToString(false, false) + " " + dupsnewfile[i].alias + "\n\n";
+                        }
+                        if (MessageBoxResult.Yes == MessageBox.Show(s, "DUPLICATE ENTRIES - USE VALUES FROM APPENDING FILE?", MessageBoxButton.YesNo))
+                            for(int i = 0; i < dupsexisting.Count(); i++) Instance.table[Instance.table.IndexOf(dupsexisting[i])].alias = dupsnewfile[i].alias;
+                    }
+
+
+                    Instance.inmchangedsincesavedtodisk = true;
                 }
                 catch
                 {
