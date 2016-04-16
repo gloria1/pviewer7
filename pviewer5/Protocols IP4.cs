@@ -27,7 +27,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 namespace pviewer5
 {
 
-
+    [Serializable]
     public struct IP4
     {
         public uint A;
@@ -182,6 +182,10 @@ namespace pviewer5
         // reference it in a databinding
         public ObservableCollection<inmtableitem> table { get; set; } = new ObservableCollection<inmtableitem>();
 
+        // reference to datagrid this table is bound to
+        public DataGrid dg = null;
+
+        public string inmfilename { get; set; } = null;
         public bool inmchangedsincesavedtodisk = false;
         public class inmtableitem : INotifyPropertyChanged
         {
@@ -206,6 +210,7 @@ namespace pviewer5
                     Instance.MapAdd(value, s);
 
                     _ip4 = value;
+                    Instance.inmchangedsincesavedtodisk = true;
                     NotifyPropertyChanged();        // notify the gui
                     GUIUtil.Instance.UseAliases = GUIUtil.Instance.UseAliases;    // this will trigger notification of any other gui items that use aliases
                 }
@@ -220,6 +225,7 @@ namespace pviewer5
                     Instance.SetAlias(_ip4, value);
 
                     _alias = value;
+                    Instance.inmchangedsincesavedtodisk = true;
                     NotifyPropertyChanged();        // notify the gui
                     GUIUtil.Instance.UseAliases = GUIUtil.Instance.UseAliases;    // this will trigger notifications of any other gui items that use aliases
                 }
@@ -243,9 +249,12 @@ namespace pviewer5
                 // add new entry to map dictionary
                 Instance.map.Add(u, s);
 
+                Instance.inmchangedsincesavedtodisk = true;
+
                 NotifyPropertyChanged();
 
             }
+
 
             // implement INotifyPropertyChanged
             public event PropertyChangedEventHandler PropertyChanged;
@@ -293,63 +302,10 @@ namespace pviewer5
 
             return true;
         }
-        private void inmSaveToDisk(object sender, RoutedEventArgs e)
-        {
-            SaveFileDialog dlg = new SaveFileDialog();
-            FileStream fs;
-            IFormatter formatter = new BinaryFormatter();
 
-            dlg.InitialDirectory = "c:\\pviewer\\";
-            dlg.DefaultExt = ".IP4namemap";
-            dlg.OverwritePrompt = true;
 
-            if (dlg.ShowDialog() == true)
-            {
-                fs = new FileStream(dlg.FileName, FileMode.OpenOrCreate);
-                foreach (inmtableitem i in table) formatter.Serialize(fs, i);
-                inmchangedsincesavedtodisk = false;
-                fs.Close();
-            }
-
-        }
         private void inmLoadFromDisk(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog dlg = new OpenFileDialog();
-            FileStream fs;
-            IFormatter formatter = new BinaryFormatter();
-
-            dlg.InitialDirectory = "c:\\pviewer\\";
-            dlg.DefaultExt = ".IP4namemap";
-            dlg.Multiselect = false;
-
-            if (dlg.ShowDialog() == true)
-            {
-                fs = new FileStream(dlg.FileName, FileMode.Open);
-
-                try
-                {
-                    // PLACEHOLDER
-                    //      LOAD FROM FILE TO DICT
-                    //      TRANSFER DICT TO TABLE
-                    //      TRIGGER UPDATE OF DATAGRID
-                    //      TRIGGER UPDATE OF USEALIASES DEPENDENCIES
-
-                    // inmdgtable = ((IP4Util.IP4namemapclass)formatter.Deserialize(fs)).maptotable();
-
-                    // next command re-sets ItemsSource, window on screen does not update to show new contents of dgtable, don't know why
-                    // there is probably some mechanism to get the display to update without re-setting the ItemsSource, but this seems to work
-                    //INMDG.ItemsSource = inmdgtable;
-                    //inmchangedsincesavedtodisk = false;
-                }
-                catch
-                {
-                    MessageBox.Show("File not read");
-                }
-                finally
-                {
-                    fs.Close();
-                }
-            }
         }
         private void inmAppendFromDisk(object sender, RoutedEventArgs e)
         {
@@ -372,7 +328,7 @@ namespace pviewer5
             // find unique value for new entry
             while (Instance.ContainsKey(newip4)) newip4 += 1;
 
-            IP4AliasMap.Instance.table.Add(new inmtableitem(newip4, "new"));
+            Instance.table.Add(new inmtableitem(newip4, "new"));
         }
         public static void inmCanExecuteaddrow(object sender, CanExecuteRoutedEventArgs e)
         {
@@ -380,20 +336,53 @@ namespace pviewer5
         }
         public static void inmExecuteddelrow(object sender, ExecutedRoutedEventArgs e)
         {
+            inmtableitem q = (inmtableitem)(Instance.dg.SelectedItem);
+            
+            Instance.map.Remove(q.IP4);
+            Instance.table.Remove(q);
+            Instance.inmchangedsincesavedtodisk = true;
+            Instance.NotifyPropertyChanged();
         }
         public static void inmCanExecutedelrow(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = true;
+            // only enable if more than one row in table
+            // this is a hack - for some reason, if there is only one row in the table and it gets deleted
+            // the datagrid is left in some bad state such that the next add operation causes a crash
+            // i gave up trying to diagnose it, so my "workaround" is to prevent deletion if there is only one
+            // row left
+            e.CanExecute = (Instance.table.Count() > 1) && (Instance.dg.SelectedItem != null);
         }
         public static void inmExecutedsave(object sender, ExecutedRoutedEventArgs e)
         {
         }
         public static void inmCanExecutesave(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = Instance.inmchangedsincesavedtodisk;
+            e.CanExecute = (Instance.inmchangedsincesavedtodisk && (Instance.inmfilename != null));
         }
         public static void inmExecutedsaveas(object sender, ExecutedRoutedEventArgs e)
         {
+            SaveFileDialog dlg = new SaveFileDialog();
+            FileStream fs;
+            IFormatter formatter = new BinaryFormatter();
+
+            dlg.InitialDirectory = "c:\\pviewer\\";
+            dlg.FileName = Instance.inmfilename;
+            dlg.DefaultExt = ".IP4namemap";
+            dlg.OverwritePrompt = true;
+
+            if (dlg.ShowDialog() == true)
+            {
+                fs = new FileStream(dlg.FileName, FileMode.OpenOrCreate);
+                formatter.Serialize(fs, Instance.table.Count());
+                foreach (inmtableitem i in Instance.table)
+                {
+                    formatter.Serialize(fs, i.IP4);
+                    formatter.Serialize(fs, i.alias);
+                }
+                Instance.inmchangedsincesavedtodisk = false;
+                fs.Close();
+            }
+
         }
         public static void inmCanExecutesaveas(object sender, CanExecuteRoutedEventArgs e)
         {
@@ -401,6 +390,40 @@ namespace pviewer5
         }
         public static void inmExecutedload(object sender, ExecutedRoutedEventArgs e)
         {
+            OpenFileDialog dlg = new OpenFileDialog();
+            FileStream fs;
+            IFormatter formatter = new BinaryFormatter();
+
+            dlg.InitialDirectory = "c:\\pviewer\\";
+            dlg.DefaultExt = ".IP4namemap";
+            dlg.Multiselect = false;
+
+            if (dlg.ShowDialog() == true)
+            {
+                fs = new FileStream(dlg.FileName, FileMode.Open);
+
+                try
+                {
+                    // clear existing table entries
+
+                    for (int i = (int)formatter.Deserialize(fs); i > 0; i--)
+                        Instance.table.Add(new inmtableitem((IP4)formatter.Deserialize(fs), (string)formatter.Deserialize(fs)));
+                    
+                    // update gui
+
+
+                    Instance.inmchangedsincesavedtodisk = false;
+                }
+                catch
+                {
+                    MessageBox.Show("File not read");
+                }
+                finally
+                {
+                    fs.Close();
+                }
+            }
+
         }
         public static void inmCanExecuteload(object sender, CanExecuteRoutedEventArgs e)
         {

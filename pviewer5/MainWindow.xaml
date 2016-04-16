@@ -523,6 +523,7 @@
             		ShowGridLines="True">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <WrapPanel x:Name="inmbuttonbar"
@@ -534,8 +535,13 @@
                     <Button Content="Load from Disk" Command="{x:Static local:IP4AliasMap.inmload}"/>
                     <Button Content="Append From Disk"  Command="{x:Static local:IP4AliasMap.inmappend}"/>
                 </WrapPanel>
+                <WrapPanel
+                    Grid.Row="1">
+                    <Label> Filename: </Label>
+                    <Label Content="{Binding Path=inm.inmfilename}"/>
+                </WrapPanel>
                 <GroupBox Header="Map of IP4 Addresses To Aliases"
-			        Grid.Row="1"
+			        Grid.Row="2"
 			        Margin="5,5,5,5">   
                     <!-- added Enable*Virtualization lines based on http://www.elegant-software.net/2014/05/performance-of-the-wpf-datagrid.html -->
                     <!-- added VirtualizingPanel lines based on http://www.codewrecks.com/blog/index.php/2012/07/06/wpf-datagrid-poor-performance-on-sorting/ -->
@@ -547,10 +553,10 @@
 				            VirtualizingPanel.IsVirtualizing="True"
 				            VirtualizingPanel.VirtualizationMode="Recycling"
 				            AutoGenerateColumns="False"
+                            CanUserDeleteRows="False"
+                            CanUserAddRows="False"
 				            ItemsSource="{Binding Path=inm.table}"
-				            ItemStringFormat="x"
-				            CanUserAddRows="False"
-                        CellEditEnding="inmcelleditending">
+				            CellEditEnding="inmcelleditending">
                         
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="IP4 Address">
@@ -607,11 +613,10 @@
 				            VirtualizingPanel.IsVirtualizing="True"
 				            VirtualizingPanel.VirtualizationMode="Recycling"
 				            AutoGenerateColumns="False"
+                            CanUserDeleteRows="False"
+                            CanUserAddRows="False"
 				            ItemsSource="{Binding Path=mnm.table}"
-				            ItemStringFormat="x"
-				            CanUserAddRows="False"
-                            CellEditEnding="mnmcelleditending">
-
+				            CellEditEnding="mnmcelleditending">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="MAC Address">
                                 <DataGridTextColumn.Binding>

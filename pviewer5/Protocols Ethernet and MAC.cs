@@ -170,6 +170,9 @@ namespace pviewer5
         // reference it in a databinding
         public ObservableCollection<mnmtableitem> table { get; set; } = new ObservableCollection<mnmtableitem>();
 
+        // reference to datagrid this table is bound to
+        public DataGrid dg = null;
+
         public bool mnmchangedsincesavedtodisk = false;
         public class mnmtableitem : INotifyPropertyChanged
         {
@@ -194,6 +197,7 @@ namespace pviewer5
                     Instance.MapAdd(value, s);
 
                     _MAC = value;
+                    Instance.mnmchangedsincesavedtodisk = true;
                     NotifyPropertyChanged();        // notify the gui
                     GUIUtil.Instance.UseAliases = GUIUtil.Instance.UseAliases;    // this will trigger notification of any other gui items that use aliases
                 }
@@ -208,6 +212,7 @@ namespace pviewer5
                     Instance.SetAlias(_MAC, value);
 
                     _alias = value;
+                    Instance.mnmchangedsincesavedtodisk true;
                     NotifyPropertyChanged();        // notify the gui
                     GUIUtil.Instance.UseAliases = GUIUtil.Instance.UseAliases;    // this will trigger notifications of any other gui items that use aliases
                 }
@@ -230,6 +235,8 @@ namespace pviewer5
 
                 // add new entry to map dictionary
                 Instance.map.Add(u, s);
+
+                Instance.mnmchangedsincesavedtodisk = true;
 
                 NotifyPropertyChanged();
 
@@ -368,10 +375,22 @@ namespace pviewer5
         }
         public static void mnmExecuteddelrow(object sender, ExecutedRoutedEventArgs e)
         {
+            mnmtableitem q = (mnmtableitem)(Instance.dg.SelectedItem);
+
+            Instance.map.Remove(q.MAC);
+            Instance.table.Remove(q);
+            Instance.mnmchangedsincesavedtodisk = true;
+            Instance.NotifyPropertyChanged();
+
         }
         public static void mnmCanExecutedelrow(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = true;
+            // only enable if more than one row in table
+            // this is a hack - for some reason, if there is only one row in the table and it gets deleted
+            // the datagrid is left in some bad state such that the next add operation causes a crash
+            // i gave up trying to diagnose it, so my "workaround" is to prevent deletion if there is only one
+            // row left
+            e.CanExecute = (Instance.table.Count() > 1) && (Instance.dg.SelectedItem != null);
         }
         public static void mnmExecutedsave(object sender, ExecutedRoutedEventArgs e)
         {

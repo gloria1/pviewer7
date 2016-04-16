@@ -178,6 +178,7 @@ namespace pviewer5
             // set up domain map view
 
             // set up ip4 map view
+            inm.dg = INMDG;
             inmaddrowbinding = new CommandBinding(IP4AliasMap.inmaddrow, IP4AliasMap.inmExecutedaddrow, IP4AliasMap.inmCanExecuteaddrow);
             inmdelrowbinding = new CommandBinding(IP4AliasMap.inmdelrow, IP4AliasMap.inmExecuteddelrow, IP4AliasMap.inmCanExecutedelrow);
             inmsavebinding = new CommandBinding(IP4AliasMap.inmsave, IP4AliasMap.inmExecutedsave, IP4AliasMap.inmCanExecutesave);
@@ -195,6 +196,7 @@ namespace pviewer5
             inmdelrowmenuitem.CommandTarget = inmgrid;   // ditto
 
             // set up mac map view
+            mnm.dg = MNMDG;
             mnmaddrowbinding = new CommandBinding(MACAliasMap.mnmaddrow, MACAliasMap.mnmExecutedaddrow, MACAliasMap.mnmCanExecuteaddrow);
             mnmdelrowbinding = new CommandBinding(MACAliasMap.mnmdelrow, MACAliasMap.mnmExecuteddelrow, MACAliasMap.mnmCanExecutedelrow);
             mnmsavebinding = new CommandBinding(MACAliasMap.mnmsave, MACAliasMap.mnmExecutedsave, MACAliasMap.mnmCanExecutesave);
