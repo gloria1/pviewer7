@@ -55,8 +55,8 @@ namespace pviewer5
         // if usealiasesthistime == true, then if global UseAliases is true, return the alias
         {
             if (usealiasesthistime && GUIUtil.Instance.UseAliases)
-                if (MACAliasMap.Instance.ContainsKey(A))
-                    return MACAliasMap.Instance.GetAlias(A);
+                if (MACAliasMap.Instance.table.IndexOf(A) != -1)
+                    return MACAliasMap.Instance.table.Lookup(A);
 
             ulong[] b = new ulong[6];
             string s;
@@ -79,7 +79,7 @@ namespace pviewer5
         //      if !UseAliases, then alias if there is one
         {
             if (GUIUtil.Instance.UseAliases) return ToString(false);
-            else if (MACAliasMap.Instance.ContainsKey(A)) return MACAliasMap.Instance.GetAlias(A);
+            else if (MACAliasMap.Instance.table.IndexOf(A) != -1) return MACAliasMap.Instance.table.Lookup(A);
             else return "no alias";
         }
 
@@ -125,10 +125,10 @@ namespace pviewer5
                     catch { }
                 }
                 // if we have gotten this far, s was not parsed as a simple number or dot notation number, so check if it is a valid alias
-                foreach (MAC u in MACAliasMap.Instance.GetKeys())
-                    if (s == MACAliasMap.Instance.GetAlias(u))
+                foreach (MACAliasMap.mnmtable.mnmtableitem m in MACAliasMap.Instance.table)
+                    if (s == m.alias)
                     {
-                        A = u.A;
+                        A = m.MAC.A;
                         return true;
                     }
 
@@ -153,106 +153,136 @@ namespace pviewer5
         }
 
 
-        // backing model for MAC name map - it is a dictionary since we want to be able to look up by just indexing the map with an MAC address
-        // this is private so there is no way anything outside this class can alter the dictionary  without updating the table
-        // i.e., all external access to the map will be through the table
-        private Dictionary<MAC, string> map = new Dictionary<MAC, string>();
-        public bool ContainsKey(MAC i) { return map.ContainsKey(i); }
-        public string GetAlias(MAC i) { return map[i]; }
-        public void SetAlias(MAC i, string s) { map[i] = s; }
-        public Dictionary<MAC, string>.KeyCollection GetKeys() { return map.Keys; }
-        public void MapAdd(MAC i, string s) { map.Add(i, s); }
-        public void MapRemove(MAC i) { map.Remove(i); }
-
         // view model for mapping of MAC values to aliases
         // needs to be non-static so that it can be part of an instance that
         // is referenced by the MainWindow instance so that the xaml can
         // reference it in a databinding
-        public ObservableCollection<mnmtableitem> table { get; set; } = new ObservableCollection<mnmtableitem>();
+
+        public class mnmtable : ObservableCollection<mnmtable.mnmtableitem>
+        {
+            // backing model for MAC name map - it is a dictionary since we want to be able to look up by just indexing the map with an MAC address
+            // this is private so there is no way anything outside this class can alter the dictionary  without updating the table
+            // i.e., all external access to the map will be through the table
+            private Dictionary<MAC, string> dict = new Dictionary<MAC, string>();
+
+            public new void Add(mnmtableitem it)
+            // return without doing anything if it is a duplicate of an mac already in table
+            {
+                if (IndexOf(it.MAC) == -1)
+                {
+                    it.parent = this;
+                    base.Add(it);
+                    dict.Add(it.MAC, it.alias);
+                }
+            }
+            public new bool Remove(mnmtableitem it)
+            {
+                int ix = IndexOf(it.MAC);
+                if (ix == -1) return false;
+                else return RemoveAt(ix);
+            }
+            public string Lookup(MAC mac)
+            {
+                return dict[mac];
+            }
+            public int IndexOf(MAC mac)
+            {
+                for (int i = 0; i < this.Count(); i++) if (this[i].MAC == mac) return i;
+                return -1;
+            }
+            public new bool RemoveAt(int i)
+            {
+                if ((i < 0) || (i >= this.Count())) return false;
+                dict.Remove(this[i].MAC);
+                base.RemoveAt(i);
+                return true;
+            }
+            public new void Clear()
+            {
+                base.Clear();
+                dict.Clear();
+            }
+
+
+            public class mnmtableitem : INotifyPropertyChanged
+            {
+                public mnmtable parent = null;
+                private MAC _mac;
+                public MAC MAC
+                {
+                    get { return _mac; }
+                    set
+                    {
+                        // fail if this mac is a duplicate of one already in the dictionary 
+                        // this should never happen
+                        // gui validator logic should prevent it
+                        if (parent != null)
+                        {
+                            if (parent.IndexOf(value) != -1)
+                            {
+                                MessageBox.Show("ATTEMPT TO CREATE DUPLICATE ADDRESS IN mac NAME MAP\nTHIS SHOULD NEVER HAPPEN\nGUI VALIDATION LOGIC SHOULD PREVENT THIS");
+                                return;
+                            }
+
+                            // need to update dict to keep in sync - i think we need to delete old item and add a new one
+                            string s = parent.Lookup(_mac);
+                            parent.dict.Remove(_mac);
+                            parent.dict.Add(value, s);
+                            _mac = value;
+
+                            // if this is part of the main gui viewmodel, update the dirty flag
+                            if (parent == Instance.table) Instance.mnmchangedsincesavedtodisk = true;
+                        }
+                        NotifyPropertyChanged();        // notify the gui
+                        GUIUtil.Instance.UseAliases = GUIUtil.Instance.UseAliases;    // this will trigger notification of any other gui items that use aliases
+                    }
+                }
+                private string _alias;
+                public string alias
+                {
+                    get { return _alias; }
+                    set
+                    {
+                        _alias = value;
+
+                        // update dict
+                        if (parent != null) parent.dict[_mac] = value;
+                        if (parent == Instance.table) Instance.mnmchangedsincesavedtodisk = true;
+
+                        NotifyPropertyChanged();        // notify the gui
+                        GUIUtil.Instance.UseAliases = GUIUtil.Instance.UseAliases;    // this will trigger notifications of any other gui items that use aliases
+                    }
+                }
+
+                public mnmtableitem(MAC u, string s)
+                {
+                    _mac = u;
+                    _alias = s;
+                }
+
+                // implement INotifyPropertyChanged
+                public event PropertyChangedEventHandler PropertyChanged;
+                private void NotifyPropertyChanged(String propertyName = "")
+                {
+                    if (PropertyChanged != null)
+                    {
+                        PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+                    }
+                }
+
+            }
+
+        }
+
+        public mnmtable table { get; set; } = new mnmtable();
 
         // reference to datagrid this table is bound to
         public DataGrid dg = null;
 
+        private string _mnmfilename = null;
+        public string mnmfilename { get { return _mnmfilename; } set { _mnmfilename = value; NotifyPropertyChanged(); } }
         public bool mnmchangedsincesavedtodisk = false;
-        public class mnmtableitem : INotifyPropertyChanged
-        {
-            private MAC _MAC;
-            public MAC MAC
-            {
-                get { return _MAC; }
-                set
-                {
-                    // fail if this MAC is a duplicate of one already in the dictionary 
-                    // this should never happen
-                    // gui validator logic should prevent it
-                    if (Instance.ContainsKey(value))
-                    {
-                        MessageBox.Show("ATTEMPT TO CREATE DUPLICATE ADDRESS IN MAC NAME MAP DICTIONARY\nTHIS SHOULD NEVER HAPPEN");
-                        return;
-                    }
 
-                    // need to update dict to keep in sync - i think we need to delete old item and add a new one
-                    string s = Instance.GetAlias(_MAC);
-                    Instance.MapRemove(_MAC);
-                    Instance.MapAdd(value, s);
-
-                    _MAC = value;
-                    Instance.mnmchangedsincesavedtodisk = true;
-                    NotifyPropertyChanged();        // notify the gui
-                    GUIUtil.Instance.UseAliases = GUIUtil.Instance.UseAliases;    // this will trigger notification of any other gui items that use aliases
-                }
-            }
-            private string _alias;
-            public string alias
-            {
-                get { return _alias; }
-                set
-                {
-                    // update dict
-                    Instance.SetAlias(_MAC, value);
-
-                    _alias = value;
-                    Instance.mnmchangedsincesavedtodisk = true;
-                    NotifyPropertyChanged();        // notify the gui
-                    GUIUtil.Instance.UseAliases = GUIUtil.Instance.UseAliases;    // this will trigger notifications of any other gui items that use aliases
-                }
-            }
-
-            public mnmtableitem(MAC u, string s)
-            {
-                // fail if adding a new item with a duplicate MAC address
-                // this should never happen - consistency between table and dict 
-                // should be maintained elsewhere
-                if (Instance.ContainsKey(u))
-                {
-                    MessageBox.Show("ATTEMPT TO CREATE DUPLICATE MAC ENTRY IN MAC NAME MAP\nTHIS SHOULD NEVER HAPPEN");
-                }
-
-                // directly set the private fields, to avoid going through dictionary update logic in property setters
-                // since that logic is geared for changing an MAC entry that already exists in the dictionary
-                _MAC = u;
-                _alias = s;
-
-                // add new entry to map dictionary
-                Instance.map.Add(u, s);
-
-                Instance.mnmchangedsincesavedtodisk = true;
-
-                NotifyPropertyChanged();
-
-            }
-
-            // implement INotifyPropertyChanged
-            public event PropertyChangedEventHandler PropertyChanged;
-            private void NotifyPropertyChanged(String propertyName = "")
-            {
-                if (PropertyChanged != null)
-                {
-                    PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-                }
-            }
-
-        }
 
         public static RoutedCommand mnmaddrow = new RoutedCommand();
         public static RoutedCommand mnmdelrow = new RoutedCommand();
@@ -288,26 +318,102 @@ namespace pviewer5
 
             return true;
         }
-        private void mnmSaveToDisk(object sender, RoutedEventArgs e)
+
+
+        public static void mnmExecutedaddrow(object sender, ExecutedRoutedEventArgs e)
+        {
+            MAC newmac = 0;
+
+            MACAliasMap inst = MACAliasMap.Instance;
+
+            // find unique value for new entry
+            while (Instance.table.IndexOf(newmac) != -1) newmac += 1;
+
+            Instance.table.Add(new mnmtable.mnmtableitem(newmac, "new"));
+        }
+        public static void mnmCanExecuteaddrow(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+        public static void mnmExecuteddelrow(object sender, ExecutedRoutedEventArgs e)
+        {
+            mnmtable.mnmtableitem q = (mnmtable.mnmtableitem)(Instance.dg.SelectedItem);
+
+            MACAliasMap inst = MACAliasMap.Instance;
+
+
+            Instance.table.Remove(q);
+            Instance.mnmchangedsincesavedtodisk = true;
+            Instance.NotifyPropertyChanged();
+        }
+        public static void mnmCanExecutedelrow(object sender, CanExecuteRoutedEventArgs e)
+        {
+            // only enable if more than one row in table
+            // this is a hack - for some reason, if there is only one row in the table and it gets deleted
+            // the datagrid is left in some bad state such that the next add operation causes a crash
+            // i gave up trying to diagnose it, so my "workaround" is to prevent deletion if there is only one
+            // row left
+            e.CanExecute = (Instance.table.Count() > 1) && (Instance.dg.SelectedItem != null);
+        }
+        public static void mnmExecutedsave(object sender, ExecutedRoutedEventArgs e)
+        {
+            FileStream fs;
+            IFormatter formatter = new BinaryFormatter();
+
+            try
+            {
+                fs = new FileStream(Instance.mnmfilename, FileMode.Open);
+                formatter.Serialize(fs, Instance.table.Count());
+                foreach (mnmtable.mnmtableitem i in Instance.table)
+                {
+                    formatter.Serialize(fs, i.MAC);
+                    formatter.Serialize(fs, i.alias);
+                }
+                Instance.mnmchangedsincesavedtodisk = false;
+                fs.Close();
+            }
+            catch
+            {
+                MessageBox.Show("Failed to save file");
+            }
+
+        }
+        public static void mnmCanExecutesave(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = (Instance.mnmchangedsincesavedtodisk && (Instance.mnmfilename != null));
+        }
+        public static void mnmExecutedsaveas(object sender, ExecutedRoutedEventArgs e)
         {
             SaveFileDialog dlg = new SaveFileDialog();
             FileStream fs;
             IFormatter formatter = new BinaryFormatter();
 
             dlg.InitialDirectory = "c:\\pviewer\\";
+            dlg.FileName = Instance.mnmfilename;
             dlg.DefaultExt = ".MACnamemap";
             dlg.OverwritePrompt = true;
 
             if (dlg.ShowDialog() == true)
             {
+                MACAliasMap inst = Instance;
+                Instance.mnmfilename = dlg.FileName;
                 fs = new FileStream(dlg.FileName, FileMode.OpenOrCreate);
-                foreach (mnmtableitem i in table) formatter.Serialize(fs, i);
-                mnmchangedsincesavedtodisk = false;
+                formatter.Serialize(fs, Instance.table.Count());
+                foreach (mnmtable.mnmtableitem i in Instance.table)
+                {
+                    formatter.Serialize(fs, i.MAC);
+                    formatter.Serialize(fs, i.alias);
+                }
+                Instance.mnmchangedsincesavedtodisk = false;
                 fs.Close();
             }
 
         }
-        private void mnmLoadFromDisk(object sender, RoutedEventArgs e)
+        public static void mnmCanExecutesaveas(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+        public static void mnmExecutedload(object sender, ExecutedRoutedEventArgs e)
         {
             OpenFileDialog dlg = new OpenFileDialog();
             FileStream fs;
@@ -321,20 +427,19 @@ namespace pviewer5
             {
                 fs = new FileStream(dlg.FileName, FileMode.Open);
 
+                MACAliasMap inst = Instance;
+
                 try
                 {
-                    // PLACEHOLDER
-                    //      LOAD FROM FILE TO DICT
-                    //      TRANSFER DICT TO TABLE
-                    //      TRIGGER UPDATE OF DATAGRID
-                    //      TRIGGER UPDATE OF USEALIASES DEPENDENCIES
+                    // clear existing table entries
+                    Instance.table.Clear();
 
-                    // mnmdgtable = ((MACUtil.MACnamemapclass)formatter.Deserialize(fs)).maptotable();
+                    Instance.mnmfilename = dlg.FileName;
 
-                    // next command re-sets ItemsSource, window on screen does not update to show new contents of dgtable, don't know why
-                    // there is probably some mechanism to get the display to update without re-setting the ItemsSource, but this seems to work
-                    //mnmDG.ItemsSource = mnmdgtable;
-                    //mnmchangedsincesavedtodisk = false;
+                    for (int i = (int)formatter.Deserialize(fs); i > 0; i--)
+                        Instance.table.Add(new mnmtable.mnmtableitem((MAC)formatter.Deserialize(fs), (string)formatter.Deserialize(fs)));
+
+                    Instance.mnmchangedsincesavedtodisk = false;
                 }
                 catch
                 {
@@ -345,8 +450,13 @@ namespace pviewer5
                     fs.Close();
                 }
             }
+
         }
-        private void mnmAppendFromDisk(object sender, RoutedEventArgs e)
+        public static void mnmCanExecuteload(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+        public static void mnmExecutedappend(object sender, ExecutedRoutedEventArgs e)
         {
             OpenFileDialog dlg = new OpenFileDialog();
             FileStream fs;
@@ -356,70 +466,71 @@ namespace pviewer5
             dlg.DefaultExt = ".MACnamemap";
             dlg.Multiselect = false;
 
-            // PLACEHOLDER - ADAPT NEW LOGIC FROM LOAD FROM DISK
+            if (dlg.ShowDialog() == true)
+            {
+                fs = new FileStream(dlg.FileName, FileMode.Open);
 
-        }
+                mnmtable dupsexisting = new mnmtable();
+                mnmtable dupsnewfile = new mnmtable();
+                mnmtable.mnmtableitem item;
 
-        public static void mnmExecutedaddrow(object sender, ExecutedRoutedEventArgs e)
-        {
-            MAC newMAC = 0;
+                MACAliasMap inst = Instance;
 
-            // find unique value for new entry
-            while (Instance.ContainsKey(newMAC)) newMAC += 1;
+                try
+                {
+                    // DO NOT clear existing table entriesa
+                    // Instance.table.Clear();
+                    // Instance.map.Clear();
 
-            MACAliasMap.Instance.table.Add(new mnmtableitem(newMAC, "new"));
-        }
-        public static void mnmCanExecuteaddrow(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = true;
-        }
-        public static void mnmExecuteddelrow(object sender, ExecutedRoutedEventArgs e)
-        {
-            mnmtableitem q = (mnmtableitem)(Instance.dg.SelectedItem);
+                    // change the filename to null
+                    Instance.mnmfilename = null;
+                    Instance.mnmchangedsincesavedtodisk = true;
 
-            Instance.map.Remove(q.MAC);
-            Instance.table.Remove(q);
-            Instance.mnmchangedsincesavedtodisk = true;
-            Instance.NotifyPropertyChanged();
+                    for (int i = (int)formatter.Deserialize(fs); i > 0; i--)
+                    {
+                        item = new mnmtable.mnmtableitem((MAC)formatter.Deserialize(fs), (string)formatter.Deserialize(fs));
+                        if (Instance.table.IndexOf(item.MAC) != -1)
+                        {
+                            dupsexisting.Add(new mnmtable.mnmtableitem(item.MAC, Instance.table.Lookup(item.MAC)));
+                            dupsnewfile.Add(item);
+                        }
+                        else Instance.table.Add(item);
+                    }
+                    if (dupsexisting.Count() != 0)
+                    {
+                        string s = null;
+                        for (int i = 0; i < dupsexisting.Count(); i++)
+                        {
+                            s += "Existing:\t" + dupsexisting[i].MAC.ToString(false) + " " + dupsexisting[i].alias + "\n";
+                            s += "New File:\t" + dupsnewfile[i].MAC.ToString(false) + " " + dupsnewfile[i].alias + "\n\n";
+                        }
+                        if (MessageBoxResult.Yes == MessageBox.Show(s, "DUPLICATE ENTRIES - USE VALUES FROM APPENDING FILE?", MessageBoxButton.YesNo))
+                            for (int i = 0; i < dupsexisting.Count(); i++)
+                            {
+                                int ix = Instance.table.IndexOf(dupsexisting[i].MAC);
+                                Instance.table[ix].alias = dupsnewfile[i].alias;
+                            }
+                    }
 
-        }
-        public static void mnmCanExecutedelrow(object sender, CanExecuteRoutedEventArgs e)
-        {
-            // only enable if more than one row in table
-            // this is a hack - for some reason, if there is only one row in the table and it gets deleted
-            // the datagrid is left in some bad state such that the next add operation causes a crash
-            // i gave up trying to diagnose it, so my "workaround" is to prevent deletion if there is only one
-            // row left
-            e.CanExecute = (Instance.table.Count() > 1) && (Instance.dg.SelectedItem != null);
-        }
-        public static void mnmExecutedsave(object sender, ExecutedRoutedEventArgs e)
-        {
-        }
-        public static void mnmCanExecutesave(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = Instance.mnmchangedsincesavedtodisk;
-        }
-        public static void mnmExecutedsaveas(object sender, ExecutedRoutedEventArgs e)
-        {
-        }
-        public static void mnmCanExecutesaveas(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = Instance.mnmchangedsincesavedtodisk;
-        }
-        public static void mnmExecutedload(object sender, ExecutedRoutedEventArgs e)
-        {
-        }
-        public static void mnmCanExecuteload(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = true;
-        }
-        public static void mnmExecutedappend(object sender, ExecutedRoutedEventArgs e)
-        {
+
+                }
+                catch
+                {
+                    MessageBox.Show("File not read");
+                }
+                finally
+                {
+                    fs.Close();
+                }
+            }
+
         }
         public static void mnmCanExecuteappend(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = true;
         }
+
+
 
 
 
@@ -446,7 +557,7 @@ namespace pviewer5
             MAC i = 0;
 
             if (!i.TryParse((string)value)) return new ValidationResult(false, "Not a valid MAC address");
-            else if (MACAliasMap.Instance.ContainsKey(i)) return new ValidationResult(false, "Duplicate of MAC address already in table");
+            else if (MACAliasMap.Instance.table.IndexOf(i) != -1) return new ValidationResult(false, "Duplicate of MAC address already in table");
             else return new ValidationResult(true, "Valid MAC Address");
         }
     }

@@ -497,18 +497,14 @@ namespace pviewer5
 
                     // change the filename to null
                     Instance.inmfilename = null;
+                    Instance.inmchangedsincesavedtodisk = true;
 
-
-                    // NEED INM TABE CLASS
-                    // NEED FINALIZER FOR TABLEITME THAT DELETES FROM MAP - DO NOT ALLOW DIRECT DELETION
-
-                    /*
                     for (int i = (int)formatter.Deserialize(fs); i > 0; i--)
                     {
-                        item = new inmtableitem((IP4)formatter.Deserialize(fs), (string)formatter.Deserialize(fs));
-                        if (Instance.ContainsKey(item.IP4))
+                        item = new inmtable.inmtableitem((IP4)formatter.Deserialize(fs), (string)formatter.Deserialize(fs));
+                        if (Instance.table.IndexOf(item.IP4) != -1)
                         {
-                            dupsexisting.Add(new inmtableitem(item.IP4, Instance.map[item.IP4]));
+                            dupsexisting.Add(new inmtable.inmtableitem(item.IP4, Instance.table.Lookup(item.IP4)));
                             dupsnewfile.Add(item);
                         }
                         else Instance.table.Add(item);
@@ -518,16 +514,18 @@ namespace pviewer5
                         string s = null;
                         for (int i = 0; i < dupsexisting.Count(); i++)
                         {
-                            s += "existing: " + dupsexisting[i].IP4.ToString(false, false) + " " + dupsexisting[i].alias + "\n";
-                            s += "New File: " + dupsnewfile[i].IP4.ToString(false, false) + " " + dupsnewfile[i].alias + "\n\n";
+                            s += "Existing:\t" + dupsexisting[i].IP4.ToString(false, false) + " " + dupsexisting[i].alias + "\n";
+                            s += "New File:\t" + dupsnewfile[i].IP4.ToString(false, false) + " " + dupsnewfile[i].alias + "\n\n";
                         }
                         if (MessageBoxResult.Yes == MessageBox.Show(s, "DUPLICATE ENTRIES - USE VALUES FROM APPENDING FILE?", MessageBoxButton.YesNo))
-                            for(int i = 0; i < dupsexisting.Count(); i++) Instance.table[Instance.table.IndexOf(dupsexisting[i])].alias = dupsnewfile[i].alias;
+                            for (int i = 0; i < dupsexisting.Count(); i++)
+                            {
+                                int ix = Instance.table.IndexOf(dupsexisting[i].IP4);
+                                Instance.table[ix].alias = dupsnewfile[i].alias;
+                            }
                     }
 
 
-                    Instance.inmchangedsincesavedtodisk = true;
-                    */
                 }
                 catch
                 {
