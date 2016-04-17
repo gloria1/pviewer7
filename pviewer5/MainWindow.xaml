@@ -589,6 +589,7 @@
             		ShowGridLines="True">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <WrapPanel x:Name="mnmbuttonbar"
@@ -600,8 +601,13 @@
                     <Button Content="Load from Disk" Command="{x:Static local:MACAliasMap.mnmload}"/>
                     <Button Content="Append From Disk"  Command="{x:Static local:MACAliasMap.mnmappend}"/>
                 </WrapPanel>
+                <WrapPanel
+                    Grid.Row="1">
+                    <Label>Filename:</Label>
+                    <Label Content="{Binding Path=mnm.mnmfilename}"/>
+                </WrapPanel>
                 <GroupBox Header="Map of MAC Addresses To Aliases"
-			        Grid.Row="1"
+			        Grid.Row="2"
 			        Margin="5,5,5,5">
                     <!-- added Enable*Virtualization lines based on http://www.elegant-software.net/2014/05/performance-of-the-wpf-datagrid.html -->
                     <!-- added VirtualizingPanel lines based on http://www.codewrecks.com/blog/index.php/2012/07/06/wpf-datagrid-poor-performance-on-sorting/ -->

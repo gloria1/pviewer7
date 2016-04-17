@@ -26,7 +26,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 namespace pviewer5
 {
 
-
+    [Serializable]
     public struct MAC
     {
         public ulong A;
