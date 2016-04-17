@@ -2,14 +2,30 @@
 
 	TO DO
 
-	re-check file load/save logic
-	append logic needs to handle duplicate entries - notify user, show dups in messagebox
 
-	copy new table/item logic to mac
-	copy file logic to mac
+	ip-dn mapping
+		data elements - list of idmtableitem
+			ip
+			domains - list of idmdomain
+				domain name
+				time first observed
+				time last observed
+				list of dns servers that provided this name
+		operations
+			rdns update
+			"contribute" - method called by dns header reader, to add its information
+			file append - merges info within records
+		validator/converters
+			add dns entries to ip tostringalts
+			dlist
+				main display is list of domains
+				tooltip shows expanded info on each
+				
 
 
 	datetime converters seem busted
+
+	dns - must also handle dns over tcp see rfc 5966
 
 			
 

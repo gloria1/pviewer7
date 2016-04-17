@@ -17,6 +17,9 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.IO;
 using Microsoft.Win32;
+using System.Text.RegularExpressions;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 
 
 
@@ -25,8 +28,377 @@ namespace pviewer5
 
 
 
+    public class IPDNMap : INotifyPropertyChanged
+    {
+        public static IPDNMap Instance = null;
+        public IPDNMap()
+        {
+            if (Instance != null) MessageBox.Show("Something is instantiating a second instance of IPDNMap, which should never happen.");
+            else Instance = this;
+        }
 
-    // must also handle dns over tcp see rfc 5966
+
+        // view model for mapping of IP addresses to domain names
+        // needs to be non-static so that it can be part of an instance that
+        // is referenced by the MainWindow instance so that the xaml can
+        // reference it in a databinding
+
+        public class idmtable : ObservableCollection<idmtable.idmtableitem>
+        {
+            // backing model for IP/DN map - it is a dictionary since we want to be able to look up by just indexing the map with an IP address
+            // this is private so there is no way anything outside this class can alter the dictionary  without updating the table
+            // i.e., all external access to the map will be through the table
+            private Dictionary<IP4, string> dict = new Dictionary<IP4, string>();
+
+            public new void Add(idmtableitem it)
+            // return without doing anything if it is a duplicate of an mac already in table
+            {
+                if (IndexOf(it.IP4) == -1)
+                {
+                    it.parent = this;
+                    base.Add(it);
+                    dict.Add(it.IP4, it.alias);
+                }
+            }
+            public new bool Remove(idmtableitem it)
+            {
+                int ix = IndexOf(it.IP4);
+                if (ix == -1) return false;
+                else return RemoveAt(ix);
+            }
+            public string Lookup(IP4 mac)
+            {
+                return dict[mac];
+            }
+            public int IndexOf(IP4 mac)
+            {
+                for (int i = 0; i < this.Count(); i++) if (this[i].IP4 == mac) return i;
+                return -1;
+            }
+            public new bool RemoveAt(int i)
+            {
+                if ((i < 0) || (i >= this.Count())) return false;
+                dict.Remove(this[i].IP4);
+                base.RemoveAt(i);
+                return true;
+            }
+            public new void Clear()
+            {
+                base.Clear();
+                dict.Clear();
+            }
+
+
+            public class idmtableitem : INotifyPropertyChanged
+            {
+                public idmtable parent = null;
+                private IP4 _ip4;
+                public IP4 IP4 { get { return _ip4; } }
+
+                private List<idmdomain> _domains = new List<idmdomain>();
+                public List<idmdomain> domains { get { return _domains; } }
+
+                public void Merge(idmdomain newdomain)
+                {
+                    // merge info from newdomain into this item
+
+                    _ip4 = 4;
+
+
+                }
+
+
+                public idmtableitem(IP4 u)
+                {
+                    _ip4 = u;
+                }
+
+                // implement INotifyPropertyChanged
+                public event PropertyChangedEventHandler PropertyChanged;
+                private void NotifyPropertyChanged(String propertyName = "")
+                {
+                    if (PropertyChanged != null)
+                    {
+                        PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+                    }
+                }
+
+            }
+
+            public class idmdomain
+            {
+                public string name = null;
+                public DateTime firstobsn, lastobsn = new DateTime(0);
+                public List<IP4> dnsservers = new List<IP4>();
+            }
+
+        }
+
+        public idmtable table { get; set; } = new idmtable();
+
+        // reference to datagrid this table is bound to
+        public DataGrid dg = null;
+
+        private string _idmfilename = null;
+        public string idmfilename { get { return _idmfilename; } set { _idmfilename = value; NotifyPropertyChanged(); } }
+        public bool idmchangedsincesavedtodisk = false;
+
+
+        public static RoutedCommand idmaddrow = new RoutedCommand();
+        public static RoutedCommand idmdelrow = new RoutedCommand();
+        public static RoutedCommand idmload = new RoutedCommand();
+        public static RoutedCommand idmappend = new RoutedCommand();
+        public static RoutedCommand idmsave = new RoutedCommand();
+        public static RoutedCommand idmsaveas = new RoutedCommand();
+
+        // implement INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged(String propertyName = "")
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+
+        public bool idmIsValid(DependencyObject parent)
+        {
+            // this is from http://stackoverflow.com/questions/17951045/wpf-datagrid-validation-haserror-is-always-false-mvvm
+
+            if (Validation.GetHasError(parent))
+                return false;
+
+            // Validate all the bindings on the children
+            for (int i = 0; i != VisualTreeHelper.GetChildrenCount(parent); ++i)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(parent, i);
+                if (!idmIsValid(child)) { return false; }
+            }
+
+            return true;
+        }
+
+
+        public static void idmExecutedaddrow(object sender, ExecutedRoutedEventArgs e)
+        {
+            IP4 newmac = 0;
+
+            IPDNMap inst = IPDNMap.Instance;
+
+            // find unique value for new entry
+            while (Instance.table.IndexOf(newmac) != -1) newmac += 1;
+
+            Instance.table.Add(new idmtable.idmtableitem(newmac, "new"));
+        }
+        public static void idmCanExecuteaddrow(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+        public static void idmExecuteddelrow(object sender, ExecutedRoutedEventArgs e)
+        {
+            idmtable.idmtableitem q = (idmtable.idmtableitem)(Instance.dg.SelectedItem);
+
+            IPDNMap inst = IPDNMap.Instance;
+
+
+            Instance.table.Remove(q);
+            Instance.idmchangedsincesavedtodisk = true;
+            Instance.NotifyPropertyChanged();
+        }
+        public static void idmCanExecutedelrow(object sender, CanExecuteRoutedEventArgs e)
+        {
+            // only enable if more than one row in table
+            // this is a hack - for some reason, if there is only one row in the table and it gets deleted
+            // the datagrid is left in some bad state such that the next add operation causes a crash
+            // i gave up trying to diagnose it, so my "workaround" is to prevent deletion if there is only one
+            // row left
+            e.CanExecute = (Instance.table.Count() > 1) && (Instance.dg.SelectedItem != null);
+        }
+        public static void idmExecutedsave(object sender, ExecutedRoutedEventArgs e)
+        {
+            FileStream fs;
+            IFormatter formatter = new BinaryFormatter();
+
+            try
+            {
+                fs = new FileStream(Instance.idmfilename, FileMode.Open);
+                formatter.Serialize(fs, Instance.table.Count());
+                foreach (idmtable.idmtableitem i in Instance.table)
+                {
+                    formatter.Serialize(fs, i.IP4);
+                    formatter.Serialize(fs, i.alias);
+                }
+                Instance.idmchangedsincesavedtodisk = false;
+                fs.Close();
+            }
+            catch
+            {
+                MessageBox.Show("Failed to save file");
+            }
+
+        }
+        public static void idmCanExecutesave(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = (Instance.idmchangedsincesavedtodisk && (Instance.idmfilename != null));
+        }
+        public static void idmExecutedsaveas(object sender, ExecutedRoutedEventArgs e)
+        {
+            SaveFileDialog dlg = new SaveFileDialog();
+            FileStream fs;
+            IFormatter formatter = new BinaryFormatter();
+
+            dlg.InitialDirectory = "c:\\pviewer\\";
+            dlg.FileName = Instance.idmfilename;
+            dlg.DefaultExt = ".IDmap";
+            dlg.OverwritePrompt = true;
+
+            if (dlg.ShowDialog() == true)
+            {
+                IPDNMap inst = Instance;
+                Instance.idmfilename = dlg.FileName;
+                fs = new FileStream(dlg.FileName, FileMode.OpenOrCreate);
+                formatter.Serialize(fs, Instance.table.Count());
+                foreach (idmtable.idmtableitem i in Instance.table)
+                {
+                    formatter.Serialize(fs, i.IP4);
+                    formatter.Serialize(fs, i.alias);
+                }
+                Instance.idmchangedsincesavedtodisk = false;
+                fs.Close();
+            }
+
+        }
+        public static void idmCanExecutesaveas(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+        public static void idmExecutedload(object sender, ExecutedRoutedEventArgs e)
+        {
+            OpenFileDialog dlg = new OpenFileDialog();
+            FileStream fs;
+            IFormatter formatter = new BinaryFormatter();
+
+            dlg.InitialDirectory = "c:\\pviewer\\";
+            dlg.DefaultExt = ".IDmap";
+            dlg.Multiselect = false;
+
+            if (dlg.ShowDialog() == true)
+            {
+                fs = new FileStream(dlg.FileName, FileMode.Open);
+
+                IPDNMap inst = Instance;
+
+                try
+                {
+                    // clear existing table entries
+                    Instance.table.Clear();
+
+                    Instance.idmfilename = dlg.FileName;
+
+                    for (int i = (int)formatter.Deserialize(fs); i > 0; i--)
+                        Instance.table.Add(new idmtable.idmtableitem((IP4)formatter.Deserialize(fs), (string)formatter.Deserialize(fs)));
+
+                    Instance.idmchangedsincesavedtodisk = false;
+                }
+                catch
+                {
+                    MessageBox.Show("File not read");
+                }
+                finally
+                {
+                    fs.Close();
+                }
+            }
+
+        }
+        public static void idmCanExecuteload(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+        public static void idmExecutedappend(object sender, ExecutedRoutedEventArgs e)
+        {
+            OpenFileDialog dlg = new OpenFileDialog();
+            FileStream fs;
+            IFormatter formatter = new BinaryFormatter();
+
+            dlg.InitialDirectory = "c:\\pviewer\\";
+            dlg.DefaultExt = ".IDmap";
+            dlg.Multiselect = false;
+
+            if (dlg.ShowDialog() == true)
+            {
+                fs = new FileStream(dlg.FileName, FileMode.Open);
+
+                idmtable dupsexisting = new idmtable();
+                idmtable dupsnewfile = new idmtable();
+                idmtable.idmtableitem item;
+
+                IPDNMap inst = Instance;
+
+                try
+                {
+                    // DO NOT clear existing table entriesa
+                    // Instance.table.Clear();
+                    // Instance.map.Clear();
+
+                    // change the filename to null
+                    Instance.idmfilename = null;
+                    Instance.idmchangedsincesavedtodisk = true;
+
+                    for (int i = (int)formatter.Deserialize(fs); i > 0; i--)
+                    {
+                        item = new idmtable.idmtableitem((IP4)formatter.Deserialize(fs), (string)formatter.Deserialize(fs));
+                        if (Instance.table.IndexOf(item.IP4) != -1)
+                        {
+                            dupsexisting.Add(new idmtable.idmtableitem(item.IP4, Instance.table.Lookup(item.IP4)));
+                            dupsnewfile.Add(item);
+                        }
+                        else Instance.table.Add(item);
+                    }
+                    if (dupsexisting.Count() != 0)
+                    {
+                        string s = null;
+                        for (int i = 0; i < dupsexisting.Count(); i++)
+                        {
+                            s += "Existing:\t" + dupsexisting[i].IP4.ToString(false) + " " + dupsexisting[i].alias + "\n";
+                            s += "New File:\t" + dupsnewfile[i].IP4.ToString(false) + " " + dupsnewfile[i].alias + "\n\n";
+                        }
+                        if (MessageBoxResult.Yes == MessageBox.Show(s, "DUPLICATE ENTRIES - USE VALUES FROM APPENDING FILE?", MessageBoxButton.YesNo))
+                            for (int i = 0; i < dupsexisting.Count(); i++)
+                            {
+                                int ix = Instance.table.IndexOf(dupsexisting[i].IP4);
+                                Instance.table[ix].alias = dupsnewfile[i].alias;
+                            }
+                    }
+
+
+                }
+                catch
+                {
+                    MessageBox.Show("File not read");
+                }
+                finally
+                {
+                    fs.Close();
+                }
+            }
+
+        }
+        public static void idmCanExecuteappend(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+
+
+
+
+
+    }
+
+
+
+
 
 
     public class DNSRR : PVDisplayObject
