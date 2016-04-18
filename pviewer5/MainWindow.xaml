@@ -517,6 +517,71 @@
             <GridSplitter Grid.Row="1" Grid.Column="0" Height="10" HorizontalAlignment="Stretch" VerticalAlignment="Center" ShowsPreview="False" Background="Orange"/>
             <GridSplitter Grid.Row="3" Grid.Column="0" Height="10" HorizontalAlignment="Stretch" VerticalAlignment="Center" ShowsPreview="False" Background="Orange"/>
 
+            <Grid x:Name="idmgrid"
+                    Grid.Row="0"
+            		ShowGridLines="True">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <WrapPanel x:Name="idmbuttonbar"
+			        Grid.Row="0"
+			        HorizontalAlignment="Left"
+			        Margin="5,5,5,5">
+                    <Button Content="Save To Disk" Command="{x:Static local:IP4AliasMap.idmsave}"/>
+                    <Button Content="Save As To Disk" Command="{x:Static local:IP4AliasMap.idmsaveas}"/>
+                    <Button Content="Load from Disk" Command="{x:Static local:IP4AliasMap.idmload}"/>
+                    <Button Content="Merge From Disk"  Command="{x:Static local:IP4AliasMap.idmmerge}"/>
+                </WrapPanel>
+                <WrapPanel
+                    Grid.Row="1">
+                    <Label>Filename:</Label>
+                    <Label Content="{Binding Path=idm.idmfilename}"/>
+                </WrapPanel>
+                <GroupBox Header="Map of IP4 Addresses To Domain Names"
+			        Grid.Row="2"
+			        Margin="5,5,5,5">
+                    <!-- added Enable*Virtualization lines based on http://www.elegant-software.net/2014/05/performance-of-the-wpf-datagrid.html -->
+                    <!-- added VirtualizingPanel lines based on http://www.codewrecks.com/blog/index.php/2012/07/06/wpf-datagrid-poor-performance-on-sorting/ -->
+                    <!-- added CanUserAddRows="False" to prevent display of blank row at end-->
+                    <DataGrid
+				            x:Name="IDMDG"
+				            EnableColumnVirtualization="True"
+				            EnableRowVirtualization="True"
+				            VirtualizingPanel.IsVirtualizing="True"
+				            VirtualizingPanel.VirtualizationMode="Recycling"
+				            AutoGenerateColumns="False"
+                            CanUserDeleteRows="False"
+                            CanUserAddRows="False"
+                            ItemsSource="{Binding Path=idm.table}">
+
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="IP4 Address" IsReadOnly="True">
+                                <DataGridTextColumn.Binding>
+                                    <MultiBinding Converter="{StaticResource IP4mvconverternumberonly}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
+                                        <MultiBinding.ValidationRules>
+                                            <local:ValidateIP4NonDup ValidationStep="RawProposedValue"/>
+                                        </MultiBinding.ValidationRules>
+                                        <Binding Path="IP4" Mode="TwoWay"/>
+                                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
+                                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
+                                    </MultiBinding>
+                                </DataGridTextColumn.Binding>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Domain Info" Binding="{Binding domaininfostring}" IsReadOnly="True"/>
+                        </DataGrid.Columns>
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem x:Name="idmdelrowmenuitem" Header="Delete Row" Command="{x:Static local:IPDNMap.idmdelrow}"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+
+                    </DataGrid>
+                </GroupBox>
+
+            </Grid>
+
 
             <Grid x:Name="inmgrid"
                     Grid.Row="2"

@@ -130,6 +130,12 @@ namespace pviewer5
         public FilterSet filters { get; set; }
 
         // properties for domain map view
+        public IPDNMap idm { get; set; } = new IPDNMap();
+        CommandBinding idmdelrowbinding;
+        CommandBinding idmsavebinding;
+        CommandBinding idmsaveasbinding;
+        CommandBinding idmloadbinding;
+        CommandBinding idmmergebinding;
 
         // properties for ip4 map view
         public IP4AliasMap inm { get; set; } = new IP4AliasMap();
@@ -176,6 +182,12 @@ namespace pviewer5
             filters.Filename = null;    // reset the filename to null after loading from autosave file
 
             // set up domain map view
+            idm.dg = IDMDG;
+            idmdelrowbinding = new CommandBinding(IPDNMap.idmdelrow, IPDNMap.idmExecuteddelrow, IPDNMap.idmCanExecutedelrow);
+            idmsavebinding = new CommandBinding(IPDNMap.idmsave, IPDNMap.idmExecutedsave, IPDNMap.idmCanExecutesave);
+            idmsaveasbinding = new CommandBinding(IPDNMap.idmsaveas, IPDNMap.idmExecutedsaveas, IPDNMap.idmCanExecutesaveas);
+            idmmergebinding = new CommandBinding(IPDNMap.idmmerge, IPDNMap.idmExecutedmerge, IPDNMap.idmCanExecutemerge);
+            idmloadbinding = new CommandBinding(IPDNMap.idmload, IPDNMap.idmExecutedload, IPDNMap.idmCanExecuteload);
 
             // set up ip4 map view
             inm.dg = INMDG;

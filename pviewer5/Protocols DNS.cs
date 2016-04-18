@@ -48,16 +48,16 @@ namespace pviewer5
             // backing model for IP/DN map - it is a dictionary since we want to be able to look up by just indexing the map with an IP address
             // this is private so there is no way anything outside this class can alter the dictionary  without updating the table
             // i.e., all external access to the map will be through the table
-            private Dictionary<IP4, string> dict = new Dictionary<IP4, string>();
+            private Dictionary<IP4, List<idmdomain>> dict = new Dictionary<IP4, List<idmdomain>>();
 
             public new void Add(idmtableitem it)
-            // return without doing anything if it is a duplicate of an mac already in table
+            // return without doing anything if it is a duplicate of an IP4 already in table
             {
                 if (IndexOf(it.IP4) == -1)
                 {
                     it.parent = this;
                     base.Add(it);
-                    dict.Add(it.IP4, it.alias);
+                    dict.Add(it.IP4, it.domains);
                 }
             }
             public new bool Remove(idmtableitem it)
@@ -66,13 +66,13 @@ namespace pviewer5
                 if (ix == -1) return false;
                 else return RemoveAt(ix);
             }
-            public string Lookup(IP4 mac)
+            public List<idmdomain> Lookup(IP4 ip4)
             {
-                return dict[mac];
+                return dict[ip4];
             }
-            public int IndexOf(IP4 mac)
+            public int IndexOf(IP4 ip4)
             {
-                for (int i = 0; i < this.Count(); i++) if (this[i].IP4 == mac) return i;
+                for (int i = 0; i < this.Count(); i++) if (this[i].IP4 == ip4) return i;
                 return -1;
             }
             public new bool RemoveAt(int i)
@@ -98,6 +98,14 @@ namespace pviewer5
                 private List<idmdomain> _domains = new List<idmdomain>();
                 public List<idmdomain> domains { get { return _domains; } }
 
+                public string domaininfostring
+                {
+                    get
+                    {
+                        return "domain info string here";
+                    }
+                }
+
                 public void Merge(idmdomain newdomain)
                 {
                     // merge info from newdomain into this item
@@ -108,9 +116,10 @@ namespace pviewer5
                 }
 
 
-                public idmtableitem(IP4 u)
+                public idmtableitem(IP4 u, List<idmdomain> doms)
                 {
                     _ip4 = u;
+                    _domains = doms;
                 }
 
                 // implement INotifyPropertyChanged
@@ -144,10 +153,9 @@ namespace pviewer5
         public bool idmchangedsincesavedtodisk = false;
 
 
-        public static RoutedCommand idmaddrow = new RoutedCommand();
         public static RoutedCommand idmdelrow = new RoutedCommand();
         public static RoutedCommand idmload = new RoutedCommand();
-        public static RoutedCommand idmappend = new RoutedCommand();
+        public static RoutedCommand idmmerge = new RoutedCommand();
         public static RoutedCommand idmsave = new RoutedCommand();
         public static RoutedCommand idmsaveas = new RoutedCommand();
 
@@ -180,21 +188,6 @@ namespace pviewer5
         }
 
 
-        public static void idmExecutedaddrow(object sender, ExecutedRoutedEventArgs e)
-        {
-            IP4 newmac = 0;
-
-            IPDNMap inst = IPDNMap.Instance;
-
-            // find unique value for new entry
-            while (Instance.table.IndexOf(newmac) != -1) newmac += 1;
-
-            Instance.table.Add(new idmtable.idmtableitem(newmac, "new"));
-        }
-        public static void idmCanExecuteaddrow(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = true;
-        }
         public static void idmExecuteddelrow(object sender, ExecutedRoutedEventArgs e)
         {
             idmtable.idmtableitem q = (idmtable.idmtableitem)(Instance.dg.SelectedItem);
@@ -227,7 +220,7 @@ namespace pviewer5
                 foreach (idmtable.idmtableitem i in Instance.table)
                 {
                     formatter.Serialize(fs, i.IP4);
-                    formatter.Serialize(fs, i.alias);
+                    formatter.Serialize(fs, i.domains);
                 }
                 Instance.idmchangedsincesavedtodisk = false;
                 fs.Close();
@@ -262,7 +255,7 @@ namespace pviewer5
                 foreach (idmtable.idmtableitem i in Instance.table)
                 {
                     formatter.Serialize(fs, i.IP4);
-                    formatter.Serialize(fs, i.alias);
+                    formatter.Serialize(fs, i.domains);
                 }
                 Instance.idmchangedsincesavedtodisk = false;
                 fs.Close();
@@ -297,7 +290,7 @@ namespace pviewer5
                     Instance.idmfilename = dlg.FileName;
 
                     for (int i = (int)formatter.Deserialize(fs); i > 0; i--)
-                        Instance.table.Add(new idmtable.idmtableitem((IP4)formatter.Deserialize(fs), (string)formatter.Deserialize(fs)));
+                        Instance.table.Add(new idmtable.idmtableitem((IP4)formatter.Deserialize(fs), (List<idmtable.idmdomain>)formatter.Deserialize(fs)));
 
                     Instance.idmchangedsincesavedtodisk = false;
                 }
@@ -316,7 +309,7 @@ namespace pviewer5
         {
             e.CanExecute = true;
         }
-        public static void idmExecutedappend(object sender, ExecutedRoutedEventArgs e)
+        public static void idmExecutedmerge(object sender, ExecutedRoutedEventArgs e)
         {
             OpenFileDialog dlg = new OpenFileDialog();
             FileStream fs;
@@ -330,8 +323,6 @@ namespace pviewer5
             {
                 fs = new FileStream(dlg.FileName, FileMode.Open);
 
-                idmtable dupsexisting = new idmtable();
-                idmtable dupsnewfile = new idmtable();
                 idmtable.idmtableitem item;
 
                 IPDNMap inst = Instance;
@@ -348,28 +339,14 @@ namespace pviewer5
 
                     for (int i = (int)formatter.Deserialize(fs); i > 0; i--)
                     {
-                        item = new idmtable.idmtableitem((IP4)formatter.Deserialize(fs), (string)formatter.Deserialize(fs));
+                        item = new idmtable.idmtableitem((IP4)formatter.Deserialize(fs), (List<idmtable.idmdomain>)formatter.Deserialize(fs));
                         if (Instance.table.IndexOf(item.IP4) != -1)
                         {
-                            dupsexisting.Add(new idmtable.idmtableitem(item.IP4, Instance.table.Lookup(item.IP4)));
-                            dupsnewfile.Add(item);
+// merge domain info from file into table
+
+
                         }
                         else Instance.table.Add(item);
-                    }
-                    if (dupsexisting.Count() != 0)
-                    {
-                        string s = null;
-                        for (int i = 0; i < dupsexisting.Count(); i++)
-                        {
-                            s += "Existing:\t" + dupsexisting[i].IP4.ToString(false) + " " + dupsexisting[i].alias + "\n";
-                            s += "New File:\t" + dupsnewfile[i].IP4.ToString(false) + " " + dupsnewfile[i].alias + "\n\n";
-                        }
-                        if (MessageBoxResult.Yes == MessageBox.Show(s, "DUPLICATE ENTRIES - USE VALUES FROM APPENDING FILE?", MessageBoxButton.YesNo))
-                            for (int i = 0; i < dupsexisting.Count(); i++)
-                            {
-                                int ix = Instance.table.IndexOf(dupsexisting[i].IP4);
-                                Instance.table[ix].alias = dupsnewfile[i].alias;
-                            }
                     }
 
 
@@ -385,7 +362,7 @@ namespace pviewer5
             }
 
         }
-        public static void idmCanExecuteappend(object sender, CanExecuteRoutedEventArgs e)
+        public static void idmCanExecutemerge(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = true;
         }
