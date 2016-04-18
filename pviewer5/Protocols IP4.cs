@@ -315,24 +315,6 @@ namespace pviewer5
             }
         }
 
-
-        public bool inmIsValid(DependencyObject parent)
-        {
-            // this is from http://stackoverflow.com/questions/17951045/wpf-datagrid-validation-haserror-is-always-false-mvvm
-
-            if (Validation.GetHasError(parent))
-                return false;
-
-            // Validate all the bindings on the children
-            for (int i = 0; i != VisualTreeHelper.GetChildrenCount(parent); ++i)
-            {
-                DependencyObject child = VisualTreeHelper.GetChild(parent, i);
-                if (!inmIsValid(child)) { return false; }
-            }
-
-            return true;
-        }
-        
         public static void inmExecutedaddrow(object sender, ExecutedRoutedEventArgs e)
         {
             IP4 newip4 = 0;

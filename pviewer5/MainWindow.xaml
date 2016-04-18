@@ -529,10 +529,10 @@
 			        Grid.Row="0"
 			        HorizontalAlignment="Left"
 			        Margin="5,5,5,5">
-                    <Button Content="Save To Disk" Command="{x:Static local:IP4AliasMap.idmsave}"/>
-                    <Button Content="Save As To Disk" Command="{x:Static local:IP4AliasMap.idmsaveas}"/>
-                    <Button Content="Load from Disk" Command="{x:Static local:IP4AliasMap.idmload}"/>
-                    <Button Content="Merge From Disk"  Command="{x:Static local:IP4AliasMap.idmmerge}"/>
+                    <Button Content="Save To Disk" Command="{x:Static local:IPDNMap.idmsave}"/>
+                    <Button Content="Save As To Disk" Command="{x:Static local:IPDNMap.idmsaveas}"/>
+                    <Button Content="Load from Disk" Command="{x:Static local:IPDNMap.idmload}"/>
+                    <Button Content="Merge From Disk"  Command="{x:Static local:IPDNMap.idmmerge}"/>
                 </WrapPanel>
                 <WrapPanel
                     Grid.Row="1">

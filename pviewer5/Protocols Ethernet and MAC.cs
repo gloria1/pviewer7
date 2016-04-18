@@ -302,24 +302,6 @@ namespace pviewer5
         }
 
 
-        public bool mnmIsValid(DependencyObject parent)
-        {
-            // this is from http://stackoverflow.com/questions/17951045/wpf-datagrid-validation-haserror-is-always-false-mvvm
-
-            if (Validation.GetHasError(parent))
-                return false;
-
-            // Validate all the bindings on the children
-            for (int i = 0; i != VisualTreeHelper.GetChildrenCount(parent); ++i)
-            {
-                DependencyObject child = VisualTreeHelper.GetChild(parent, i);
-                if (!mnmIsValid(child)) { return false; }
-            }
-
-            return true;
-        }
-
-
         public static void mnmExecutedaddrow(object sender, ExecutedRoutedEventArgs e)
         {
             MAC newmac = 0;

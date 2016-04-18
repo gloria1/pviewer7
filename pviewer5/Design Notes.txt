@@ -15,8 +15,6 @@
 			rdns update
 			"contribute" - method called by dns header reader, to add its information
 			file merge - merges info within records
-			keep delete row command? thinking yes
-			remove add row command? thinking yes
 		validator/converters
 			add dns entries to ip tostringalts
 			dlist
