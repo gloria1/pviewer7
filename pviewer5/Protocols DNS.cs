@@ -50,8 +50,10 @@ namespace pviewer5
             // i.e., all external access to the map will be through the table
             private Dictionary<IP4, List<idmdomain>> dict = new Dictionary<IP4, List<idmdomain>>();
 
-            public new void Add(idmtableitem it)
-            // return without doing anything if it is a duplicate of an IP4 already in table
+            public new void Merge(idmtableitem it)
+            // if the IP4 is a duplicate of an IP4 already in table
+            // then merge the new domain info into the existing item
+            // else add it as a new item
             {
                 if (IndexOf(it.IP4) == -1)
                 {
@@ -110,11 +112,27 @@ namespace pviewer5
                 {
                     // merge info from newdomain into this item
 
-                    _ip4 = 4;
+                    idmdomain mergetarget = null;
 
-
+                    // check whether new domain name matches any in list
+                    // if so, set mergetarget to the matching existing item
+                    foreach (idmdomain id in _domains)
+                        if (newdomain.name == id.name)
+                        {
+                            mergetarget = id;
+                            break;
+                        }
+                    // if no match found, i.e., mergetarget still null
+                    // add newdomain to list
+                    if (mergetarget == null) _domains.Add(newdomain);
+                    // else merge newdomain info into mergetarget
+                    else
+                    {
+                        if (newdomain.firstobsn < mergetarget.firstobsn) mergetarget.firstobsn = newdomain.firstobsn;
+                        if (newdomain.lastobsn > mergetarget.lastobsn) mergetarget.lastobsn = newdomain.lastobsn;
+                        if (!mergetarget.dnsservers.Contains(newdomain.dnsservers[0])) mergetarget.dnsservers.Add(newdomain.dnsservers[0]);
+                    }
                 }
-
 
                 public idmtableitem(IP4 u, List<idmdomain> doms)
                 {

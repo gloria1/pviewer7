@@ -14,6 +14,14 @@
 		operations
 			rdns update
 			"contribute" - method called by dns header reader, to add its information
+				IMPLEMENT BY TRACING DNS HEADER READING CODE
+				DISCOVER VARIATIONS IN WHAT KINDS OF DNS INFO COMES IN
+					WHILE AT HOME
+					WHILE IN WORK NETWORK
+					WHILE ON IPHONE NETWORK
+
+
+
 			file merge - merges info within records
 		validator/converters
 			add dns entries to ip tostringalts
