@@ -2,6 +2,46 @@
 
 	TO DO
 
+		dns
+			enhancements
+				additional info in DNSH pvdisplayinfo
+					abbreviated info on packet sufficient to identify
+					"usual" and ""unusual" packet sequences
+						what is that?
+							dns type (qustion or response)
+							dns flags - recursion at least
+							list of rr types
+							no rrdata
+
+				additional information in displayinfo for RRs
+					type (number and name)
+					class
+					TTL
+					RDATA - formatted accordingly for each type
+				make filter for dns values i haven't leanred how to handle
+					class other than internet
+
+
+				throw dialog after packet file load if un-grocked dns records were loaded
+					maintain a dictionary of <protocol, List<string>>
+					header parsers can add exception info and pvdisplay info to list
+					when file load done, open non-modal window if the dict is not empty
+					dict window allows close and simple clear of the dictionary
+
+					set some kind of "exception flag" that gets passed up the header parse stack
+					and puts up a message box
+				
+				rdns crawler - read tcp/ip illustrated vol1, starting in section 11.5.6.4 (page 516)
+
+
+			must also handle dns over tcp see rfc 5966
+			set up dns server on windows?  or on pfsense?
+				can it make outbound dns requests encrypted?
+				can it make outbound dns requests go to some non-google, non-verizon server?
+
+
+
+
 
 	ip-dn mapping
 		data elements - list of idmtableitem
@@ -11,6 +51,8 @@
 				time first observed
 				time last observed
 				list of dns servers that provided this name
+				other information TBD that is worth capturing
+
 		operations
 			rdns update
 			"contribute" - method called by dns header reader, to add its information
@@ -33,7 +75,6 @@
 
 	datetime converters seem busted
 
-	dns - must also handle dns over tcp see rfc 5966
 
 			
 

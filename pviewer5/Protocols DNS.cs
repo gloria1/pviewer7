@@ -397,7 +397,53 @@ namespace pviewer5
         public uint RDATA6 { get; set; }
         public uint RDATA7 { get; set; }    // index into DNS header of beginning of first field of RDATA (how to resolve depends on TYPE)
         
-        public override string displayinfo { get { return "DNS RR, Name = " + formnamestring(NAME); } }
+        public override string displayinfo
+        {
+            get
+            {
+                string r = "DNS RR, ";
+
+                // class
+                r += "Class ";
+                switch (CLASS)
+                {
+                    case 1: r += "IN"; break;
+                    case 0xfe: r += "None"; break;
+                    case 0xff: r += "Any"; break;
+                    default: r += "UNEXPECTED value = " + CLASS.ToString();  break;
+                }
+                // type
+                r += ", Type ";
+                switch (TYPE)
+                {
+                    case 1: r += "A"; break;
+                    case 2: r += "NS"; break;
+                    case 3: r += "MD"; break;
+                    case 4: r += "MF"; break;
+                    case 5: r += "CNAME"; break;
+                    case 6: r += "SOA"; break;
+                    case 7: r += "MB"; break;
+                    case 8: r += "MG"; break;
+                    case 9: r += "MR"; break;
+                    case 10: r += "NULL"; break;
+                    case 11: r += "WKS"; break;
+                    case 12: r += "PTR"; break;
+                    case 13: r += "HINFO"; break;
+                    case 14: r += "MINFO"; break;
+                    case 15: r += "MX"; break;
+                    case 16: r += "TXT"; break;
+                }
+
+                // ttl
+                r += ", TTL " + TTL.ToString() + ", ";
+
+                r += "Name = " + formnamestring(NAME);
+                // rdata
+
+
+                return r;
+            }
+        }
         
         public void Advanceposovername(byte[] d, ref uint pos)
         {

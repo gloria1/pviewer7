@@ -73,6 +73,9 @@
     <Compile Include="PacketViewer.xaml.cs">
       <DependentUpon>PacketViewer.xaml</DependentUpon>
     </Compile>
+    <Compile Include="PktMessageWindow.xaml.cs">
+      <DependentUpon>PktMessageWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Protocols HTTP.cs" />
     <Compile Include="Protocols ARP.cs" />
     <Compile Include="Protocols DHCP.cs" />
@@ -110,6 +113,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="PacketViewer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="PktMessageWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
