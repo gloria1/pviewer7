@@ -416,22 +416,25 @@ namespace pviewer5
                 r += ", Type ";
                 switch (TYPE)
                 {
-                    case 1: r += "A"; break;
-                    case 2: r += "NS"; break;
-                    case 3: r += "MD"; break;
-                    case 4: r += "MF"; break;
-                    case 5: r += "CNAME"; break;
-                    case 6: r += "SOA"; break;
-                    case 7: r += "MB"; break;
-                    case 8: r += "MG"; break;
-                    case 9: r += "MR"; break;
+                    case 1: r += "A " + ((IP4)RDATA1).ToString(); break;
+                    case 2: r += "NS - auth. name svr - " + formnamestring(RDATA1); break;
+                    case 3: r += "MD - OBSOLETE RR TYPE!!!!"; break;
+                    case 4: r += "MF - OBSOLETE RR TYPE!!!!"; break;
+                    case 5: r += "CNAME - canonical name for alias - " + formnamestring(RDATA1); break;
+                    case 6: r += "SOA - start of zone of auth, name server - " + formnamestring(RDATA1);  break;
+                    case 7: r += "MB - mailbox domain - " + formnamestring(RDATA1); break;
+                    case 8: r += "MG - mail group member - " + formnamestring(RDATA1); break;
+                    case 9: r += "MR - mail rename domain - " + formnamestring(RDATA1); break;
                     case 10: r += "NULL"; break;
-                    case 11: r += "WKS"; break;
-                    case 12: r += "PTR"; break;
-                    case 13: r += "HINFO"; break;
-                    case 14: r += "MINFO"; break;
-                    case 15: r += "MX"; break;
-                    case 16: r += "TXT"; break;
+                    case 11: r += "WKS - well known service - IP: " + ((IP4)RDATA1).ToString() + String.Format(" Protocol {0:X2}",RDATA2); break;
+                    case 12: r += "PTR - domain name pointer" + formnamestring(RDATA1); break;
+                    case 13: r += "HINFO - host information CPU: " + System.Text.Encoding.Default.GetString(mypkt.PData, (int)RDATA1 + 1, (int)(mypkt.PData[RDATA1]))
+                                    + ", OS: " + System.Text.Encoding.Default.GetString(mypkt.PData, (int)RDATA2 + 1, (int)(mypkt.PData[RDATA2]));
+                         break;
+                    case 14: r += "MINFO - mailbox/maillist info: " + formnamestring(RDATA1) + ", " + formnamestring(RDATA2); break;
+                    case 15: r += String.Format("MX, preference: {0:X2}, ", RDATA1) + formnamestring(RDATA2); break;
+                    case 16: r += "TXT: " + System.Text.Encoding.Default.GetString(mypkt.PData, (int)RDATA1, (int)(RDLENGTH)); break;
+                    case 28: r += String.Format("AAAA {0:X8} {1:X8} {2:X8} {3:X8}", RDATA1, RDATA2, RDATA3, RDATA4); break;
                 }
 
                 // ttl
@@ -562,22 +565,29 @@ namespace pviewer5
                     break;
                 case 0x0e:         // MINFO - mailbox or mail list information
                     RDATA1 = pos - PDataIndex;
-                    while (pkt.PData[pos] > 0) pos++;
+                    Advanceposovername(pkt.PData, ref pos);
                     RDATA2 = pos - PDataIndex;
-                    while (pkt.PData[pos] > 0) pos++;
+                    Advanceposovername(pkt.PData, ref pos);
                     break;
                 case 0x0f:         // MX - mail exchange
-                    RDATA1 = (uint)pkt.PData[pos] * 0x100 + (uint)pkt.PData[pos + 1];
-                    RDATA2 = pos - PDataIndex + 2;
+                    RDATA1 = (uint)pkt.PData[pos] * 0x100 + (uint)pkt.PData[pos + 1];   // the preference value for this mail exchange (lower is higher preference)
+                    RDATA2 = pos - PDataIndex + 2;                                      // name of mail exchange
                     pos += RDLENGTH;
                     break;
                 case 0x10:         // TXT - text strings
                     RDATA1 = pos; pos += RDLENGTH;    // character strings (can be > 1) where first byte is length and no null terminators
                     break;
+                case 0x1c:          // AAAA - IPv6 address
+                    RDATA1 = (uint)pkt.PData[pos] * 0x1000000 + (uint)pkt.PData[pos + 1] * 0x10000 + (uint)pkt.PData[pos + 2] * 0x100 + (uint)pkt.PData[pos + 3]; pos += 4;  // A - internet address (ipv4)
+                    RDATA2 = (uint)pkt.PData[pos] * 0x1000000 + (uint)pkt.PData[pos + 1] * 0x10000 + (uint)pkt.PData[pos + 2] * 0x100 + (uint)pkt.PData[pos + 3]; pos += 4;  // A - internet address (ipv4)
+                    RDATA3 = (uint)pkt.PData[pos] * 0x1000000 + (uint)pkt.PData[pos + 1] * 0x10000 + (uint)pkt.PData[pos + 2] * 0x100 + (uint)pkt.PData[pos + 3]; pos += 4;  // A - internet address (ipv4)
+                    RDATA4 = (uint)pkt.PData[pos] * 0x1000000 + (uint)pkt.PData[pos + 1] * 0x10000 + (uint)pkt.PData[pos + 2] * 0x100 + (uint)pkt.PData[pos + 3]; pos += 4;  // A - internet address (ipv4)
+                    break;
+
                 case 3:         // MD - a mail destination (OBSOLETE per rfc 1035)
                 case 4:         // MF - a mail forwarder (obsolete per rfc 1035) 
                 default:
-                    MessageBox.Show("Obsolete DNS RR Type - why are we receiving this?");
+                    MessageBox.Show("Unhandled DNS RR Type - why are we receiving this?");
                     break;
             }
         }
@@ -637,7 +647,14 @@ namespace pviewer5
         {
             get
             {
-                return String.Format("DNS header text {0:X4}", ID);
+                string s = String.Format("DNS header text {0:X4}", ID);
+                s += ", ";
+                if (QR == 0) s += "QR is query";
+                else s += "QR is response";
+
+                if (RCode != 0) s += ", RCode INDICATES ERROR OR FAILURE OF SOME KIND";
+
+                return s;
             }
         }
 
@@ -671,18 +688,6 @@ namespace pviewer5
             RRs.Add(new DNSRRList());    // add empty list to containt the questions
 
             for (int ii = 0; ii < QDCOUNT; ii++) RRs[0].Items.Add(new DNSRR(pkt, ref i, true, pdataindex));
-
-
-            //ffadfdadfadd
-            // finish debugging reading individual packets
-            // add sub tree display for dns packets
-            //      make question and answer rrs a single list
-            //      add variables to index the list for firstAN, firstNS, firstAR
-            //      add datatemplate for dnsitem
-            // create dns grouping logic - simply match ID fields
-
-
-
             RRs.Add(new DNSRRList());
             for (int ii = 0; ii < ANCOUNT; ii++) RRs[1].Items.Add(new DNSRR(pkt, ref i, false, pdataindex));
             RRs.Add(new DNSRRList());
