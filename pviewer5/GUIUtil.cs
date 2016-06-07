@@ -23,6 +23,9 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace pviewer5
 {
+
+
+
     class GUIUtil : INotifyPropertyChanged
     // class containing:
     //      utility functions related to displaying hex numbers
@@ -37,6 +40,9 @@ namespace pviewer5
         public bool Hex { get { return _hex; } set { _hex = value; NotifyPropertyChanged("Hex"); } }
         private bool _usealiases;
         public bool UseAliases { get { return _usealiases; } set { _usealiases = value; NotifyPropertyChanged(); } }
+
+        private ExceptionLevels _exceptionleveltoshow = ExceptionLevels.Zero;
+        public ExceptionLevels ExceptionLevelToShow { get { return _exceptionleveltoshow; } set { _exceptionleveltoshow = value; NotifyPropertyChanged(); } }
 
         // private constructor below was set up per the "singleton" pattern, so that no further instances of this class could be created
         // however, for some reason this caused the data binding to IP4Hex to stop working, so i have commented this out

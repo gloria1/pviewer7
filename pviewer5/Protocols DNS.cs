@@ -401,7 +401,8 @@ namespace pviewer5
         {
             get
             {
-                string r = "DNS RR, ";
+                string r = base.displayinfo;
+                r += "DNS RR, ";
 
                 // class
                 r += "Class ";
@@ -647,8 +648,8 @@ namespace pviewer5
         {
             get
             {
-                string s = String.Format("DNS header text {0:X4}", ID);
-                s += ", ";
+                string s = base.displayinfo; 
+                s += String.Format("DNS header text {0:X4}, ", ID);
                 if (QR == 0) s += "QR is query";
                 else s += "QR is response";
 
@@ -724,7 +725,7 @@ namespace pviewer5
         {
             get
             {
-                string s = null;
+                string s = base.displayinfo;
 
                 foreach (H h in L[0].phlist)
                     if (h.headerprot == Protocols.DNS)

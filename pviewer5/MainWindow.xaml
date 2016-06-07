@@ -156,6 +156,11 @@
                 <x:Type TypeName="local:Relations"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
+        <ObjectDataProvider x:Key="dataFromEnumExceptionLevels" MethodName="GetValues" ObjectType="{x:Type System:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="local:ExceptionLevels"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
 
         <DataTemplate DataType="{x:Type local:FilterItem}">
             <WrapPanel Orientation="Horizontal">
@@ -427,6 +432,7 @@
                        Grid.ColumnSpan="2"
                        Grid.Row="1"
                        Margin="5,5,5,5">
+                    <ComboBox   ItemsSource="{Binding Source={StaticResource dataFromEnumExceptionLevels}}" SelectedItem="{Binding Source={StaticResource GUIUtilKey}, Path=Instance.ExceptionLevelToShow, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     <CheckBox Name="displayaliascheckbox"
                           Content="Display Aliases"
                           IsChecked="{Binding Source={StaticResource GUIUtilKey}, Path=Instance.UseAliases, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"

@@ -27,91 +27,6 @@ using System.Runtime.Serialization.Formatters.Binary;
 namespace pviewer5
 {
 
-    [Flags]
-    public enum Protocols : ulong
-    {
-        Generic = 1,
-        Ungrouped = 2,
-        PcapOld = 4,
-        PcapNG = 8,
-        Ethernet = 0x10,
-        Wifi = 0x20,
-        IP4 = 0x40,
-        ARP =0x80,
-        IP6 = 0x100,
-        TCP = 0x200,
-        UDP = 0x400,
-        ICMP =0x800,
-        IGMP =0x1000,
-        GGP =0x2000,
-        DHCP4 =0x4000,
-        BOOTP =0x8000,
-        DNS =0x10000
-    }
-
-
-
-    public class Packet : PVDisplayObject
-    {
-        public List<H> phlist { get; set; }
-
-        // convenience properties to contain copies of commonly needed values,
-        // so that other functions do not need to search through header list to find them
-        public ulong SeqNo = 0; // absolute sequence number in packet file
-        public Protocols Prots = Protocols.Generic;     // flags for protocols present in this packet
-        public DateTime Time = new DateTime(0);
-        public MAC SrcMAC = 0;
-        public MAC DestMAC = 0;
-        public IP4 SrcIP4 { get; set; } = 0;
-        public IP4 DestIP4 = 0;
-        public uint SrcPort = 0;       // UPD or TCP port, if any
-        public uint DestPort = 0;
-        public UDPH udphdr = null;
-        public IP4H ip4hdr = null;
-        public TCPH tcphdr = null;
-        public H groupprotoheader { get; set; }     // packet group logic will set this to point to the header of the protocol relevant to that group type
-        public G parent { get; set; } = null;
-        public override string displayinfo
-        {
-            get
-            {
-                return (Time.ToLocalTime()).ToString("yyyy-MM-dd HH:mm:ss.fffffff") +
-                "   Packet innermost header is: " + phlist[phlist.Count - 1].displayinfo;
-            }
-        }
-
-        public byte[] PData;
-        public uint Len;
-
-        public bool FilterMatched { get; set; } = true;      // set based on application of filterset, feeds an ICollectionView.Filter
-        
-        public Packet() // empty constructor, constructs a packet with no data or headers
-        {
-            phlist = new List<H>();
-            PData = new byte[0];
-        }
-
-        public Packet(FileStream fs, PcapFile pfh)
-        {
-            PcapH pch;
-
-            phlist = new List<H>();
-            Prots = 0;
-
-            // instantiate pcap header - that constructor will start cascade of constructors for inner headers
-            // PcapH constructor will also read all non-header data in
-            pch = new PcapH(fs, pfh, this, 0);
-
-            if (pfh.Type == PcapFile.PcapFileTypes.PcapNG)
-                fs.Seek((long)(pch.NGBlockLen - 0x1c - pch.CapLen), SeekOrigin.Current);       // skip over any padding bytes, options and trailing block length field
-        }
-
-        // implement INotifyPropertyChanged
-        public event PropertyChangedEventHandler PropertyChanged;
-    
-
-    }
-
 
 
     public partial class MainWindow : Window, INotifyPropertyChanged
@@ -363,7 +278,7 @@ namespace pviewer5
             {
                 foreach (G g in glist.groups)
                 {
-                    foreach (Packet p in g.L) p.FilterMatched = filters.Include(p);
+                    foreach (Packet p in g.L) p.Visible = filters.Include(p);    NEEDGUIUTILGLOBALFOREXCEPTIONLEVELTOSHOW-CONNECTPROPERTYTOGUI
                     g.Lview.Refresh();
                 }
                 glist.GLview.Refresh();

@@ -714,7 +714,8 @@ namespace pviewer5
         {
             get
             {
-                return String.Format("IPv4 header, Protocol = {0:X4}, Src IP = ", Prot)
+                return base.displayinfo
+                    + String.Format("IPv4 header, Protocol = {0:X4}, Src IP = ", Prot)
                     + SrcIP4.ToString(false, true)
                     + ", Dest IP = "
                     + DestIP4.ToString(false, true);
