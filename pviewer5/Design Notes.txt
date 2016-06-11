@@ -7,7 +7,7 @@
 			re-factor to PVDisplayObject
 				exception level
 				bubbling/propagation of exception level
-					automatically bubble up all changes to parent
+					automatically bubble up all changes to parent 
 					if parent property changes, bubble up to new parent
 					propagation down should not be automatic, 
 					but there should be a method for pushing a higher exepction level down to children
