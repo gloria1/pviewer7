@@ -61,10 +61,49 @@ namespace pviewer5
 
     }
 
-    public class PVDisplayObject
+    public class PVDisplayObject : IEditableObject
+        // propagation of ExceptionLevel property:
+        //   1) when parent property is set, ExceptionLevel of new parent is updated if this one's is higher
+        //   1a) but ExceptionLevel of prior parent is not updated 
+        //      (just being lazy here, don't think this will matter because I don't expect to have 
+        //      items move from one parent to another parent, just that they may not have their parent set
+        //      at creation time, only later (due to packet grouping)
+        //  2) when a child is added to L, the method that does the Add also needs to update the parent property
+        //      which will then cause the child's ExceptionLevel to propagate up
+        //  3) when this item's ExceptionLevel is set, the change will propagate up automatically
+        //  4) HOWEVER, the change does NOT automatically propagate down
+        //  4a) there is a separate method for ExcetpionLevelSetAndPushDown that does this
     {
-        public bool isexpanded { get; set; } = false;
-        public PVDisplayObject parent = null;
+        private PVDisplayObject _parent = null;
+        public PVDisplayObject Parent
+        {
+            get { return _parent; }
+            set
+            {
+                _parent = value;
+                if (_parent != null) _parent.e.Ratchet(e);
+            }
+        }
+
+        private ObservableCollection<PVDisplayObject> _L = null;
+        public ObservableCollection<PVDisplayObject> L            // list of child items
+        {
+            get { return _L; }
+            set
+            {
+                _L = value;
+                if (value != null)
+                {
+                    Lview = (ListCollectionView)CollectionViewSource.GetDefaultView(value);
+                    Lview.Filter = new Predicate<object>(PVDOFilter);
+                }
+            }
+        }
+
+        public ListCollectionView Lview;
+        public bool IsExpanded { get; set; } = false;
+        public bool IsVisible { get; set; } = true;
+
         private ExceptionLevel _e = 1;      // default value is 1, protocol or group specific logic can drop it to 0 if it affirmatively determines it is warranted
         public ExceptionLevel e
         {
@@ -72,7 +111,7 @@ namespace pviewer5
             set
             {
                 _e = value;
-                if (parent != null) parent.e.Ratchet(value);
+                if (Parent != null) Parent.e.Ratchet(value);
             }
         }
 
@@ -85,7 +124,30 @@ namespace pviewer5
             }
         }
 
-        public virtual PVDisplayObject self { get { return this; } }
+        public PVDisplayObject() : this(null) { }
+        public PVDisplayObject(PVDisplayObject p)
+        {
+            Parent = p;
+            // do not instantiate anything for L here - do not want the overhead of the L and the Lview
+            // for headers which are leaves of the tree
+        }
+
+        public bool PVDOFilter(object p)
+        {
+            return ((PVDisplayObject)p).IsVisible;
+        }
+
+        // NOT SURE IF THIS IS STILL NEEDED.... public virtual PVDisplayObject self { get { return this; } }
+
+        // implement IEditableObject interface
+        // see
+        //  http://www.codeproject.com/Articles/61316/Tuning-Up-The-TreeView-Part
+        //  http://drwpf.com/blog/2008/10/20/itemscontrol-e-is-for-editable-collection/
+        public void BeginEdit() { }
+        public void CancelEdit() { }
+        public void EndEdit() { }
+
+
     }
 
 
@@ -101,8 +163,8 @@ namespace pviewer5
         public H()          // need a parameter-less constructor for sublcasses to inherit from ?????
         { }
         public H(FileStream fs, PcapFile pcf, Packet pkt, uint i)      // i is index into pkt.PData of start of this header
+            : base((PVDisplayObject)pkt)
         {
-            parent = pkt;
             
             // if header cannot be read properly, 
             // do not add header to packet's header list, and do not call downstream header constructors, just return
@@ -118,13 +180,10 @@ namespace pviewer5
         }
     }
 
-    public class G : PVDisplayObject, IEditableObject
+    public class G : PVDisplayObject
     {
         public bool Complete = false;
         public DateTime FirstTime, LastTime;   // earliest and latest timestamp in this group
-
-        public ObservableCollection<Packet> L { get; set; }  // list items are individual packets
-        public ListCollectionView Lview;
 
         public virtual string displayinfo {
             get
@@ -161,8 +220,6 @@ namespace pviewer5
             FirstTime = LastTime = ph.Time;
             L = new ObservableCollection<Packet>();
 
-            Lview = (ListCollectionView)CollectionViewSource.GetDefaultView(L);
-            Lview.Filter = new Predicate<object>(GLFilter);
 
             L.Add(pkt);
             pkt.parent = this;
@@ -185,18 +242,6 @@ namespace pviewer5
             return true;
         }
 
-        public bool GLFilter(object p)
-        {
-            return ((Packet)p).FilterMatched;
-        }
-
-        // implement IEditableObject interface
-        // see
-        //  http://www.codeproject.com/Articles/61316/Tuning-Up-The-TreeView-Part
-        //  http://drwpf.com/blog/2008/10/20/itemscontrol-e-is-for-editable-collection/
-        public void BeginEdit() { }
-        public void CancelEdit() { }
-        public void EndEdit() { }
 
     }
     
