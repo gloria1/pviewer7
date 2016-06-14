@@ -100,7 +100,7 @@ namespace pviewer5
             }
         }
 
-        public ListCollectionView Lview;
+        public ListCollectionView Lview = null;
         public bool IsExpanded { get; set; } = false;
         public bool IsVisible { get; set; } = true;
 
@@ -160,10 +160,10 @@ namespace pviewer5
         public int payloadlen = -1;     // this will be set to the length of any payload encapsulated by this header's protocol
                                         // default value of -1 indicates that this header's protocol doesn't know anything about the size of its payload
 
-        public H()          // need a parameter-less constructor for sublcasses to inherit from ?????
+        public H() : base(null)          // need a parameter-less constructor for sublcasses to inherit from ?????
         { }
         public H(FileStream fs, PcapFile pcf, Packet pkt, uint i)      // i is index into pkt.PData of start of this header
-            : base((PVDisplayObject)pkt)
+            : base((PVDisplayObject)pkt)                        // call base constructor with parent link
         {
             
             // if header cannot be read properly, 
@@ -185,12 +185,12 @@ namespace pviewer5
         public bool Complete = false;
         public DateTime FirstTime, LastTime;   // earliest and latest timestamp in this group
 
-        public virtual string displayinfo {
+        public override string displayinfo {
             get
             {
                 string s = base.displayinfo;
                 int i = 0;
-                foreach (Packet p in L) if (p.FilterMatched) i++;
+                foreach (Packet p in L) if (p.IsVisible) i++;
                 s += String.Format("Total Count = {0}, Filtered Count = {1}", L.Count, i);
                 return s;
             }
@@ -200,30 +200,29 @@ namespace pviewer5
         {
             get
             {
-                foreach (Packet p in L) if (p.FilterMatched) return true;
+                foreach (Packet p in L) if (p.IsVisible) return true;
                 return false;
             }
         }
 
-        public G()      // need parameter-less constructor needs to exist for sub-classes for some reason
-        { }
+        public G() : base(null)     // need parameter-less constructor needs to exist for sub-classes for some reason
+        { } 
 
-        public G(Packet pkt)   // this generic constructor will run before the protocol-specific constructor does
+        public G(Packet pkt) : base((PVDisplayObject)pkt)  // this generic constructor will run before the protocol-specific constructor does
         {
-            if (pkt.phlist[0].GetType() != typeof(PcapH))
+            if (pkt.L[0].GetType() != typeof(PcapH))
             {
                 // put up a message box telling user packet does not have a pcap header
                 MessageBox.Show("Packet does not have a Pcap header???");
                 return;
             }
-            PcapH ph = pkt.phlist[0] as PcapH;
+            PcapH ph = pkt.L[0] as PcapH;
             FirstTime = LastTime = ph.Time;
-            L = new ObservableCollection<Packet>();
-
+            L = new ObservableCollection<PVDisplayObject>();
 
             L.Add(pkt);
-            pkt.parent = this;
-            ((ICollectionView)(CollectionViewSource.GetDefaultView(L))).Filter = delegate (object item) { return ((Packet)item).FilterMatched; };
+            pkt.Parent = this;
+            // appears to not be necessary, this is handled in base class...... Lview.Filter = delegate (object item) { return ((Packet)item).IsVisible; };
 
             e = pkt.e;
 
@@ -248,8 +247,6 @@ namespace pviewer5
     public class GList : PVDisplayObject, IEditableObject
     {
         public string name;
-        public ObservableCollection<G> groups { get; set; }
-        public ListCollectionView GLview;
         public virtual Protocols headerselector { get; set; }   // used by G.GroupPacket to pull the header for the relevant protocol out of the packet, to pass into the Belongs and StartNewGroup functions
 
         public override string displayinfo {
@@ -257,22 +254,18 @@ namespace pviewer5
             {
                 string s = base.displayinfo;
                 int i = 0;
-                foreach (G g in groups) if (g.AnyVisiblePackets) i++;
+                foreach (G g in L) if (g.AnyVisiblePackets) i++;
                 s += name;
-                s += String.Format(", Total Group Count = {0}, Filtered Group Count = {1}", groups.Count, i);
+                s += String.Format(", Total Group Count = {0}, Filtered Group Count = {1}", L.Count, i);
                 return s;
             }
         }
         
-        public GList(string n)
+        public GList(string n) : base(null)
         {
             name = n;
 
-            groups = new ObservableCollection<G>();
-            GLview = (ListCollectionView)CollectionViewSource.GetDefaultView(groups);
-            GLview.Filter = new Predicate<object>(GGLFilter);
-
-            ((ICollectionView)(CollectionViewSource.GetDefaultView(groups))).Filter = delegate (object item) { return ((G)item).AnyVisiblePackets; };
+            L = new ObservableCollection<PVDisplayObject>();
 
         }
 
@@ -282,7 +275,7 @@ namespace pviewer5
             // returns true if assigned to a group, true if a new group is created, otherwise false
 
             H protoheader = null;
-            foreach (H h in pkt.phlist) 
+            foreach (H h in pkt.L) 
                 if (h.headerprot == headerselector)
                 {
                     protoheader = h;
@@ -292,14 +285,14 @@ namespace pviewer5
                    
             pkt.groupprotoheader = protoheader;
              
-            foreach (G g in groups)
+            foreach (G g in L)
             {
                 if (g.Complete) continue;
                 if (g.Belongs(pkt, protoheader))
                 {
-                    PcapH ph = pkt.phlist[0] as PcapH;
+                    PcapH ph = pkt.L[0] as PcapH;
                     g.L.Add(pkt);
-                    pkt.parent = g;
+                    pkt.Parent = g;
                     g.e.Ratchet(pkt.e);
                     g.FirstTime = (g.FirstTime < ph.Time) ? g.FirstTime : ph.Time;          // adjust group timestamps
                     g.LastTime = (g.LastTime < ph.Time) ? ph.Time : g.LastTime;             // adjust group timestamps
@@ -311,7 +304,7 @@ namespace pviewer5
             if (newgroup == null) return false;
             else
             {
-                groups.Insert(0, newgroup);
+                L.Insert(0, newgroup);
                 return true;
             }
         }
@@ -325,13 +318,6 @@ namespace pviewer5
             return ((G)g).AnyVisiblePackets;
         }
 
-        // implement IEditableObject interface
-        // see
-        //  http://www.codeproject.com/Articles/61316/Tuning-Up-The-TreeView-Part
-        //  http://drwpf.com/blog/2008/10/20/itemscontrol-e-is-for-editable-collection/
-        public void BeginEdit() { }
-        public void CancelEdit() { }
-        public void EndEdit() { }
 
 
         public virtual G StartNewGroup(Packet pkt, H h)   // starts a new group if this packet can be the basis for a new group of this type
@@ -388,8 +374,6 @@ namespace pviewer5
 
     public class Packet : PVDisplayObject
     {
-        public List<H> phlist { get; set; }
-
         // convenience properties to contain copies of commonly needed values,
         // so that other functions do not need to search through header list to find them
         public ulong SeqNo = 0; // absolute sequence number in packet file
@@ -412,7 +396,7 @@ namespace pviewer5
             {
                 string s = base.displayinfo;
                 s += (Time.ToLocalTime()).ToString("yyyy-MM-dd HH:mm:ss.fffffff");
-                s += "   Packet innermost header is: " + phlist[phlist.Count - 1].displayinfo;
+                s += "   Packet innermost header is: " + L[L.Count - 1].displayinfo;
                 return s;
             }
         }
@@ -422,17 +406,17 @@ namespace pviewer5
 
         public bool Visible { get; set; } = true;      // set based on application of filterset and exception level testing, feeds an ICollectionView.Filter
 
-        public Packet() // empty constructor, constructs a packet with no data or headers
+        public Packet() : base(null) // empty constructor, constructs a packet with no data or headers
         {
-            phlist = new List<H>();
+            L = new ObservableCollection<PVDisplayObject>();
             PData = new byte[0];
         }
 
-        public Packet(FileStream fs, PcapFile pfh)
+        public Packet(FileStream fs, PcapFile pfh) : base(null)
         {
             PcapH pch;
 
-            phlist = new List<H>();
+            L = new ObservableCollection<PVDisplayObject>();
             Prots = 0;
 
             // instantiate pcap header - that constructor will start cascade of constructors for inner headers
