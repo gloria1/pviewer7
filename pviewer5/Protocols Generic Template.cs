@@ -102,7 +102,19 @@ namespace pviewer5
 
         public ListCollectionView Lview = null;
         public bool IsExpanded { get; set; } = false;
-        public bool IsVisible { get; set; } = true;
+        private bool _isvisible = true;
+        public virtual bool IsVisible
+        {
+            get
+            {
+                // THIS IS TEMPORARY - ADD LOGIC TO TEST VS. GLOBAL EXCEPTION LEVEL
+                return _isvisible;
+            }
+            set
+            {
+                _isvisible = value;
+            }
+        }
 
         private ExceptionLevel _e = 1;      // default value is 1, protocol or group specific logic can drop it to 0 if it affirmatively determines it is warranted
         public ExceptionLevel e
@@ -403,8 +415,17 @@ namespace pviewer5
 
         public byte[] PData;
         public uint Len;
+        
+        public bool FiltersPassed { get; set; } = true;  // this will be updated by method that applies the filters
 
-        public bool Visible { get; set; } = true;      // set based on application of filterset and exception level testing, feeds an ICollectionView.Filter
+        public override bool IsVisible
+        {
+            get
+            {
+                if (!base.IsVisible) return false;
+                return FiltersPassed;
+            }
+        }
 
         public Packet() : base(null) // empty constructor, constructs a packet with no data or headers
         {

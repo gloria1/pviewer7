@@ -712,7 +712,7 @@ namespace pviewer5
             pkt.SrcMAC = SrcMAC;
             pkt.DestMAC = DestMAC;
 
-            pkt.phlist.Add(this);
+            pkt.L.Add(this);
 
             switch (TypeLen)
             {

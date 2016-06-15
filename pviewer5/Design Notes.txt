@@ -4,26 +4,12 @@
 
 
 		bookmark
-			re-factor to PVDisplayObject
-				exception level
-				bubbling/propagation of exception level
-					automatically bubble up all changes to parent 
-					if parent property changes, bubble up to new parent
-					propagation down should not be automatic, 
-					but there should be a method for pushing a higher exepction level down to children
-					(without triggering bubbling....)
-					==> so the setter for exception level should not bubble, but there should be a separate method for "set_and_bubble"
-				parent/child properties
-				views
-				IEditable interface???
-				visibility property??? or does this still need to reside at the packet level???
-
-
 
 			review protocol-specific H and G logic
 				proper displayinfo logic - put in tests that will create exception level >0 for testing
 				logic for exception level - set to 0 for known good cases
 			then add filtering logic
+			update xaml
 				
 
 

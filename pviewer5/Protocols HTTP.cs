@@ -53,7 +53,7 @@ namespace pviewer5
         {
             get
             {
-                return "HTTP Group text";
+                return base.displayinfo + "HTTP Group text";
             }
         }
 
@@ -111,7 +111,7 @@ namespace pviewer5
         {
             // h argument is for utility - GList.GroupPacket function will pass in a reference to the packet header matching the protocol specified in the GList - this saves this function from having to search for the protocol header in pkt.phlist each time it is called
 
-            if (true) return new ExampleG(pkt);     // replace "true" with test for other qualifications for this packet to start a new group
+            if (true) return new HTTPG(pkt);     // replace "true" with test for other qualifications for this packet to start a new group
             else return null;       // return null if cannot start a group with this packet
         }
     }

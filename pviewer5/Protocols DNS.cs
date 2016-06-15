@@ -607,7 +607,7 @@ namespace pviewer5
         {
             get
             {
-                return String.Format("DNS RR List {0:X4} Items", Items.Count);
+                return base.displayinfo + String.Format("DNS RR List {0:X4} Items", Items.Count);
             }
         }
     }
@@ -662,9 +662,9 @@ namespace pviewer5
         public DNSH(FileStream fs, PcapFile pfh, Packet pkt, uint i)
         {
             uint pdataindex;  // index into PData of start of this header - used to convert RDATA values, which are indexed relative to start of DNS header, into indices into PData
-            pdataindex = (uint)(pkt.phlist[pkt.phlist.Count() - 1]).payloadindex;
-
-            Len = (uint)(pkt.phlist[pkt.phlist.Count() - 1]).payloadlen;
+            H container = (H)pkt.L[pkt.L.Count() - 1];     // containing header
+            pdataindex = (uint)container.payloadindex;
+            Len = (uint)container.payloadlen;
 
             // if not enough data remaining, return without reading anything 
             // note that we have not added the header to the packet's header list yet, so we are not leaving an invalid header in the packet
@@ -707,7 +707,7 @@ namespace pviewer5
             pkt.Prots |= Protocols.DNS;
 
             // add header to packet's header list
-            pkt.phlist.Add(this);
+            pkt.L.Add(this);
         }
 
 
@@ -727,7 +727,7 @@ namespace pviewer5
             {
                 string s = base.displayinfo;
 
-                foreach (H h in L[0].phlist)
+                foreach (H h in L[0].L)
                     if (h.headerprot == Protocols.DNS)
                     {
                         DNSRR rr = (DNSRR)(((DNSH)h).RRs[0].Items[0]);
@@ -750,7 +750,7 @@ namespace pviewer5
             // set group properties here
             ID = 0;
 
-            foreach (H h in pkt.phlist)
+            foreach (H h in pkt.L)
                 if (h.headerprot == Protocols.DNS)
                 {
                     ID = ((DNSH)h).ID;

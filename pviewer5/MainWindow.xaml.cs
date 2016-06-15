@@ -209,7 +209,7 @@ namespace pviewer5
 			if (result == true)
 			{
                 pkts.Clear();
-                foreach (GList gl in grouplistlist) gl.groups.Clear();
+                foreach (GList gl in grouplistlist) gl.L.Clear();
 
                 Properties.Settings.Default.LastDirectory = dlg.InitialDirectory;
                 Properties.Settings.Default.LastFile = dlg.FileName;
@@ -226,7 +226,7 @@ namespace pviewer5
             byte[] b = new byte[1000];
 
             pkts.Clear();
-            foreach (GList gl in grouplistlist) gl.groups.Clear();
+            foreach (GList gl in grouplistlist) gl.L.Clear();
 
             fs = new FileStream(filename, FileMode.Open);
             PacketFileName = filename;
@@ -246,7 +246,7 @@ namespace pviewer5
                 foreach (GList gl in grouplistlist)
                     if (gl.GroupPacket(p)) break;
 
-            foreach (TCPG tg in ((TCPGList)(grouplistlist[2])).groups)
+            foreach (TCPG tg in ((TCPGList)(grouplistlist[2])).L)
             {
                 tg.OPL1.CopyBytes(1000, b);
                 tg.OPL2.CopyBytes(1000, b);
@@ -276,12 +276,12 @@ namespace pviewer5
         {
             foreach (GList glist in grouplistlist)
             {
-                foreach (G g in glist.groups)
+                foreach (G g in glist.L)
                 {
-                    foreach (Packet p in g.L) p.Visible = filters.Include(p);    NEEDGUIUTILGLOBALFOREXCEPTIONLEVELTOSHOW-CONNECTPROPERTYTOGUI
+                    foreach (Packet p in g.L) p.FiltersPassed = filters.Include(p);
                     g.Lview.Refresh();
                 }
-                glist.GLview.Refresh();
+                glist.Lview.Refresh();
             }
             filters.ChangedSinceApplied = false;
             gllview.Refresh();

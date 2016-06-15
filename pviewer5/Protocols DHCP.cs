@@ -46,7 +46,7 @@ namespace pviewer5
         {
             get
             {
-                return String.Format("DHCP, XID {0:X4}, OpCode {1:X4}", DHCP4XID, DHCP4OpCode);
+                return base.displayinfo + String.Format("DHCP, XID {0:X4}, OpCode {1:X4}", DHCP4XID, DHCP4OpCode);
             }
         }
 
@@ -89,7 +89,7 @@ namespace pviewer5
             pkt.Prots |= Protocols.DHCP4;
 
             // add header to packet's header list
-            pkt.phlist.Add(this);
+            pkt.L.Add(this);
             
         }
     }
@@ -105,7 +105,7 @@ namespace pviewer5
             {
                 get
                 {
-                    return String.Format("DHCP Group, XID {0:X4}, Packet Count = {1:X4}", DHCP4XID, L.Count());
+                    return base.displayinfo + String.Format("DHCP Group, XID {0:X4}, Packet Count = {1:X4}", DHCP4XID, L.Count());
                 }
             }
 
@@ -115,7 +115,7 @@ namespace pviewer5
                 // note: base class constructor is called first (due to : base(pkt) above)
 
                 // set group properties here
-                foreach (H h in pkt.phlist) if (h.headerprot == Protocols.DHCP4)
+                foreach (H h in pkt.L) if (h.headerprot == Protocols.DHCP4)
                     {
                         DHCP4XID = ((DHCP4H)h).DHCP4XID;
                         break;

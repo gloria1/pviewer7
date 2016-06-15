@@ -37,19 +37,21 @@ namespace pviewer5
         public IP4 TargetProt { get; set; }
   
         public override string displayinfo {
-           get { 
+           get {
+                string s = base.displayinfo;
                 if (Prot == 0x0800)     // IPv4
-                    return String.Format("ARP OpCode: {0:X4}, HWType: {1:X4}, Prot {2:X4}", Opn, HWType, Prot)
+                    s += String.Format("ARP OpCode: {0:X4}, HWType: {1:X4}, Prot {2:X4}", Opn, HWType, Prot)
                             + ", SenderHW " + SenderHW.ToString(true)
                             + ", Sender IP4 " + SenderProt.ToString(false, true)
                             + ", TargetHW " + TargetHW.ToString(true)
                             + ", Target IP4 " + TargetProt.ToString(false, true);
                 else
-                    return String.Format("ARP OpCode: {0:X4}, HWType: {1:X4}, Prot {2:X4}", Opn, HWType, Prot)
+                    s += String.Format("ARP OpCode: {0:X4}, HWType: {1:X4}, Prot {2:X4}", Opn, HWType, Prot)
                             + ", SenderHW " + SenderHW.ToString(true)
                             + String.Format(", SenderProto {0:X8}", SenderProt)
                             + ", TargetHW " + TargetHW.ToString(true)
                             + String.Format(", TargetProto {0:X8}", TargetProt);
+                return s;
             }
         }
 
@@ -81,7 +83,7 @@ namespace pviewer5
             pkt.Prots |= Protocols.ARP;
 
             // add to packet header list
-            pkt.phlist.Add(this);
+            pkt.L.Add(this);
         }
     }
 
@@ -97,19 +99,21 @@ namespace pviewer5
         {
             get
             {
+                string s = base.displayinfo;
                 if (Prot == 0x0800)     // IPv4
-                    return String.Format("ARP Group, HWType: {0:X4}, Prot {1:X4}", HWType, Prot)
+                    s += String.Format("ARP Group, HWType: {0:X4}, Prot {1:X4}", HWType, Prot)
                             + ", SenderHW " + SenderHW.ToString(true)
                             + ", SenderIP4 " + SenderProt.ToString(false, true)
                             + ", TargetIP4 " + TargetProt.ToString(false, true)
                             + String.Format(", Packets in Group = {0:X2}", L.Count());
 
                 else
-                    return String.Format("ARP Group, HWType: {0:X4}, Prot {1:X4}", HWType, Prot)
+                    s += String.Format("ARP Group, HWType: {0:X4}, Prot {1:X4}", HWType, Prot)
                             + ", SenderHW " + SenderHW.ToString(true)
                             + String.Format(", SenderProto {0:X8}", SenderProt)
                             + String.Format(", TargetProto {0:X8}", TargetProt)
                             + String.Format(", Packets in Group = {0:X2}", L.Count());
+                return s;
             }
         }
 
@@ -119,7 +123,7 @@ namespace pviewer5
 
             // set group properties here
             ARPH arph = null;
-            foreach (H ph in pkt.phlist) if (ph.headerprot == Protocols.ARP) { arph = (ARPH)ph; break; }
+            foreach (H ph in pkt.L) if (ph.headerprot == Protocols.ARP) { arph = (ARPH)ph; break; }
             HWType = arph.HWType;
             Prot = arph.Prot;
             SenderHW = arph.SenderHW;

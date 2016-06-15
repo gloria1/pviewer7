@@ -33,7 +33,7 @@ namespace pviewer5
         {
             get
             {
-                return String.Format("UDP Source Port {0:X4}, Dest Port {1:X4}", SrcPort, DestPort);
+                return base.displayinfo + String.Format("UDP Source Port {0:X4}, Dest Port {1:X4}", SrcPort, DestPort);
             }
         }
 
@@ -58,7 +58,7 @@ namespace pviewer5
             pkt.DestPort = DestPort;
 
             // add to packet header list
-            pkt.phlist.Add(this);
+            pkt.L.Add(this);
 
             if ((SrcPort == 0x43) || (SrcPort == 0x44) || (DestPort == 0x43) || (DestPort == 0x44))     // DHCP v4
                 new DHCP4H(fs, pfh, pkt, i);
@@ -81,7 +81,7 @@ namespace pviewer5
         {
             get
             {
-                return "UDP Group"
+                return base.displayinfo + "UDP Group"
                         + ", Source IP4 " + SrcIP4.ToString(false, true)
                         + String.Format(", Source Port {0:X4}", SrcPort)
                         + ", Dest IP4 " + DestIP4.ToString(false, true)

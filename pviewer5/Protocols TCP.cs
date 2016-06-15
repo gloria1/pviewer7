@@ -63,7 +63,7 @@ namespace pviewer5
         {
             get
             {
-                return String.Format("TCP Source Port {0}, Dest Port {1}", SrcPort, DestPort);
+                return base.displayinfo + String.Format("TCP Source Port {0}, Dest Port {1}", SrcPort, DestPort);
             }
         }
 
@@ -71,7 +71,7 @@ namespace pviewer5
         {
             uint temp;
             uint optionbytes;
-            H containingheader = pkt.phlist[pkt.phlist.Count()-1];
+            H containingheader = (TCPH)pkt.L[pkt.L.Count()-1];
             TCPOption thisoption;
             List<TCPOption> options = new List<TCPOption>();
 
@@ -177,7 +177,7 @@ namespace pviewer5
             pkt.DestPort = DestPort;
 
             // add header to packet's header list
-            pkt.phlist.Add(this);
+            pkt.L.Add(this);
 
             // determine which header constructor to call next, if any, and call it
             switch (1)
@@ -333,7 +333,7 @@ namespace pviewer5
                 do {
                     //return false if no more packets
                     if (nextpkt == mygroup.L.Count) return false;
-                    newitem.pkt = mygroup.L[nextpkt++];
+                    newitem.pkt = (Packet)mygroup.L[nextpkt++];
                 } while (newitem.pkt.SrcPort != srcport);
                 
                 newth = (TCPH)(newitem.pkt.groupprotoheader);
@@ -390,8 +390,8 @@ namespace pviewer5
             if (State != TCPGState.NormalStart) return false;
             
             // if so, set up OPL's
-            OPL1.FirstAbsSeq = OPL1.MaxAbsSeq = ((TCPH)(L[0].groupprotoheader)).SeqNo+1;    // State == NormalStart implies first two packets are SYN's
-            OPL2.FirstAbsSeq = OPL2.MaxAbsSeq = ((TCPH)(L[1].groupprotoheader)).SeqNo+1;    // first sequence number of data is SYN seq no + 1
+            OPL1.FirstAbsSeq = OPL1.MaxAbsSeq = ((TCPH)(((Packet)L[0]).groupprotoheader)).SeqNo+1;    // State == NormalStart implies first two packets are SYN's
+            OPL2.FirstAbsSeq = OPL2.MaxAbsSeq = ((TCPH)(((Packet)L[1]).groupprotoheader)).SeqNo+1;    // first sequence number of data is SYN seq no + 1
 
             OPL1.initialized = true;
             OPL2.initialized = true;
@@ -409,7 +409,7 @@ namespace pviewer5
             {
                 string r;
 
-                r = "TCP Group"
+                r = base.displayinfo + "TCP Group"
                             + ", Stream1 IP4 " + S1IP4.ToString(false, true);
                 r += String.Format(", Stream1 Port {0}", S1Port);
                 r += ", Stream2 IP4 " + S2IP4.ToString(false, true);
@@ -484,10 +484,10 @@ namespace pviewer5
                                         // otherwise set State = SequenceFailed
                                         // in no case do we leave State as NotSequencedYet
                     {
-                        TCPH th = (TCPH)(L[0].groupprotoheader);
+                        TCPH th = (TCPH)(((Packet)L[0]).groupprotoheader);
                         if ((th.Flags & 0x12)==0x02)    // if SYN set and ACK not set in first packet
                         {
-                            th = (TCPH)(L[1].groupprotoheader);
+                            th = (TCPH)(((Packet)L[1]).groupprotoheader);
                             if (th.SrcPort == S2Port)       // and if second packet is from stream 2
                             {
                                 if ((th.Flags & 0x12) == 0x12)    // and if SYN set and ACK set in second packet
