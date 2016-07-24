@@ -5,7 +5,6 @@
 
 		ADDED FROM MS CODE EDITING THE PVIEWER7 FOLDER AS A GIT REPO
 			next steps - not sure which order to pursue these
-				0) check that filtering logic is working after H/G refactoring
 				1) check that alias/iphex toggles refresh view correctly
 				2) finish exception level logic
 				3) finish DHS database logic
