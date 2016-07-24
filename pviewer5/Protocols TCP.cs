@@ -71,7 +71,7 @@ namespace pviewer5
         {
             uint temp;
             uint optionbytes;
-            H containingheader = (TCPH)pkt.L[pkt.L.Count()-1];
+            H containingheader = (H)pkt.L[pkt.L.Count()-1];
             TCPOption thisoption;
             List<TCPOption> options = new List<TCPOption>();
 

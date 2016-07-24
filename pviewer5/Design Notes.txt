@@ -3,6 +3,22 @@
 	TO DO
 
 
+		ADDED FROM MS CODE EDITING THE PVIEWER7 FOLDER AS A GIT REPO
+			next steps - not sure which order to pursue these
+				0) check that filtering logic is working after H/G refactoring
+				1) check that alias/iphex toggles refresh view correctly
+				2) finish exception level logic
+				3) finish DHS database logic
+				4) add logic to read multiple pcap files
+				5) add logic to store filtered packet set
+				6) use scenario is to 
+					- read the set of cap files from sheraton recnetly (or some other)
+					- set up a filter interactively
+					- store the filtered set of packets in a new file
+		END ADDITION FROM MS CODE
+
+		
+
 		bookmark
 
 			review protocol-specific H and G logic

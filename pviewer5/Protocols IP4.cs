@@ -761,7 +761,7 @@ namespace pviewer5
             pkt.ip4hdr = this;
 
             // add to header list
-            pkt.phlist.Add(this);
+            pkt.L.Add(this);
             
             switch (Prot)
             {

@@ -351,7 +351,9 @@ namespace pviewer5
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            return ((PVDisplayObject)values[0]).displayinfo;
+            // handle UnsetValue - this comes to the converter when gui objects are getting initialized and are not fully bound to their data source yet
+            if (values[0] == DependencyProperty.UnsetValue) return "";
+            else return ((PVDisplayObject)values[0]).displayinfo;
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)

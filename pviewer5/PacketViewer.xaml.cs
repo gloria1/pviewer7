@@ -60,7 +60,7 @@ namespace pviewer5
                 {
                     int i = 0;
                     HdrList.Clear();
-                    foreach (H h in value.phlist)
+                    foreach (H h in value.L)
                     {
                         switch (h.headerprot)
                         {
@@ -284,15 +284,15 @@ namespace pviewer5
             i = 0;
             if (FirstHdrShown > 0)
             {
-                lastheaderhidden = (FirstHdrShown < Pkt.phlist.Count()) ? (FirstHdrShown - 1) : (Pkt.phlist.Count() - 1);
-                i = (int)Pkt.phlist[lastheaderhidden].payloadindex;
+                lastheaderhidden = (FirstHdrShown < Pkt.L.Count()) ? (FirstHdrShown - 1) : (Pkt.L.Count() - 1);
+                i = (int)((H)(Pkt.L[lastheaderhidden])).payloadindex;
             }
             
             firsttohighlight = firstafterhighlight = 0;  // default is to highlight nothing
-            if ((SelectedHdr >= 0) && (SelectedHdr < Pkt.phlist.Count()))    // bounds check that SelectedHdr is a valid value for this packet, which it may not be if (a) no header has been selected yet or (b) for a previous packet it was a higher value than the number of headers in this packet
+            if ((SelectedHdr >= 0) && (SelectedHdr < Pkt.L.Count()))    // bounds check that SelectedHdr is a valid value for this packet, which it may not be if (a) no header has been selected yet or (b) for a previous packet it was a higher value than the number of headers in this packet
             {
-                if (SelectedHdr > 0) firsttohighlight = (int)Pkt.phlist[SelectedHdr - 1].payloadindex;
-                firstafterhighlight = (int)Pkt.phlist[SelectedHdr].payloadindex;
+                if (SelectedHdr > 0) firsttohighlight = (int)((H)Pkt.L[SelectedHdr - 1]).payloadindex;
+                firstafterhighlight = (int)((H)Pkt.L[SelectedHdr]).payloadindex;
             }
             
             while (i < Pkt.PData.Length)
