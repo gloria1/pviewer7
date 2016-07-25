@@ -3,7 +3,10 @@
 	TO DO
 
 
-		ADDED FROM MS CODE EDITING THE PVIEWER7 FOLDER AS A GIT REPO
+		0) test basic pvdisplayobject view properties:
+			replace grouplistlist with a simple list of pvdisplyobjects
+			then build up to nested lists
+
 			next steps - not sure which order to pursue these
 				1) check that alias/iphex toggles refresh view correctly
 				2) finish exception level logic
@@ -14,7 +17,6 @@
 					- read the set of cap files from sheraton recnetly (or some other)
 					- set up a filter interactively
 					- store the filtered set of packets in a new file
-		END ADDITION FROM MS CODE
 
 		
 

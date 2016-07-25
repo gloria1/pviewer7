@@ -256,7 +256,7 @@ namespace pviewer5
 
     }
     
-    public class GList : PVDisplayObject, IEditableObject
+    public class GList : PVDisplayObject
     {
         public string name;
         public virtual Protocols headerselector { get; set; }   // used by G.GroupPacket to pull the header for the relevant protocol out of the packet, to pass into the Belongs and StartNewGroup functions
