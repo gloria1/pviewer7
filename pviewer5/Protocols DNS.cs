@@ -525,7 +525,6 @@ namespace pviewer5
                     break;
                 case 2:         // NS - an authoritative name server
                     RDATA1 = pos - PDataIndex; pos += RDLENGTH;
-                    ExceptionLevel = 3;
                     break;
                 case 5:         // CNAME - the canonical name for an alias
                     RDATA1 = pos - PDataIndex; pos += RDLENGTH;
@@ -717,9 +716,8 @@ namespace pviewer5
             pkt.L.Add(this);
         }
 
-
-
     }
+
 
     public class DNSG : G
     {
@@ -733,17 +731,17 @@ namespace pviewer5
             get
             {
                 string s = base.displayinfo;
-
+                s += "DNS Group text, Question Name ";
+                
                 foreach (H h in L[0].L)
                     if (h.headerprot == Protocols.DNS)
                     {
                         DNSRR rr = (DNSRR)(((DNSH)h).L[0].L[0]);
-                        s = rr.formnamestring(rr.NAME);
+                        s += rr.formnamestring(rr.NAME);
                         break;
                     }
 
-                return "DNS Group text"
-                        + ", Question Name " + s;
+                return s;
             }
         }
 
