@@ -46,7 +46,6 @@ namespace pviewer5
             }
         }
 
-        public ListCollectionView Lview = null;
 
         private ObservableCollection<PVDisplayObject> _L = null;
         public ObservableCollection<PVDisplayObject> L            // list of child items
@@ -62,6 +61,7 @@ namespace pviewer5
                 }
             }
         }
+        public ListCollectionView Lview = null;
 
         public bool IsExpanded { get; set; } = false;
 
@@ -189,7 +189,7 @@ namespace pviewer5
         public G() : base(null)     // need parameter-less constructor needs to exist for sub-classes for some reason
         { } 
 
-        public G(Packet pkt) : base((PVDisplayObject)pkt)  // this generic constructor will run before the protocol-specific constructor does
+        public G(Packet pkt) : base(null)  // this generic constructor will run before the protocol-specific constructor does
         {
             if (pkt.L[0].GetType() != typeof(PcapH))
             {
@@ -372,7 +372,7 @@ namespace pviewer5
         public IP4H ip4hdr = null;
         public TCPH tcphdr = null;
         public H groupprotoheader { get; set; }     // packet group logic will set this to point to the header of the protocol relevant to that group type
-
+        
         public override string displayinfo
         {
             get
@@ -405,7 +405,7 @@ namespace pviewer5
             PData = new byte[0];
         }
 
-        public Packet(FileStream fs, PcapFile pfh) : base(null)
+        public Packet(FileStream fs, PcapFile pfh)
         {
             PcapH pch;
 

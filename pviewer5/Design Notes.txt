@@ -5,6 +5,12 @@
 
 			next steps - not sure which order to pursue these
 
+				1) dns packets not displaying rr lists #%#%$@%
+				2) test exception level logic
+					setting them
+					propagation
+					filtering
+
 				3) finish DNS database logic - use RDNS and ARIN to lookup info
 				4) add logic to read multiple pcap files
 				5) add logic to store filtered packet set

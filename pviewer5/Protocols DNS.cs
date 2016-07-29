@@ -745,7 +745,6 @@ namespace pviewer5
 
             // note: base class constructor is called first (due to : base(pkt) above)
 
-
             // set group properties here
             ID = 0;
 
