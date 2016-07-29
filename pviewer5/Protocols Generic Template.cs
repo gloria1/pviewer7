@@ -74,6 +74,8 @@ namespace pviewer5
         //  4) HOWEVER, the change does NOT automatically propagate down
         //  4a) there is a separate method for ExcetpionLevelSetAndPushDown that does this
     {
+        public virtual PVDisplayObject self { get { return this; } }
+
         private PVDisplayObject _parent = null;
         public PVDisplayObject Parent
         {

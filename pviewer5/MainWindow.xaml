@@ -63,7 +63,7 @@
             </TextBlock>
         </DataTemplate>
         <HierarchicalDataTemplate DataType="{x:Type local:DNSRRList}"
-                                  ItemsSource="{Binding Path=Items}"
+                                  ItemsSource="{Binding Path=L}"
 >
             <TextBlock>
                 <TextBlock.Text>
@@ -76,7 +76,7 @@
             </TextBlock>
         </HierarchicalDataTemplate>
         <HierarchicalDataTemplate DataType="{x:Type local:DNSH}"
-                                  ItemsSource="{Binding Path=RRs}">
+                                  ItemsSource="{Binding Path=L}">
             <TextBlock>
                 <TextBlock.Text>
                     <MultiBinding Converter="{StaticResource displayinfomvc}">
@@ -88,7 +88,7 @@
             </TextBlock>
         </HierarchicalDataTemplate>
         <HierarchicalDataTemplate DataType="{x:Type local:Packet}"
-                                  ItemsSource="{Binding Path=phlist}">
+                                  ItemsSource="{Binding Path=L}">
             <TextBlock>
                 <TextBlock.Text>
                     <MultiBinding Converter="{StaticResource displayinfomvc}">
@@ -113,7 +113,7 @@
             </TextBlock>
         </HierarchicalDataTemplate>
         <HierarchicalDataTemplate DataType="{x:Type local:GList}"
-                                  ItemsSource="{Binding Path=groups}">
+                                  ItemsSource="{Binding Path=L}">
             <TextBlock>
                 <TextBlock.Text>
                     <MultiBinding Converter="{StaticResource displayinfomvc}">
@@ -455,7 +455,7 @@
                           SelectedItemChanged="grouptree_SelectedItemChanged">
                         <TreeView.ItemContainerStyle>
                             <Style TargetType="TreeViewItem">
-                                <Setter Property="IsExpanded" Value="{Binding isexpanded, Mode=TwoWay}" />
+                                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
                             </Style>
                         </TreeView.ItemContainerStyle>
 

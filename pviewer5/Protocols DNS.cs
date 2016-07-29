@@ -596,18 +596,16 @@ namespace pviewer5
 
     public class DNSRRList : PVDisplayObject
     {
-        public List<DNSRR> Items { get; set; }
-
         public DNSRRList()
         {
-            Items = new List<DNSRR>();
+            L = new ObservableCollection<PVDisplayObject>();
         }
 
         public override string displayinfo
         {
             get
             {
-                return base.displayinfo + String.Format("DNS RR List {0:X4} Items", Items.Count);
+                return base.displayinfo + String.Format("DNS RR List {0:X4} Items", L.Count);
             }
         }
     }
@@ -641,7 +639,6 @@ namespace pviewer5
         public uint ANCOUNT { get; set; }   // number of answers
         public uint NSCOUNT { get; set; }   // number of name server authority records
         public uint ARCOUNT { get; set; }   // number of additional records
-        public List<DNSRRList> RRs { get; set; } // outer list is questions, answers, authorities, additionals
 
         // define a property that will be used by the xaml data templates for the one-line display of this header in the tree
         public override string displayinfo
@@ -685,16 +682,15 @@ namespace pviewer5
             NSCOUNT = (uint)pkt.PData[i++] * 0x100 + (uint)pkt.PData[i++];
             ARCOUNT = (uint)pkt.PData[i++] * 0x100 + (uint)pkt.PData[i++];
 
-            RRs = new List<DNSRRList>();
-            RRs.Add(new DNSRRList());    // add empty list to containt the questions
-
-            for (int ii = 0; ii < QDCOUNT; ii++) RRs[0].Items.Add(new DNSRR(pkt, ref i, true, pdataindex));
-            RRs.Add(new DNSRRList());
-            for (int ii = 0; ii < ANCOUNT; ii++) RRs[1].Items.Add(new DNSRR(pkt, ref i, false, pdataindex));
-            RRs.Add(new DNSRRList());
-            for (int ii = 0; ii < NSCOUNT; ii++) RRs[2].Items.Add(new DNSRR(pkt, ref i, false, pdataindex));
-            RRs.Add(new DNSRRList());
-            for (int ii = 0; ii < ARCOUNT; ii++) RRs[3].Items.Add(new DNSRR(pkt, ref i, false, pdataindex));
+            L = new ObservableCollection<PVDisplayObject>();    // L is list of DNSRRLists
+            L.Add(new DNSRRList());    // add empty list to contain the questions
+            for (int ii = 0; ii < QDCOUNT; ii++) L[0].L.Add(new DNSRR(pkt, ref i, true, pdataindex));
+            L.Add(new DNSRRList());     // add empty list to contain the answers
+            for (int ii = 0; ii < ANCOUNT; ii++) L[1].L.Add(new DNSRR(pkt, ref i, false, pdataindex));
+            L.Add(new DNSRRList());   // add empty list to contain nameserver RRs
+            for (int ii = 0; ii < NSCOUNT; ii++) L[2].L.Add(new DNSRR(pkt, ref i, false, pdataindex));
+            L.Add(new DNSRRList());   // add empty list to contain additional RR's
+            for (int ii = 0; ii < ARCOUNT; ii++) L[3].L.Add(new DNSRR(pkt, ref i, false, pdataindex));
 
             if (i != pkt.Len) MessageBox.Show("Did Not Read DNS record properly?  i != pkt.Len");
 
@@ -730,7 +726,7 @@ namespace pviewer5
                 foreach (H h in L[0].L)
                     if (h.headerprot == Protocols.DNS)
                     {
-                        DNSRR rr = (DNSRR)(((DNSH)h).RRs[0].Items[0]);
+                        DNSRR rr = (DNSRR)(((DNSH)h).L[0].L[0]);
                         s = rr.formnamestring(rr.NAME);
                         break;
                     }
