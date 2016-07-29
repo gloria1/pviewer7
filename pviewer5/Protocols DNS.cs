@@ -690,8 +690,11 @@ namespace pviewer5
             L.Add(new DNSRRList());   // add empty list to contain nameserver RRs
             for (int ii = 0; ii < NSCOUNT; ii++) L[2].L.Add(new DNSRR(pkt, ref i, false, pdataindex));
             L.Add(new DNSRRList());   // add empty list to contain additional RR's
-            for (int ii = 0; ii < ARCOUNT; ii++) L[3].L.Add(new DNSRR(pkt, ref i, false, pdataindex));
-
+            for (int ii = 0; ii < ARCOUNT; ii++)
+            {
+                L[3].L.Add(new DNSRR(pkt, ref i, false, pdataindex));
+                
+            }
             if (i != pkt.Len) MessageBox.Show("Did Not Read DNS record properly?  i != pkt.Len");
 
             // set generic header properties

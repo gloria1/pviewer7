@@ -63,8 +63,7 @@
             </TextBlock>
         </DataTemplate>
         <HierarchicalDataTemplate DataType="{x:Type local:DNSRRList}"
-                                  ItemsSource="{Binding Path=L}"
->
+                                  ItemsSource="{Binding Path=L}">
             <TextBlock>
                 <TextBlock.Text>
                     <MultiBinding Converter="{StaticResource displayinfomvc}">
