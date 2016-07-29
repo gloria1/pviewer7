@@ -3,14 +3,9 @@
 	TO DO
 
 
-		0) test basic pvdisplayobject view properties:
-			replace grouplistlist with a simple list of pvdisplyobjects
-			then build up to nested lists
-
 			next steps - not sure which order to pursue these
-				1) check that alias/iphex toggles refresh view correctly
 				2) finish exception level logic
-				3) finish DHS database logic
+				3) finish DNS database logic - use RDNS and ARIN to lookup info
 				4) add logic to read multiple pcap files
 				5) add logic to store filtered packet set
 				6) use scenario is to 
