@@ -4,6 +4,12 @@
 
 
 			next steps - not sure which order to pursue these
+
+				1) need to decide visiblity flowchart - priority of filters and exception levels, and whether visible children override invisible parent
+				1a) also need to think about when exception level, filterpassed and visibility need to be updated
+						working theory:
+
+
 				2) finish exception level logic
 				3) finish DNS database logic - use RDNS and ARIN to lookup info
 				4) add logic to read multiple pcap files

@@ -22,59 +22,15 @@ using Microsoft.Win32;
 
 namespace pviewer5
 {
-    [Serializable]
-    public enum ExceptionLevels : uint
-    {
-        Zero = 0,
-        One = 1,
-        Two = 2
-    }
-
-    public struct ExceptionLevel
-    {
-        uint e;
-
-        public void Ratchet(ExceptionLevel i)
-        {
-            if (i > e) e = i.e;
-        }
-
-        public override bool Equals(object o)
-        {
-            if (o == DependencyProperty.UnsetValue) return false;
-            else return ((ExceptionLevel)o).e == e;
-        }
-        public override int GetHashCode() { return e.GetHashCode(); }
-        public static implicit operator ExceptionLevel(uint i) { ExceptionLevel r = new ExceptionLevel(); r.e = i; return r; }
-        public static ExceptionLevel operator +(ExceptionLevel a, ExceptionLevel b) { ExceptionLevel r = new ExceptionLevel(); r.e = a.e + b.e; return r; }
-        public static ExceptionLevel operator *(ExceptionLevel a, ExceptionLevel b) { ExceptionLevel r = new ExceptionLevel(); r.e = a.e * b.e; return r; }
-        public static ExceptionLevel operator &(ExceptionLevel a, ExceptionLevel b) { ExceptionLevel r = new ExceptionLevel(); r.e = a.e & b.e; return r; }
-        public static ExceptionLevel operator |(ExceptionLevel a, ExceptionLevel b) { ExceptionLevel r = new ExceptionLevel(); r.e = a.e | b.e; return r; }
-        public static bool operator ==(ExceptionLevel a, ExceptionLevel b) { return a.e == b.e; }
-        public static bool operator !=(ExceptionLevel a, ExceptionLevel b) { return a.e != b.e; }
-        public static bool operator <=(ExceptionLevel a, ExceptionLevel b) { return a.e <= b.e; }
-        public static bool operator <(ExceptionLevel a, ExceptionLevel b) { return a.e < b.e; }
-        public static bool operator >=(ExceptionLevel a, ExceptionLevel b) { return a.e >= b.e; }
-        public static bool operator >(ExceptionLevel a, ExceptionLevel b) { return a.e > b.e; }
-
-        public override string ToString() { return e.ToString(); }
-
-    }
 
     public class PVDisplayObject : IEditableObject
         // propagation of ExceptionLevel property:
-        //   1) when parent property is set, ExceptionLevel of new parent is updated if this one's is higher
-        //   1a) but ExceptionLevel of prior parent is not updated 
-        //      (just being lazy here, don't think this will matter because I don't expect to have 
-        //      items move from one parent to another parent, just that they may not have their parent set
-        //      at creation time, only later (due to packet grouping)
-        //  2) when a child is added to L, the method that does the Add also needs to update the parent property
-        //      which will then cause the child's ExceptionLevel to propagate up
-        //  3) when this item's ExceptionLevel is set, the change will propagate up automatically
-        //  4) HOWEVER, the change does NOT automatically propagate down
-        //  4a) there is a separate method for ExcetpionLevelSetAndPushDown that does this
+        //   0) basically, it propagates up but not down, and propagation only ratchets the parents level up, never down
+        //   1) exception level based on the item itself is determined when item is loaded
+        //   2) exception level propagation happens when an item's parent property is set
+        //   3) once an item has a parent, it will never get a different parent - throw an exception if try to set parent when it is not null
+        //   4) there is a separate method for ExceptionLevelSetAndPushDown that does this
     {
-        public virtual PVDisplayObject self { get { return this; } }
 
         private PVDisplayObject _parent = null;
         public PVDisplayObject Parent
@@ -82,8 +38,11 @@ namespace pviewer5
             get { return _parent; }
             set
             {
+                if (_parent != null) MessageBox.Show("parent property of a PVDisplayObject is already set, but something else is trying to set it again - THIS SHOULD NEVER HAPPEN");
                 _parent = value;
-                if (_parent != null) _parent.e.Ratchet(e);
+                if (_parent != null)
+                    if (ExceptionLevel > _parent.ExceptionLevel)
+                        _parent.ExceptionLevel = ExceptionLevel;
             }
         }
 
@@ -103,29 +62,34 @@ namespace pviewer5
         }
 
         public ListCollectionView Lview = null;
-        public bool IsExpanded { get; set; } = false;
-        private bool _isvisible = true;
         public virtual bool IsVisible
         {
             get
             {
-                // THIS IS TEMPORARY - ADD LOGIC TO TEST VS. GLOBAL EXCEPTION LEVEL
-                return _isvisible;
-            }
-            set
-            {
-                _isvisible = value;
+                if (ExceptionLevel >= GUIUtil.Instance.ExceptionLevelToShow) return true;
+
+                if (L == null)  // if there is no list of children..
+                {
+                    return true;    // default is to show, can be over-ridden by sub-classes
+                }
+                else        // else return true iff one more children is visible
+                {
+                    foreach (PVDisplayObject p in L) if (p.IsVisible) return true;
+                    return false;
+                }
             }
         }
 
-        private ExceptionLevel _e = 1;      // default value is 1, protocol or group specific logic can drop it to 0 if it affirmatively determines it is warranted
-        public ExceptionLevel e
+        private int _exceptionlevel = 1;      // default value is 1, protocol or group specific logic can drop it to 0 if it affirmatively determines it is warranted
+        public int ExceptionLevel
         {
-            get { return _e; }
+            get { return _exceptionlevel; }
             set
             {
-                _e = value;
-                if (Parent != null) Parent.e.Ratchet(value);
+                _exceptionlevel = value;
+                if (Parent != null)
+                    if (value > Parent.ExceptionLevel)
+                        Parent.ExceptionLevel = value;
             }
         }
 
@@ -133,7 +97,7 @@ namespace pviewer5
             get
             {
                 string s = "";
-                if (e > 0) s += "EXCEPTION LEVEL " + e.ToString() + "   ";
+                if (ExceptionLevel > 0) s += "EXCEPTION LEVEL " + ExceptionLevel.ToString() + "   ";
                 return s;
             }
         }
@@ -151,7 +115,7 @@ namespace pviewer5
             return ((PVDisplayObject)p).IsVisible;
         }
 
-        // NOT SURE IF THIS IS STILL NEEDED.... public virtual PVDisplayObject self { get { return this; } }
+        public virtual PVDisplayObject self { get { return this; } }
 
         // implement IEditableObject interface
         // see
@@ -238,7 +202,7 @@ namespace pviewer5
             pkt.Parent = this;
             // appears to not be necessary, this is handled in base class...... Lview.Filter = delegate (object item) { return ((Packet)item).IsVisible; };
 
-            e = pkt.e;
+            ExceptionLevel = pkt.ExceptionLevel;
 
         }
 
@@ -307,7 +271,7 @@ namespace pviewer5
                     PcapH ph = pkt.L[0] as PcapH;
                     g.L.Add(pkt);
                     pkt.Parent = g;
-                    g.e.Ratchet(pkt.e);
+                    g.ExceptionLevel |= pkt.ExceptionLevel;
                     g.FirstTime = (g.FirstTime < ph.Time) ? g.FirstTime : ph.Time;          // adjust group timestamps
                     g.LastTime = (g.LastTime < ph.Time) ? ph.Time : g.LastTime;             // adjust group timestamps
                     return true;
@@ -420,14 +384,15 @@ namespace pviewer5
         public byte[] PData;
         public uint Len;
         
-        public bool FiltersPassed { get; set; } = true;  // this will be updated by method that applies the filters
+        public bool FiltersPassed { get; set; } = true;  // this property will be updated by method that applies the filters
 
         public override bool IsVisible
         {
             get
             {
-                if (!base.IsVisible) return false;
-                return FiltersPassed;
+                if (ExceptionLevel >= GUIUtil.Instance.ExceptionLevelToShow) return true;
+
+                else return FiltersPassed;
             }
         }
 
