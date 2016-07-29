@@ -405,7 +405,7 @@ namespace pviewer5
             PData = new byte[0];
         }
 
-        public Packet(FileStream fs, PcapFile pfh)
+        public Packet(FileStream fs, PcapFile pfh) : base(null)
         {
             PcapH pch;
 
