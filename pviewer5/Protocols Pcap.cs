@@ -346,7 +346,7 @@ namespace pviewer5
 
         public override string displayinfo { get { return base.displayinfo + "Pcap header, Timestamp: " + (Time.ToLocalTime()).ToString("yyyy-MM-dd HH:mm:ss.fffffff"); } }
 
-        public PcapH(FileStream fs, PcapFile pcf, Packet pkt, uint i)
+        public PcapH(FileStream fs, PcapFile pcf, Packet pkt, uint i) : base(fs, pcf, pkt, i)
         {
             uint timesecs, timeusecs;
             uint timehigh, timelow;

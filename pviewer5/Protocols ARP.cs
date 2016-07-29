@@ -55,7 +55,7 @@ namespace pviewer5
             }
         }
 
-        public ARPH(FileStream fs, PcapFile pfh, Packet pkt, uint i)
+        public ARPH(FileStream fs, PcapFile pfh, Packet pkt, uint i) : base(fs, pfh, pkt, i)
         {
             if ((pkt.Len - i) < 0x8) return;
             HWType = (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
@@ -117,7 +117,7 @@ namespace pviewer5
             }
         }
 
-        public ARPG(Packet pkt) : base(pkt)
+        public ARPG(Packet pkt, GList parent) : base(pkt, parent)
         {
             // note: base class constructor is called first (due to : base(pkt) above)
 
@@ -171,7 +171,7 @@ namespace pviewer5
 
 
 
-        public ARPGList(string n) : base(n)
+        public ARPGList(string n, PVDisplayObject parent) : base(n, parent)
         {
             // set headerselector to protocol header that G.GroupPacket should extract
             headerselector = Protocols.ARP;
@@ -188,7 +188,7 @@ namespace pviewer5
         {
             // h argument is for utility - GList.GroupPacket function will pass in a reference to the packet header matching the protocol specified in the GList - this saves this function from having to search for the protocol header in pkt.phlist each time it is called
 
-            if (h != null) return new ARPG(pkt);     // replace "true" with test for other qualifications for this packet to start a new group
+            if (h != null) return new ARPG(pkt, this);     // replace "true" with test for other qualifications for this packet to start a new group
             else return null;       // return null if cannot start a group with this packet
         }
     }

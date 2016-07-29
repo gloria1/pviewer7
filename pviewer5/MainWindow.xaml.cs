@@ -40,7 +40,7 @@ namespace pviewer5
         private bool _fileloaded = false;
         public bool FileLoaded { get { return _fileloaded; } set { _fileloaded = value; NotifyPropertyChanged(); } }
         public ObservableCollection<Packet> pkts { get; set; }
-        public ObservableCollection<GList> grouplistlist { get; set; }
+        public PVDisplayObject grouplistlist { get; set; }
         public ListCollectionView gllview;
 
 
@@ -85,14 +85,15 @@ namespace pviewer5
 
             // set up packet list view
             pkts = new ObservableCollection<Packet>();
-            grouplistlist = new ObservableCollection<GList>();
-            gllview = (ListCollectionView)CollectionViewSource.GetDefaultView(grouplistlist);
-            grouplistlist.Add(new DNSGList("DNS Groups"));
-            grouplistlist.Add(new DHCP4GList("DHCP4 Groups"));
-            grouplistlist.Add(new TCPGList("TCP Groups"));
-            grouplistlist.Add(new UDPGList("UDP Groups"));
-            grouplistlist.Add(new ARPGList("ARP Groups"));
-            grouplistlist.Add(new GList("Ungrouped Packets"));
+            grouplistlist = new PVDisplayObject(null);
+            grouplistlist.L = new ObservableCollection<PVDisplayObject>();
+            gllview = (ListCollectionView)CollectionViewSource.GetDefaultView(grouplistlist.L);
+            grouplistlist.L.Add(new DNSGList("DNS Groups", grouplistlist));
+            grouplistlist.L.Add(new DHCP4GList("DHCP4 Groups", grouplistlist));
+            grouplistlist.L.Add(new TCPGList("TCP Groups", grouplistlist));
+            grouplistlist.L.Add(new UDPGList("UDP Groups", grouplistlist));
+            grouplistlist.L.Add(new ARPGList("ARP Groups", grouplistlist));
+            grouplistlist.L.Add(new GList("Ungrouped Packets", grouplistlist));
             
             // set up filter view
             filters = new FilterSet();
@@ -216,7 +217,7 @@ namespace pviewer5
 			if (result == true)
 			{
                 pkts.Clear();
-                foreach (GList gl in grouplistlist) gl.L.Clear();
+                foreach (GList gl in grouplistlist.L) gl.L.Clear();
 
                 Properties.Settings.Default.LastDirectory = dlg.InitialDirectory;
                 Properties.Settings.Default.LastFile = dlg.FileName;
@@ -233,7 +234,7 @@ namespace pviewer5
             byte[] b = new byte[1000];
 
             pkts.Clear();
-            foreach (GList gl in grouplistlist) gl.L.Clear();
+            foreach (GList gl in grouplistlist.L) gl.L.Clear();
 
             fs = new FileStream(filename, FileMode.Open);
             PacketFileName = filename;
@@ -250,10 +251,10 @@ namespace pviewer5
             }
 
             foreach (Packet p in pkts)
-                foreach (GList gl in grouplistlist)
+                foreach (GList gl in grouplistlist.L)
                     if (gl.GroupPacket(p)) break;
 
-            foreach (TCPG tg in ((TCPGList)(grouplistlist[2])).L)
+            foreach (TCPG tg in ((TCPGList)(grouplistlist.L[2])).L)
             {
                 tg.OPL1.CopyBytes(1000, b);
                 tg.OPL2.CopyBytes(1000, b);
@@ -281,7 +282,7 @@ namespace pviewer5
 
         public void RefreshViews()
         {
-            foreach (GList glist in grouplistlist)
+            foreach (GList glist in grouplistlist.L)
             {
                 foreach (G g in glist.L)
                 {
@@ -294,7 +295,7 @@ namespace pviewer5
 
         private void ApplyFilterToView(object sender, RoutedEventArgs e)
         {
-            foreach (GList glist in grouplistlist)
+            foreach (GList glist in grouplistlist.L)
             {
                 foreach (G g in glist.L)
                 {

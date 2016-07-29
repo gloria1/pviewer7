@@ -50,7 +50,7 @@ namespace pviewer5
             }
         }
 
-        public DHCP4H(FileStream fs, PcapFile pfh, Packet pkt, uint i)
+        public DHCP4H(FileStream fs, PcapFile pfh, Packet pkt, uint i) : base(fs, pfh, pkt, i)
         {
 
             // if not enough data remaining, return without reading anything 
@@ -109,7 +109,7 @@ namespace pviewer5
                 }
             }
 
-            public DHCP4G(Packet pkt) : base(pkt)
+            public DHCP4G(Packet pkt, GList parent) : base(pkt, parent)
             {
 
                 // note: base class constructor is called first (due to : base(pkt) above)
@@ -150,7 +150,7 @@ namespace pviewer5
         public override Protocols headerselector { get; set; }
 
 
-        public DHCP4GList(string n) : base(n)
+        public DHCP4GList(string n, PVDisplayObject parent) : base(n, parent)
         {
             // set headerselector to protocol header that G.GroupPacket should extract
             headerselector = Protocols.DHCP4;
@@ -166,7 +166,7 @@ namespace pviewer5
         {
             // h argument is for utility - GList.GroupPacket function will pass in a reference to the packet header matching the protocol specified in the GList - this saves this function from having to search for the protocol header in pkt.phlist each time it is called
 
-            if (h != null) return new DHCP4G(pkt);     // replace "true" with test for other qualifications for this packet to start a new group
+            if (h != null) return new DHCP4G(pkt, this);     // replace "true" with test for other qualifications for this packet to start a new group
             else return null;       // return null if cannot start a group with this packet
         }
     }

@@ -38,7 +38,7 @@ namespace pviewer5
         public override string displayinfo { get { return base.displayinfo + "ICMP header"; } }
 
 
-        public ICMPH(FileStream fs, PcapFile pfh, Packet pkt, uint i)
+        public ICMPH(FileStream fs, PcapFile pfh, Packet pkt, uint i) : base(fs, pfh, pkt, i)
         {
             if ((pkt.Len - i) < 0x08) return;
             Type = (uint)pkt.PData[i++];

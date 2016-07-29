@@ -446,7 +446,7 @@
                     <TreeView Name="grouptree"
                             VirtualizingPanel.IsVirtualizing="True"
                             VirtualizingPanel.VirtualizationMode="Recycling"
-                          ItemsSource="{Binding Path=grouplistlist}"
+                          ItemsSource="{Binding Path=grouplistlist.L}"
                           SelectedItemChanged="grouptree_SelectedItemChanged">
                         <TreeView.ItemContainerStyle>
                             <Style TargetType="TreeViewItem">

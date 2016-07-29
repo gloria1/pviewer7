@@ -82,19 +82,7 @@ namespace pviewer5
         {
             get
             {
-                return true;
-                /*                if (ExceptionLevel >= GUIUtil.Instance.ExceptionLevelToShow) return true;
-
-                                if (L == null)  // if there is no list of children..
-                                {
-                                    return true;    // default is to show, can be over-ridden by sub-classes
-                                }
-                                else        // else return true iff one more children is visible
-                                {
-                                    foreach (PVDisplayObject p in L) if (p.IsVisible) return true;
-                                    return false;
-                                }
-                */
+                return true;        // default is to be always visible; subclasses can override with logic to hide based on exception level, filters, etc.
             }
         }
 
@@ -107,10 +95,10 @@ namespace pviewer5
             }
         }
 
-        public PVDisplayObject() : this(null) { }
-        public PVDisplayObject(PVDisplayObject p)
+        // private PVDisplayObject() : this(null) { }
+        public PVDisplayObject(PVDisplayObject parent)
         {
-            Parent = p;
+            Parent = parent;
             // do not instantiate anything for L here - do not want the overhead of the L and the Lview
             // for headers which are leaves of the tree
         }
@@ -120,9 +108,9 @@ namespace pviewer5
             return ((PVDisplayObject)p).IsVisible;
         }
 
-        public virtual PVDisplayObject self { get { return this; } }
+        public virtual PVDisplayObject self { get { return this; } }    // so that data binding can bind to a reference to the PVDisplayObject itself
 
-        // implement IEditableObject interface
+        // implement IEditableObject interface - this somehow enables saving of tree expansion state
         // see
         //  http://www.codeproject.com/Articles/61316/Tuning-Up-The-TreeView-Part
         //  http://drwpf.com/blog/2008/10/20/itemscontrol-e-is-for-editable-collection/
@@ -143,8 +131,8 @@ namespace pviewer5
         public int payloadlen = -1;     // this will be set to the length of any payload encapsulated by this header's protocol
                                         // default value of -1 indicates that this header's protocol doesn't know anything about the size of its payload
 
-        public H() : base(null)          // need a parameter-less constructor for sublcasses to inherit from ?????
-        { }
+        // public H() : base(null) {}         // need a parameter-less constructor for sublcasses to inherit from ?????
+        
         public H(FileStream fs, PcapFile pcf, Packet pkt, uint i)      // i is index into pkt.PData of start of this header
             : base((PVDisplayObject)pkt)                        // call base constructor with parent link
         {
@@ -192,10 +180,9 @@ namespace pviewer5
             }
         }
 
-        public G() : base(null)     // need parameter-less constructor needs to exist for sub-classes for some reason
-        { } 
+        // public G() : base(null) { }    // need parameter-less constructor needs to exist for sub-classes for some reason
 
-        public G(Packet pkt) : base(null)  // this generic constructor will run before the protocol-specific constructor does
+        public G(Packet pkt, GList parent) : base(parent)  // this generic constructor will run before the protocol-specific constructor does
         {
             if (pkt.L[0].GetType() != typeof(PcapH))
             {
@@ -248,7 +235,7 @@ namespace pviewer5
             }
         }
         
-        public GList(string n) : base(null)
+        public GList(string n, PVDisplayObject parent) : base(parent)
         {
             name = n;
 
@@ -300,11 +287,6 @@ namespace pviewer5
             // h argument: the GroupPacket function can pass in a reference to a relevant protocol header (likely it's own protocol's header), so Belongs does not have to search the header list every time it is called
             return true;
         }
-        public bool GGLFilter(object g)
-        {
-            return ((G)g).IsVisible;
-        }
-
 
 
         public virtual G StartNewGroup(Packet pkt, H h)   // starts a new group if this packet can be the basis for a new group of this type
@@ -316,7 +298,7 @@ namespace pviewer5
             // test other qualifications for starting a new group
             // return null if not eligible
 
-            return new G(pkt);
+            return new G(pkt, this);
         }
     }
 
@@ -405,18 +387,26 @@ namespace pviewer5
             }
         }
 
+/* do we need this?
         public Packet() : base(null) // empty constructor, constructs a packet with no data or headers
         {
             L = new ObservableCollection<PVDisplayObject>();
             PData = new byte[0];
         }
+        */
 
-        public Packet(FileStream fs, PcapFile pfh) : base(null)
+        public Packet(FileStream fs, PcapFile pfh) : base(null)     // constructor does not have a parent argument, because at the time a packet is instantiated its parent cannot be known yet
         {
             PcapH pch;
 
             L = new ObservableCollection<PVDisplayObject>();
             Prots = 0;
+
+            if (fs == null)     // if fs is null, create an empty packet and return
+            {
+                PData = new byte[0];
+                return;
+            }
 
             // instantiate pcap header - that constructor will start cascade of constructors for inner headers
             // PcapH constructor will also read all non-header data in

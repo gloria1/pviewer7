@@ -693,7 +693,7 @@ namespace pviewer5
         public override string displayinfo { get { return "Ethernet header"; } }
 
 
-        public EthernetH(FileStream fs, PcapFile pfh, Packet pkt, uint i)
+        public EthernetH(FileStream fs, PcapFile pfh, Packet pkt, uint i) : base(fs, pfh, pkt, i)
         {
             if ((pkt.Len - i) < 0xe) return;
             DestMAC = (ulong)pkt.PData[i++] * 0x0010000000000 + (ulong)pkt.PData[i++] * 0x000100000000 + (ulong)pkt.PData[i++] * 0x000001000000 + (ulong)pkt.PData[i++]  * 0x000000010000 + (ulong)pkt.PData[i++]  * 0x000000000100 + (ulong)pkt.PData[i++] ;

@@ -67,7 +67,7 @@ namespace pviewer5
             }
         }
 
-        public TCPH(FileStream fs, PcapFile pfh, Packet pkt, uint i)
+        public TCPH(FileStream fs, PcapFile pfh, Packet pkt, uint i) : base(fs, pfh, pkt, i)
         {
             uint temp;
             uint optionbytes;
@@ -421,7 +421,7 @@ namespace pviewer5
             }
         }
 
-        public TCPG(Packet pkt, H h) : base(pkt)
+        public TCPG(Packet pkt, H h, GList parent) : base(pkt, parent)
         {
 
             // note: base class constructor is called first (due to : base(pkt) above)
@@ -520,7 +520,7 @@ namespace pviewer5
 
 
 
-        public TCPGList(string n) : base(n)
+        public TCPGList(string n, PVDisplayObject parent) : base(n, parent)
         {
             // set headerselector to protocol header that G.GroupPacket should extract
             headerselector = Protocols.TCP;
@@ -537,7 +537,7 @@ namespace pviewer5
         {
             // h argument is for utility - GList.GroupPacket function will pass in a reference to the packet header matching the protocol specified in the GList - this saves this function from having to search for the protocol header in pkt.phlist each time it is called
 
-            if (h != null) return new TCPG(pkt, h);     // if pkt has a TCP header it can start a TCP group
+            if (h != null) return new TCPG(pkt, h, this);     // if pkt has a TCP header it can start a TCP group
             else return null;       // return null if cannot start a group with this packet
         }
     }

@@ -723,7 +723,7 @@ namespace pviewer5
         }
 
 
-        public IP4H(FileStream fs, PcapFile pfh, Packet pkt, uint i)
+        public IP4H(FileStream fs, PcapFile pfh, Packet pkt, uint i) : base(fs, pfh, pkt, i)
         {
             if ((pkt.Len - i) < 0x1) return;
             HdrLen = (uint)pkt.PData[i++] ;

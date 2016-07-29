@@ -57,8 +57,8 @@ namespace pviewer5
             }
         }
 
-        public HTTPG(Packet pkt)
-            : base(pkt)
+        public HTTPG(Packet pkt, GList parent)
+            : base(pkt, parent)
         {
 
             // note: base class constructor is called first (due to : base(pkt) above)
@@ -94,8 +94,8 @@ namespace pviewer5
         // declare and initialize headerselector for this class of GList
         public override Protocols headerselector { get; set; }
 
-        public HTTPGList(string n)
-            : base(n)
+        public HTTPGList(string n, PVDisplayObject parent)
+            : base(n, parent)
         {
             // set headerselector to protocol header that G.GroupPacket should extract
             headerselector = Protocols.Generic;
@@ -111,7 +111,7 @@ namespace pviewer5
         {
             // h argument is for utility - GList.GroupPacket function will pass in a reference to the packet header matching the protocol specified in the GList - this saves this function from having to search for the protocol header in pkt.phlist each time it is called
 
-            if (true) return new HTTPG(pkt);     // replace "true" with test for other qualifications for this packet to start a new group
+            if (true) return new HTTPG(pkt, this);     // replace "true" with test for other qualifications for this packet to start a new group
             else return null;       // return null if cannot start a group with this packet
         }
     }

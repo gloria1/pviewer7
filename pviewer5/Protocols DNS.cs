@@ -501,8 +501,8 @@ namespace pviewer5
         }
 
         public DNSRR(Packet pkt, DNSRRList parent, ref uint pos, bool isquestion, uint dnsindex)    // if isquestion==true, process as a question entry (having only NAME, TYPE and CLASS fields)
+                : base(parent)
         {
-            Parent = parent;
             mypkt = pkt;
             PDataIndex = dnsindex;
 
@@ -597,7 +597,7 @@ namespace pviewer5
 
     public class DNSRRList : PVDisplayObject
     {
-        public DNSRRList()
+        public DNSRRList(DNSH parent) : base(parent)
         {
             L = new ObservableCollection<PVDisplayObject>();
         }
@@ -686,19 +686,19 @@ namespace pviewer5
             ARCOUNT = (uint)pkt.PData[i++] * 0x100 + (uint)pkt.PData[i++];
 
             L = new ObservableCollection<PVDisplayObject>();    // L is list of DNSRRLists
-            newlist = new DNSRRList(); newlist.Parent = this;
+            newlist = new DNSRRList(this);
             L.Add(newlist);    // add empty list to contain the questions
             for (int ii = 0; ii < QDCOUNT; ii++) L[0].L.Add(new DNSRR(pkt, newlist, ref i, true, pdataindex));
 
-            newlist = new DNSRRList(); newlist.Parent = this;
+            newlist = new DNSRRList(this);
             L.Add(newlist);     // add empty list to contain the answers
             for (int ii = 0; ii < ANCOUNT; ii++) L[1].L.Add(new DNSRR(pkt, newlist, ref i, false, pdataindex));
 
-            newlist = new DNSRRList(); newlist.Parent = this;
+            newlist = new DNSRRList(this);
             L.Add(newlist);   // add empty list to contain nameserver RRs
             for (int ii = 0; ii < NSCOUNT; ii++) L[2].L.Add(new DNSRR(pkt, newlist, ref i, false, pdataindex));
 
-            newlist = new DNSRRList(); newlist.Parent = this;
+            newlist = new DNSRRList(this);
             L.Add(newlist);   // add empty list to contain additional RR's
             for (int ii = 0; ii < ARCOUNT; ii++) L[3].L.Add(new DNSRR(pkt, newlist, ref i, false, pdataindex));
 
@@ -746,8 +746,8 @@ namespace pviewer5
             }
         }
 
-        public DNSG(Packet pkt)
-            : base(pkt)
+        public DNSG(Packet pkt, GList parent)
+            : base(pkt, parent)
         {
 
             // note: base class constructor is called first (due to : base(pkt) above)
@@ -795,7 +795,7 @@ namespace pviewer5
         public override Protocols headerselector { get; set; }
 
 
-        public DNSGList(string n) : base(n)
+        public DNSGList(string n, PVDisplayObject parent) : base(n, parent)
         {
             // set headerselector to protocol header that G.GroupPacket should extract
             headerselector = Protocols.DNS;
@@ -811,7 +811,7 @@ namespace pviewer5
         {
             // h argument is for utility - GList.GroupPacket function will pass in a reference to the packet header matching the protocol specified in the GList - this saves this function from having to search for the protocol header in pkt.phlist each time it is called
 
-            if (h != null) return new DNSG(pkt);     // any packet with a DNS header can start a DNS group
+            if (h != null) return new DNSG(pkt, this);     // any packet with a DNS header can start a DNS group
             else return null;       // return null if cannot start a group with this packet
         }
     }

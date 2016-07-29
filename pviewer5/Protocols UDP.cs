@@ -37,7 +37,7 @@ namespace pviewer5
             }
         }
 
-        public UDPH(FileStream fs, PcapFile pfh, Packet pkt, uint i)
+        public UDPH(FileStream fs, PcapFile pfh, Packet pkt, uint i) : base(fs, pfh, pkt, i)
         {
 
             if ((pkt.Len - i) < 0x8) return;
@@ -90,7 +90,7 @@ namespace pviewer5
             }
         }
 
-        public UDPG(Packet pkt) : base(pkt)
+        public UDPG(Packet pkt, GList parent) : base(pkt, parent)
         {
 
             // note: base class constructor is called first (due to : base(pkt) above)
@@ -135,7 +135,7 @@ namespace pviewer5
         public override Protocols headerselector { get; set; }
 
 
-        public UDPGList(string n) : base(n)
+        public UDPGList(string n, PVDisplayObject parent) : base(n, parent)
         {
             // set headerselector to protocol header that G.GroupPacket should extract
             headerselector = Protocols.UDP;
@@ -151,7 +151,7 @@ namespace pviewer5
         {
             // h argument is for utility - GList.GroupPacket function will pass in a reference to the packet header matching the protocol specified in the GList - this saves this function from having to search for the protocol header in pkt.phlist each time it is called
 
-            if (h != null) return new UDPG(pkt);     // any packet with a UDP header can start a UDP group
+            if (h != null) return new UDPG(pkt, this);     // any packet with a UDP header can start a UDP group
             else return null;       // return null if cannot start a group with this packet
         }
     }
