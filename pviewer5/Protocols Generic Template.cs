@@ -65,7 +65,7 @@ namespace pviewer5
 
         public bool IsExpanded { get; set; } = false;
 
-        private int _exceptionlevel = 1;      // default value is 1, protocol or group specific logic can drop it to 0 if it affirmatively determines it is warranted
+        private int _exceptionlevel = 0;      // default value is 0
         public int ExceptionLevel
         {
             get { return _exceptionlevel; }
