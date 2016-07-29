@@ -525,6 +525,7 @@ namespace pviewer5
                     break;
                 case 2:         // NS - an authoritative name server
                     RDATA1 = pos - PDataIndex; pos += RDLENGTH;
+                    ExceptionLevel = 3;
                     break;
                 case 5:         // CNAME - the canonical name for an alias
                     RDATA1 = pos - PDataIndex; pos += RDLENGTH;
