@@ -26,8 +26,6 @@ using System.Runtime.Serialization.Formatters.Binary;
 namespace pviewer5
 {
 
-
-
     public class IPDNMap : INotifyPropertyChanged
     {
         public static IPDNMap Instance = null;
@@ -43,125 +41,149 @@ namespace pviewer5
         // is referenced by the MainWindow instance so that the xaml can
         // reference it in a databinding
 
-        public class idmtable : ObservableCollection<idmtable.idmtableitem>
+
+
+//  BOOKMARK
+//      need:
+//      property for domain display info in tableitem
+//      methods in ipdnmap for merge, delete
+
+
+
+        public ObservableCollection<idmtableitem> table = new ObservableCollection<idmtableitem>();
+
+        public class idmtableitem : INotifyPropertyChanged
         {
-            // backing model for IP/DN map - it is a dictionary since we want to be able to look up by just indexing the map with an IP address
-            // this is private so there is no way anything outside this class can alter the dictionary  without updating the table
-            // i.e., all external access to the map will be through the table
-            private Dictionary<IP4, List<idmdomain>> dict = new Dictionary<IP4, List<idmdomain>>();
+            public IP4 ip4;
+            public string name = null;
+            public DateTime firstobsn, lastobsn = new DateTime(0);
+            public int numberobserved = 0;
 
-            public new void Merge(idmtableitem it)
-            // if the IP4 is a duplicate of an IP4 already in table
-            // then merge the new domain info into the existing item
-            // else add it as a new item
+
+
+
+            // implement INotifyPropertyChanged
+            public event PropertyChangedEventHandler PropertyChanged;
+            private void NotifyPropertyChanged(String propertyName = "")
             {
-                if (IndexOf(it.IP4) == -1)
+                if (PropertyChanged != null)
                 {
-                    it.parent = this;
-                    base.Add(it);
-                    dict.Add(it.IP4, it.domains);
+                    PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
                 }
-            }
-            public new bool Remove(idmtableitem it)
-            {
-                int ix = IndexOf(it.IP4);
-                if (ix == -1) return false;
-                else return RemoveAt(ix);
-            }
-            public List<idmdomain> Lookup(IP4 ip4)
-            {
-                return dict[ip4];
-            }
-            public int IndexOf(IP4 ip4)
-            {
-                for (int i = 0; i < this.Count(); i++) if (this[i].IP4 == ip4) return i;
-                return -1;
-            }
-            public new bool RemoveAt(int i)
-            {
-                if ((i < 0) || (i >= this.Count())) return false;
-                dict.Remove(this[i].IP4);
-                base.RemoveAt(i);
-                return true;
-            }
-            public new void Clear()
-            {
-                base.Clear();
-                dict.Clear();
-            }
-
-
-            public class idmtableitem : INotifyPropertyChanged
-            {
-                public idmtable parent = null;
-                private IP4 _ip4;
-                public IP4 IP4 { get { return _ip4; } }
-
-                private List<idmdomain> _domains = new List<idmdomain>();
-                public List<idmdomain> domains { get { return _domains; } }
-
-                public string domaininfostring
-                {
-                    get
-                    {
-                        return "domain info string here";
-                    }
-                }
-
-                public void Merge(idmdomain newdomain)
-                {
-                    // merge info from newdomain into this item
-
-                    idmdomain mergetarget = null;
-
-                    // check whether new domain name matches any in list
-                    // if so, set mergetarget to the matching existing item
-                    foreach (idmdomain id in _domains)
-                        if (newdomain.name == id.name)
-                        {
-                            mergetarget = id;
-                            break;
-                        }
-                    // if no match found, i.e., mergetarget still null
-                    // add newdomain to list
-                    if (mergetarget == null) _domains.Add(newdomain);
-                    // else merge newdomain info into mergetarget
-                    else
-                    {
-                        if (newdomain.firstobsn < mergetarget.firstobsn) mergetarget.firstobsn = newdomain.firstobsn;
-                        if (newdomain.lastobsn > mergetarget.lastobsn) mergetarget.lastobsn = newdomain.lastobsn;
-                        if (!mergetarget.dnsservers.Contains(newdomain.dnsservers[0])) mergetarget.dnsservers.Add(newdomain.dnsservers[0]);
-                    }
-                }
-
-                public idmtableitem(IP4 u, List<idmdomain> doms)
-                {
-                    _ip4 = u;
-                    _domains = doms;
-                }
-
-                // implement INotifyPropertyChanged
-                public event PropertyChangedEventHandler PropertyChanged;
-                private void NotifyPropertyChanged(String propertyName = "")
-                {
-                    if (PropertyChanged != null)
-                    {
-                        PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-                    }
-                }
-
-            }
-
-            public class idmdomain
-            {
-                public string name = null;
-                public DateTime firstobsn, lastobsn = new DateTime(0);
-                public List<IP4> dnsservers = new List<IP4>();
             }
 
         }
 
-        public idmtable table { get; set; } = new idmtable();
+
+        /*
+                public class idmtable : ObservableCollection<idmtable.idmtableitem>
+                {
+                    // backing model for IP/DN map - it is a dictionary since we want to be able to look up by just indexing the map with an IP address
+                    // this is private so there is no way anything outside this class can alter the dictionary  without updating the table
+                    // i.e., all external access to the map will be through the table
+                    private Dictionary<IP4, List<idmdomain>> dict = new Dictionary<IP4, List<idmdomain>>();
+
+                    public new void Merge(idmtableitem it)
+                    // if the IP4 is a duplicate of an IP4 already in table
+                    // then merge the new domain info into the existing item
+                    // else add it as a new item
+                    {
+                        if (IndexOf(it.IP4) == -1)
+                        {
+                            it.parent = this;
+                            base.Add(it);
+                            dict.Add(it.IP4, it.domains);
+                        }
+                    }
+                    public new bool Remove(idmtableitem it)
+                    {
+                        int ix = IndexOf(it.IP4);
+                        if (ix == -1) return false;
+                        else return RemoveAt(ix);
+                    }
+                    public List<idmdomain> Lookup(IP4 ip4)
+                    {
+                        return dict[ip4];
+                    }
+                    public int IndexOf(IP4 ip4)
+                    {
+                        for (int i = 0; i < this.Count(); i++) if (this[i].IP4 == ip4) return i;
+                        return -1;
+                    }
+                    public new bool RemoveAt(int i)
+                    {
+                        if ((i < 0) || (i >= this.Count())) return false;
+                        dict.Remove(this[i].IP4);
+                        base.RemoveAt(i);
+                        return true;
+                    }
+                    public new void Clear()
+                    {
+                        base.Clear();
+                        dict.Clear();
+                    }
+
+
+                    public class idmtableitem : INotifyPropertyChanged
+                    {
+                        public idmtable parent = null;
+                        private IP4 _ip4;
+                        public IP4 IP4 { get { return _ip4; } }
+
+                        private List<idmdomain> _domains = new List<idmdomain>();
+                        public List<idmdomain> domains { get { return _domains; } }
+
+                        public string domaininfostring
+                        {
+                            get
+                            {
+                                return "domain info string here";
+                            }
+                        }
+
+                        public void Merge(idmdomain newdomain)
+                        {
+                            // merge info from newdomain into this item
+
+                            idmdomain mergetarget = null;
+
+                            // check whether new domain name matches any in list
+                            // if so, set mergetarget to the matching existing item
+                            foreach (idmdomain id in _domains)
+                                if (newdomain.name == id.name)
+                                {
+                                    mergetarget = id;
+                                    break;
+                                }
+                            // if no match found, i.e., mergetarget still null
+                            // add newdomain to list
+                            if (mergetarget == null) _domains.Add(newdomain);
+                            // else merge newdomain info into mergetarget
+                            else
+                            {
+                                if (newdomain.firstobsn < mergetarget.firstobsn) mergetarget.firstobsn = newdomain.firstobsn;
+                                if (newdomain.lastobsn > mergetarget.lastobsn) mergetarget.lastobsn = newdomain.lastobsn;
+                                if (!mergetarget.dnsservers.Contains(newdomain.dnsservers[0])) mergetarget.dnsservers.Add(newdomain.dnsservers[0]);
+                            }
+                        }
+
+                        public idmtableitem(IP4 u, List<idmdomain> doms)
+                        {
+                            _ip4 = u;
+                            _domains = doms;
+                        }
+
+
+                    }
+
+                    public class idmdomain
+                    {
+                    }
+
+                }
+
+                public idmtable table { get; set; } = new idmtable();
+        */
 
         // reference to datagrid this table is bound to
         public DataGrid dg = null;

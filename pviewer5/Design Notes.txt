@@ -5,11 +5,6 @@
 
 			next steps - not sure which order to pursue these
 
-				1) dns packets not displaying rr lists #%#%$@%
-				2) test exception level logic
-					setting them
-					propagation
-					filtering
 
 				3) finish DNS database logic - use RDNS and ARIN to lookup info
 				4) add logic to read multiple pcap files
@@ -19,42 +14,60 @@
 					- set up a filter interactively
 					- store the filtered set of packets in a new file
 
-		
 
-		bookmark
+									
 
-			review protocol-specific H and G logic
-				proper displayinfo logic - put in tests that will create exception level >0 for testing
-				logic for exception level - set to 0 for known good cases
-			then add filtering logic
-			update xaml
+		data structure for ip-dns map
+			what do we want it to do?
+				allow searches of all-domains-for-a-given-ip and all-ips-for-a-given-domain
+				allow efficient filtering based on a domain
+					e.g., i want to say "include/exclude *.domain.com"
+						==> need to rapidly look up whether an ip4 or ip6 relates to *.domain.com
+							==> rapid, high volume lookups will be keyed by ip4/ip6
+								==> dict keyed by ip
+									==> need generic class for ip address, of which ip4 and ip6 are sub-classes
+
+
+
+
+	ip-dn mapping
+		data elements - list of idmtableitem
+			ip
+			domains - list of idmdomain
+				domain name
+				time first observed
+				time last observed
+				obtained from RDNS or from reading DNS packets?
+				list of dns servers that provided this name
+				other information TBD that is worth capturing
+
+		operations
+			rdns update
+			"contribute ip" - method called by ip4 header constructor, to add the ip4 address to the table
+			"contribute dns" - method called by dns header reader, to add its information
+				IMPLEMENT BY TRACING DNS HEADER READING CODE
+				DISCOVER VARIATIONS IN WHAT KINDS OF DNS INFO COMES IN
+					WHILE AT HOME
+					WHILE IN WORK NETWORK
+					WHILE ON IPHONE NETWORK
+			file merge - merges info within records
+			scan for noteworthy situations
+				situations to flag
+					ip for a domain changes over time (don't know how much of an anomaly this is, but anomaly or not, i want to observe ip addresses changing.....)
+					ip addresses with no known domain name (use RDNS either on background thread or trigggered manually)
+		validator/converters
+			add dns entries to ip tostringalts
+			dlist
+				main display is list of domains
+				tooltip shows expanded info on each
 				
 
+		make gui highlight cases where multiple IPs for same domain
+		also highlight cases where mutiple domains for same IP
 
+		add ip-dns map info to IP4 tooltip display
 
-
-		add IP6 support now???
-		NO, NOT YET
-			add struct for IP6, same operators as IP4
-				store address as 2 longs (for space efficiency if/when we get to a point of having lots of IP6 objects)
-
-			a class (or struct?) for IP, of which IP4 and IP6 are subclasses?
-				structs do not support inheritance - what does this mean?
-
-
-
-		augment displayinfo for RR's - useful in debugging when viewing Locals
-
-
-
-		add general logic for filtering view based on "exception level"
-			exception level is determined at the header, packet and group level
-			show exception level in displayinfo if > 0
-			packet exception level is max (levels of its headers, level of packet itself)
-			group exception level is based on the group
-			if group has except level >0, show all packets in group
-			==> use Packet.parent property to determine Packet.Visible (rename the "FilterMatched" property to "Visible")
-
+		enable storage and retrieval of map - so it can grow over sessions
 
 
 
@@ -76,42 +89,12 @@
 									ns authority section - zero or more NS RR, relating to the domain in the query
 									additional records section - A or AAAA records for the nameservers in the ns auth section
 				"unusual" - neither of the first two
-		augment display info for DNSG - flag types other than the typical Q&A
-			typical group characteristics
+		augment display info for DNSG - set exception levesl to flag unusual instances
+			exception level 0 - typical group
 				one query with one RR
 				one answer that is "typical" (see above)
-
-
-				
-
-		data structure for ip-dns map
-			what do we want it to do?
-				allow searches of all-domains-for-a-given-ip and all-ips-for-a-given-domain
-				allow efficient filtering based on a domain
-					e.g., i want to say "include/exclude *.domain.com"
-						==> need to rapidly look up whether an ip4 or ip6 relates to *.domain.com
-							==> rapid, high volume lookups will be keyed by ip4/ip6
-								==> dict keyed by ip
-									==> need generic class for ip address, of which ip4 and ip6 are sub-classes
-
-
-
-
-
-		add command to append a new capture file to ones already loaded
-
-		enhance dns header one-line display info per notes below
-
-		enable feeding of ip-dns map
-
-		enable gui display of ip-dns map
-
-		make gui highlight cases where multiple IPs for same domain
-		also highlight cases where mutiple domains for same IP
-
-		add ip-dns map info to IP4 tooltip display
-
-		enable storage and retrieval of map - so it can grow over sessions
+			exception level 1 - group with additional info
+			exception level 2 - having patterns consistent with abuse (research what such patterns might be)
 
 
 
@@ -155,41 +138,6 @@
 
 
 
-
-
-	ip-dn mapping
-		data elements - list of idmtableitem
-			ip
-			domains - list of idmdomain
-				domain name
-				time first observed
-				time last observed
-				obtained from RDNS or from reading DNS packets?
-				list of dns servers that provided this name
-				other information TBD that is worth capturing
-
-		operations
-			rdns update
-			"contribute ip" - method called by ip4 header constructor, to add the ip4 address to the table
-			"contribute dns" - method called by dns header reader, to add its information
-				IMPLEMENT BY TRACING DNS HEADER READING CODE
-				DISCOVER VARIATIONS IN WHAT KINDS OF DNS INFO COMES IN
-					WHILE AT HOME
-					WHILE IN WORK NETWORK
-					WHILE ON IPHONE NETWORK
-			file merge - merges info within records
-			scan for noteworthy situations
-				situations to flag
-					ip for a domain changes over time (don't know how much of an anomaly this is, but anomaly or not, i want to observe ip addresses changing.....)
-					ip addresses with no known domain name (use RDNS either on background thread or trigggered manually)
-		validator/converters
-			add dns entries to ip tostringalts
-			dlist
-				main display is list of domains
-				tooltip shows expanded info on each
-				
-
-
 	datetime converters seem busted
 
 
@@ -198,6 +146,7 @@
 	window layout
 		next steps:
 			save window divider state
+
 			implement ip4<->dns map
 			implement code to populate the dns map when reading packet files
 			implement code to show domain names in place of ips (with check box for show domain, and databinding just like aliases)
@@ -224,25 +173,6 @@
 		save packets in memory as a pcap file
 
 		load filtered and save as a single operation - can be time consuming, want to be able to launch and walk away
-
-	dns history database
-		data structure:
-			dictionary
-				key: ip address
-				value: list of dns observations
-					item is a domain name and time of earliest and latest observation
-		data is populated by dns header reader
-		need viewer
-		file management
-			similar to filters
-				load and save
-				"merge" i.e. union one or more files into data in memory
-				mainwindow remembers last file opened
-		may add reverse dns lookup background thread at some point
-
-
-
-
 
 
 
@@ -378,19 +308,6 @@ additional cases to handle
     // 
 
 
-	ipdnsmapper as separate solution
-		prompt to open existing file at startup
-		save file to disk after each pass through source packet files
-		rename packet files after processing, not move them
-		display - tree, sorted by ip4 (use a "view" to sort?)
-		display - button to open separate dialog to search for a domain name
-						- accept wildcards (regular expressions?)
-						- return list of ips
-		put dn lookup on separate thread
-	collect list of unhandled cases
-
-
-
 
 
 
@@ -492,11 +409,6 @@ workflow, ui and backing data
 
 
 
-
-git - how to roll back????
-    - how to open a branch to an earlier version so i can just look at how it used to work
-
-
 timestamp value converter for display
 
 hex data view for data portion of each packet (as detail view in datagrid?)
@@ -535,29 +447,7 @@ group "conversations"
 
 
 
-
-remove (or comment out) facility to view packets excluded via quickfilter
-	separate datagrid
-	qfexcluded packet set in mainwindow
-	logic in file read method that puts an "excluded" packet into separate packet set
-
-
 handle IP4 "options" field
-
-
-quickfilters
-	test performance - if too slow, try optimizing by
-		ordering filters
-		structuring into dictionaries (one dict for each mask value) using comparevalue as the key
-
-	maybe also add other criteria, like ether type/len field (to exclude ipv6 noise, for example)
-
-	dialog improvements
-		checkboxes to toggle aliasing of mac/ip addresses
-		drag and drop
-		add/delete row respect multi selections
-
-
 
 
 
