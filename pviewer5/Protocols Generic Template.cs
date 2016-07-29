@@ -46,6 +46,8 @@ namespace pviewer5
             }
         }
 
+        public ListCollectionView Lview = null;
+
         private ObservableCollection<PVDisplayObject> _L = null;
         public ObservableCollection<PVDisplayObject> L            // list of child items
         {
@@ -61,7 +63,21 @@ namespace pviewer5
             }
         }
 
-        public ListCollectionView Lview = null;
+        public bool IsExpanded { get; set; } = false;
+
+        private int _exceptionlevel = 1;      // default value is 1, protocol or group specific logic can drop it to 0 if it affirmatively determines it is warranted
+        public int ExceptionLevel
+        {
+            get { return _exceptionlevel; }
+            set
+            {
+                _exceptionlevel = value;
+                if (Parent != null)
+                    if (value > Parent.ExceptionLevel)
+                        Parent.ExceptionLevel = value;
+            }
+        }
+
         public virtual bool IsVisible
         {
             get
@@ -77,19 +93,6 @@ namespace pviewer5
                     foreach (PVDisplayObject p in L) if (p.IsVisible) return true;
                     return false;
                 }
-            }
-        }
-
-        private int _exceptionlevel = 1;      // default value is 1, protocol or group specific logic can drop it to 0 if it affirmatively determines it is warranted
-        public int ExceptionLevel
-        {
-            get { return _exceptionlevel; }
-            set
-            {
-                _exceptionlevel = value;
-                if (Parent != null)
-                    if (value > Parent.ExceptionLevel)
-                        Parent.ExceptionLevel = value;
             }
         }
 

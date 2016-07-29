@@ -31,6 +31,8 @@ namespace pviewer5
 
     public partial class MainWindow : Window, INotifyPropertyChanged
 	{
+        public static MainWindow Instance = null;
+        
         // properties for packet list view
         public PacketViewer pview;
         private string _packetfilename = null;
@@ -40,6 +42,8 @@ namespace pviewer5
         public ObservableCollection<Packet> pkts { get; set; }
         public ObservableCollection<GList> grouplistlist { get; set; }
         public ListCollectionView gllview;
+
+
 
         // properties for filter view
         public FilterSet filters { get; set; }
@@ -72,6 +76,9 @@ namespace pviewer5
 
         public MainWindow()
         {
+            if (Instance != null) MessageBox.Show("Trying to create a second MainWindow object - THIS SHOULD NEVER HAPPEN");
+            else Instance = this;
+
             // initialize window
             InitializeComponent();
             gridmain.DataContext = this;
@@ -270,6 +277,19 @@ namespace pviewer5
             //BOOKMARK
 
             // IF IT IS A PACKET, OPEN PACKET VIEW WINDOW ON IT
+        }
+
+        public void RefreshViews()
+        {
+            foreach (GList glist in grouplistlist)
+            {
+                foreach (G g in glist.L)
+                {
+                    g.Lview.Refresh();
+                }
+                glist.Lview.Refresh();
+            }
+            gllview.Refresh();
         }
 
         private void ApplyFilterToView(object sender, RoutedEventArgs e)
