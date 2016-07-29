@@ -500,8 +500,9 @@ namespace pviewer5
             return d;
         }
 
-        public DNSRR(Packet pkt, ref uint pos, bool isquestion, uint dnsindex)    // if isquestion==true, process as a question entry (having only NAME, TYPE and CLASS fields)
+        public DNSRR(Packet pkt, DNSRRList parent, ref uint pos, bool isquestion, uint dnsindex)    // if isquestion==true, process as a question entry (having only NAME, TYPE and CLASS fields)
         {
+            Parent = parent;
             mypkt = pkt;
             PDataIndex = dnsindex;
 
@@ -656,8 +657,10 @@ namespace pviewer5
             }
         }
 
-        public DNSH(FileStream fs, PcapFile pfh, Packet pkt, uint i)
+
+        public DNSH(FileStream fs, PcapFile pfh, Packet pkt, uint i) : base(fs, pfh, pkt, i)
         {
+            DNSRRList newlist;
             uint pdataindex;  // index into PData of start of this header - used to convert RDATA values, which are indexed relative to start of DNS header, into indices into PData
             H container = (H)pkt.L[pkt.L.Count() - 1];     // containing header
             pdataindex = (uint)container.payloadindex;
@@ -683,14 +686,21 @@ namespace pviewer5
             ARCOUNT = (uint)pkt.PData[i++] * 0x100 + (uint)pkt.PData[i++];
 
             L = new ObservableCollection<PVDisplayObject>();    // L is list of DNSRRLists
-            L.Add(new DNSRRList());    // add empty list to contain the questions
-            for (int ii = 0; ii < QDCOUNT; ii++) L[0].L.Add(new DNSRR(pkt, ref i, true, pdataindex));
-            L.Add(new DNSRRList());     // add empty list to contain the answers
-            for (int ii = 0; ii < ANCOUNT; ii++) L[1].L.Add(new DNSRR(pkt, ref i, false, pdataindex));
-            L.Add(new DNSRRList());   // add empty list to contain nameserver RRs
-            for (int ii = 0; ii < NSCOUNT; ii++) L[2].L.Add(new DNSRR(pkt, ref i, false, pdataindex));
-            L.Add(new DNSRRList());   // add empty list to contain additional RR's
-            for (int ii = 0; ii < ARCOUNT; ii++) L[3].L.Add(new DNSRR(pkt, ref i, false, pdataindex));
+            newlist = new DNSRRList(); newlist.Parent = this;
+            L.Add(newlist);    // add empty list to contain the questions
+            for (int ii = 0; ii < QDCOUNT; ii++) L[0].L.Add(new DNSRR(pkt, newlist, ref i, true, pdataindex));
+
+            newlist = new DNSRRList(); newlist.Parent = this;
+            L.Add(newlist);     // add empty list to contain the answers
+            for (int ii = 0; ii < ANCOUNT; ii++) L[1].L.Add(new DNSRR(pkt, newlist, ref i, false, pdataindex));
+
+            newlist = new DNSRRList(); newlist.Parent = this;
+            L.Add(newlist);   // add empty list to contain nameserver RRs
+            for (int ii = 0; ii < NSCOUNT; ii++) L[2].L.Add(new DNSRR(pkt, newlist, ref i, false, pdataindex));
+
+            newlist = new DNSRRList(); newlist.Parent = this;
+            L.Add(newlist);   // add empty list to contain additional RR's
+            for (int ii = 0; ii < ARCOUNT; ii++) L[3].L.Add(new DNSRR(pkt, newlist, ref i, false, pdataindex));
 
             if (i != pkt.Len) MessageBox.Show("Did Not Read DNS record properly?  i != pkt.Len");
 

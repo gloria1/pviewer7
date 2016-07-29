@@ -82,17 +82,19 @@ namespace pviewer5
         {
             get
             {
-                if (ExceptionLevel >= GUIUtil.Instance.ExceptionLevelToShow) return true;
+                return true;
+                /*                if (ExceptionLevel >= GUIUtil.Instance.ExceptionLevelToShow) return true;
 
-                if (L == null)  // if there is no list of children..
-                {
-                    return true;    // default is to show, can be over-ridden by sub-classes
-                }
-                else        // else return true iff one more children is visible
-                {
-                    foreach (PVDisplayObject p in L) if (p.IsVisible) return true;
-                    return false;
-                }
+                                if (L == null)  // if there is no list of children..
+                                {
+                                    return true;    // default is to show, can be over-ridden by sub-classes
+                                }
+                                else        // else return true iff one more children is visible
+                                {
+                                    foreach (PVDisplayObject p in L) if (p.IsVisible) return true;
+                                    return false;
+                                }
+                */
             }
         }
 
@@ -177,12 +179,16 @@ namespace pviewer5
             }
         }
 
-        public bool AnyVisiblePackets
+        public override bool IsVisible
         {
             get
             {
-                foreach (Packet p in L) if (p.IsVisible) return true;
-                return false;
+                if (ExceptionLevel >= GUIUtil.Instance.ExceptionLevelToShow) return true;
+
+                {
+                    foreach (Packet p in L) if (p.IsVisible) return true;
+                    return false;
+                }
             }
         }
 
@@ -235,7 +241,7 @@ namespace pviewer5
             {
                 string s = base.displayinfo;
                 int i = 0;
-                foreach (G g in L) if (g.AnyVisiblePackets) i++;
+                foreach (G g in L) if (g.IsVisible) i++;
                 s += name;
                 s += String.Format(", Total Group Count = {0}, Filtered Group Count = {1}", L.Count, i);
                 return s;
@@ -296,7 +302,7 @@ namespace pviewer5
         }
         public bool GGLFilter(object g)
         {
-            return ((G)g).AnyVisiblePackets;
+            return ((G)g).IsVisible;
         }
 
 
