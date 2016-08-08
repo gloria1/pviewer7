@@ -44,9 +44,10 @@ namespace pviewer5
 
 
 //  BOOKMARK
+
 //      need:
 //      property for domain display info in tableitem
-//      methods in ipdnmap for merge, delete
+
 
 
 
@@ -57,9 +58,25 @@ namespace pviewer5
             public IP4 ip4;
             public string name = null;
             public DateTime firstobsn, lastobsn = new DateTime(0);
-            public int numberobserved = 0;
+            public int numberobserved = 1;
+            public string idminfostring
+            {
+                get
+                {
+                    return name;
+                }
+            }
 
 
+
+            public idmtableitem(IP4 a, string n, DateTime ts, int num)
+            {
+                ip4 = a;
+                name = n;
+                if (ts < firstobsn) firstobsn = ts;
+                if (ts > lastobsn) lastobsn = ts;
+                numberobserved += num;
+           }
 
 
             // implement INotifyPropertyChanged
@@ -74,117 +91,34 @@ namespace pviewer5
 
         }
 
-
-        /*
-                public class idmtable : ObservableCollection<idmtable.idmtableitem>
+        // MergeItem will be called by DNSRR constructor whenever it encounters records of type:
+        //     A  -  mapping of name to an IP4 address
+        //     NS -  mapping of a nameserver name to an IP4 address
+        //     (someday) AAAA - mapping name to IP6
+        public void MergeItem(IP4 a, string n, DateTime ts, int num)
+        {
+            foreach(idmtableitem i in table)
+            {
+                if ((a == i.ip4) && (n == i.name))
                 {
-                    // backing model for IP/DN map - it is a dictionary since we want to be able to look up by just indexing the map with an IP address
-                    // this is private so there is no way anything outside this class can alter the dictionary  without updating the table
-                    // i.e., all external access to the map will be through the table
-                    private Dictionary<IP4, List<idmdomain>> dict = new Dictionary<IP4, List<idmdomain>>();
+                    // update firstobsn, lastobsn, numberobserved
+                    if (i.lastobsn < ts) i.lastobsn = ts;
+                    if (i.firstobsn > ts) i.firstobsn = ts;
+                    i.numberobserved += num;
 
-                    public new void Merge(idmtableitem it)
-                    // if the IP4 is a duplicate of an IP4 already in table
-                    // then merge the new domain info into the existing item
-                    // else add it as a new item
-                    {
-                        if (IndexOf(it.IP4) == -1)
-                        {
-                            it.parent = this;
-                            base.Add(it);
-                            dict.Add(it.IP4, it.domains);
-                        }
-                    }
-                    public new bool Remove(idmtableitem it)
-                    {
-                        int ix = IndexOf(it.IP4);
-                        if (ix == -1) return false;
-                        else return RemoveAt(ix);
-                    }
-                    public List<idmdomain> Lookup(IP4 ip4)
-                    {
-                        return dict[ip4];
-                    }
-                    public int IndexOf(IP4 ip4)
-                    {
-                        for (int i = 0; i < this.Count(); i++) if (this[i].IP4 == ip4) return i;
-                        return -1;
-                    }
-                    public new bool RemoveAt(int i)
-                    {
-                        if ((i < 0) || (i >= this.Count())) return false;
-                        dict.Remove(this[i].IP4);
-                        base.RemoveAt(i);
-                        return true;
-                    }
-                    public new void Clear()
-                    {
-                        base.Clear();
-                        dict.Clear();
-                    }
+                    // move this item to top of list, following a most recently used concept
+                    table.Move(table.IndexOf(i), 0);
 
-
-                    public class idmtableitem : INotifyPropertyChanged
-                    {
-                        public idmtable parent = null;
-                        private IP4 _ip4;
-                        public IP4 IP4 { get { return _ip4; } }
-
-                        private List<idmdomain> _domains = new List<idmdomain>();
-                        public List<idmdomain> domains { get { return _domains; } }
-
-                        public string domaininfostring
-                        {
-                            get
-                            {
-                                return "domain info string here";
-                            }
-                        }
-
-                        public void Merge(idmdomain newdomain)
-                        {
-                            // merge info from newdomain into this item
-
-                            idmdomain mergetarget = null;
-
-                            // check whether new domain name matches any in list
-                            // if so, set mergetarget to the matching existing item
-                            foreach (idmdomain id in _domains)
-                                if (newdomain.name == id.name)
-                                {
-                                    mergetarget = id;
-                                    break;
-                                }
-                            // if no match found, i.e., mergetarget still null
-                            // add newdomain to list
-                            if (mergetarget == null) _domains.Add(newdomain);
-                            // else merge newdomain info into mergetarget
-                            else
-                            {
-                                if (newdomain.firstobsn < mergetarget.firstobsn) mergetarget.firstobsn = newdomain.firstobsn;
-                                if (newdomain.lastobsn > mergetarget.lastobsn) mergetarget.lastobsn = newdomain.lastobsn;
-                                if (!mergetarget.dnsservers.Contains(newdomain.dnsservers[0])) mergetarget.dnsservers.Add(newdomain.dnsservers[0]);
-                            }
-                        }
-
-                        public idmtableitem(IP4 u, List<idmdomain> doms)
-                        {
-                            _ip4 = u;
-                            _domains = doms;
-                        }
-
-
-                    }
-
-                    public class idmdomain
-                    {
-                    }
-
+                    return;
                 }
+            }
+            // if we reached this point, newitem does not match any in table, so add it as a new table item
+            table.Insert(0, new idmtableitem(a, n, ts, 1));
 
-                public idmtable table { get; set; } = new idmtable();
-        */
+        }
 
+
+        
         // reference to datagrid this table is bound to
         public DataGrid dg = null;
 
@@ -212,7 +146,7 @@ namespace pviewer5
 
         public static void idmExecuteddelrow(object sender, ExecutedRoutedEventArgs e)
         {
-            idmtable.idmtableitem q = (idmtable.idmtableitem)(Instance.dg.SelectedItem);
+            idmtableitem q = (idmtableitem)(Instance.dg.SelectedItem);
 
             IPDNMap inst = IPDNMap.Instance;
 
@@ -239,10 +173,13 @@ namespace pviewer5
             {
                 fs = new FileStream(Instance.idmfilename, FileMode.Open);
                 formatter.Serialize(fs, Instance.table.Count());
-                foreach (idmtable.idmtableitem i in Instance.table)
+                foreach (idmtableitem i in Instance.table)
                 {
-                    formatter.Serialize(fs, i.IP4);
-                    formatter.Serialize(fs, i.domains);
+                    formatter.Serialize(fs, i.ip4);
+                    formatter.Serialize(fs, i.name);
+                    formatter.Serialize(fs, i.firstobsn);
+                    formatter.Serialize(fs, i.lastobsn);
+                    formatter.Serialize(fs, i.numberobserved);
                 }
                 Instance.idmchangedsincesavedtodisk = false;
                 fs.Close();
@@ -274,10 +211,13 @@ namespace pviewer5
                 Instance.idmfilename = dlg.FileName;
                 fs = new FileStream(dlg.FileName, FileMode.OpenOrCreate);
                 formatter.Serialize(fs, Instance.table.Count());
-                foreach (idmtable.idmtableitem i in Instance.table)
+                foreach (idmtableitem i in Instance.table)
                 {
-                    formatter.Serialize(fs, i.IP4);
-                    formatter.Serialize(fs, i.domains);
+                    formatter.Serialize(fs, i.ip4);
+                    formatter.Serialize(fs, i.name);
+                    formatter.Serialize(fs, i.firstobsn);
+                    formatter.Serialize(fs, i.lastobsn);
+                    formatter.Serialize(fs, i.numberobserved);
                 }
                 Instance.idmchangedsincesavedtodisk = false;
                 fs.Close();
@@ -312,7 +252,7 @@ namespace pviewer5
                     Instance.idmfilename = dlg.FileName;
 
                     for (int i = (int)formatter.Deserialize(fs); i > 0; i--)
-                        Instance.table.Add(new idmtable.idmtableitem((IP4)formatter.Deserialize(fs), (List<idmtable.idmdomain>)formatter.Deserialize(fs)));
+                        Instance.table.Add(new idmtableitem((IP4)formatter.Deserialize(fs), (string)formatter.Deserialize(fs), (DateTime)formatter.Deserialize(fs), (int)formatter.Deserialize(fs)) );
 
                     Instance.idmchangedsincesavedtodisk = false;
                 }
@@ -345,8 +285,6 @@ namespace pviewer5
             {
                 fs = new FileStream(dlg.FileName, FileMode.Open);
 
-                idmtable.idmtableitem item;
-
                 IPDNMap inst = Instance;
 
                 try
@@ -361,21 +299,12 @@ namespace pviewer5
 
                     for (int i = (int)formatter.Deserialize(fs); i > 0; i--)
                     {
-                        item = new idmtable.idmtableitem((IP4)formatter.Deserialize(fs), (List<idmtable.idmdomain>)formatter.Deserialize(fs));
-                        if (Instance.table.IndexOf(item.IP4) != -1)
-                        {
-// merge domain info from file into table
-
-
-                        }
-                        else Instance.table.Add(item);
+                        IPDNMap.Instance.MergeItem((IP4)formatter.Deserialize(fs), (string)formatter.Deserialize(fs), (DateTime)formatter.Deserialize(fs), (int)formatter.Deserialize(fs));
                     }
-
-
                 }
                 catch
                 {
-                    MessageBox.Show("File not read");
+                    MessageBox.Show("File not read completely");
                 }
                 finally
                 {
@@ -544,9 +473,11 @@ namespace pviewer5
             {
                 case 1:         // A - a host address
                     RDATA1 = (uint)pkt.PData[pos] * 0x1000000 + (uint)pkt.PData[pos + 1] * 0x10000 + (uint)pkt.PData[pos + 2] * 0x100 + (uint)pkt.PData[pos + 3]; pos += 4;  // A - internet address (ipv4)
+                    IPDNMap.Instance.MergeItem((IP4)RDATA1, formnamestring(NAME), mypkt.Time, 1);
                     break;
                 case 2:         // NS - an authoritative name server
                     RDATA1 = pos - PDataIndex; pos += RDLENGTH;
+                    IPDNMap.Instance.MergeItem((IP4)RDATA1, formnamestring(NAME), mypkt.Time, 1);
                     break;
                 case 5:         // CNAME - the canonical name for an alias
                     RDATA1 = pos - PDataIndex; pos += RDLENGTH;
