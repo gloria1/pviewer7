@@ -564,13 +564,13 @@
                                         <MultiBinding.ValidationRules>
                                             <local:ValidateIP4NonDup ValidationStep="RawProposedValue"/>
                                         </MultiBinding.ValidationRules>
-                                        <Binding Path="IP4" Mode="TwoWay"/>
+                                        <Binding Path="ip4" Mode="TwoWay"/>
                                         <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
                                         <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
                                     </MultiBinding>
                                 </DataGridTextColumn.Binding>
                             </DataGridTextColumn>
-                            <DataGridTextColumn Header="Domain Info" Binding="{Binding domaininfostring}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Domain Info" Binding="{Binding idminfostring}" IsReadOnly="True"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu>

@@ -49,73 +49,74 @@ namespace pviewer5
 //      property for domain display info in tableitem
 
 
-
-
-        public ObservableCollection<idmtableitem> table = new ObservableCollection<idmtableitem>();
-
-        public class idmtableitem : INotifyPropertyChanged
+        public class idmtable : ObservableCollection<idmtable.idmtableitem>
         {
-            public IP4 ip4;
-            public string name = null;
-            public DateTime firstobsn, lastobsn = new DateTime(0);
-            public int numberobserved = 1;
-            public string idminfostring
+
+            public class idmtableitem : INotifyPropertyChanged
             {
-                get
+                public IP4 ip4 { get; set; }
+                public string name = null;
+                public DateTime firstobsn, lastobsn = new DateTime(0);
+                public int numberobserved = 1;
+                public string idminfostring
                 {
-                    return name;
+                    get
+                    {
+                        return name;
+                    }
                 }
+
+                public idmtableitem(IP4 a, string n, DateTime ts, int num)
+                {
+                    ip4 = a;
+                    name = n;
+                    if (ts < firstobsn) firstobsn = ts;
+                    if (ts > lastobsn) lastobsn = ts;
+                    numberobserved += num;
+                }
+
+                // implement INotifyPropertyChanged
+                public event PropertyChangedEventHandler PropertyChanged;
+                private void NotifyPropertyChanged(String propertyName = "")
+                {
+                    if (PropertyChanged != null)
+                    {
+                        PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+                    }
+                }
+
             }
 
-
-
-            public idmtableitem(IP4 a, string n, DateTime ts, int num)
+            // MergeItem will be called by DNSRR constructor whenever it encounters records of type:
+            //     A  -  mapping of name to an IP4 address
+            //     NS -  mapping of a nameserver name to an IP4 address
+            //     (someday) AAAA - mapping name to IP6
+            public void MergeItem(IP4 a, string n, DateTime ts, int num)
             {
-                ip4 = a;
-                name = n;
-                if (ts < firstobsn) firstobsn = ts;
-                if (ts > lastobsn) lastobsn = ts;
-                numberobserved += num;
-           }
-
-
-            // implement INotifyPropertyChanged
-            public event PropertyChangedEventHandler PropertyChanged;
-            private void NotifyPropertyChanged(String propertyName = "")
-            {
-                if (PropertyChanged != null)
+                foreach (idmtableitem i in this)
                 {
-                    PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+                    if ((a == i.ip4) && (n == i.name))
+                    {
+                        // update firstobsn, lastobsn, numberobserved
+                        if (i.lastobsn < ts) i.lastobsn = ts;
+                        if (i.firstobsn > ts) i.firstobsn = ts;
+                        i.numberobserved += num;
+
+                        // move this item to top of list, following a most recently used concept
+                        this.Move(this.IndexOf(i), 0);
+
+                        return;
+                    }
                 }
+                // if we reached this point, newitem does not match any in table, so add it as a new table item
+                this.Insert(0, new idmtableitem(a, n, ts, 1));
+
             }
+
 
         }
 
-        // MergeItem will be called by DNSRR constructor whenever it encounters records of type:
-        //     A  -  mapping of name to an IP4 address
-        //     NS -  mapping of a nameserver name to an IP4 address
-        //     (someday) AAAA - mapping name to IP6
-        public void MergeItem(IP4 a, string n, DateTime ts, int num)
-        {
-            foreach(idmtableitem i in table)
-            {
-                if ((a == i.ip4) && (n == i.name))
-                {
-                    // update firstobsn, lastobsn, numberobserved
-                    if (i.lastobsn < ts) i.lastobsn = ts;
-                    if (i.firstobsn > ts) i.firstobsn = ts;
-                    i.numberobserved += num;
-
-                    // move this item to top of list, following a most recently used concept
-                    table.Move(table.IndexOf(i), 0);
-
-                    return;
-                }
-            }
-            // if we reached this point, newitem does not match any in table, so add it as a new table item
-            table.Insert(0, new idmtableitem(a, n, ts, 1));
-
-        }
+        public idmtable table { get; set; } = new idmtable();
 
 
         
@@ -146,7 +147,7 @@ namespace pviewer5
 
         public static void idmExecuteddelrow(object sender, ExecutedRoutedEventArgs e)
         {
-            idmtableitem q = (idmtableitem)(Instance.dg.SelectedItem);
+            idmtable.idmtableitem q = (idmtable.idmtableitem)(Instance.dg.SelectedItem);
 
             IPDNMap inst = IPDNMap.Instance;
 
@@ -173,7 +174,7 @@ namespace pviewer5
             {
                 fs = new FileStream(Instance.idmfilename, FileMode.Open);
                 formatter.Serialize(fs, Instance.table.Count());
-                foreach (idmtableitem i in Instance.table)
+                foreach (idmtable.idmtableitem i in Instance.table)
                 {
                     formatter.Serialize(fs, i.ip4);
                     formatter.Serialize(fs, i.name);
@@ -211,7 +212,7 @@ namespace pviewer5
                 Instance.idmfilename = dlg.FileName;
                 fs = new FileStream(dlg.FileName, FileMode.OpenOrCreate);
                 formatter.Serialize(fs, Instance.table.Count());
-                foreach (idmtableitem i in Instance.table)
+                foreach (idmtable.idmtableitem i in Instance.table)
                 {
                     formatter.Serialize(fs, i.ip4);
                     formatter.Serialize(fs, i.name);
@@ -252,7 +253,7 @@ namespace pviewer5
                     Instance.idmfilename = dlg.FileName;
 
                     for (int i = (int)formatter.Deserialize(fs); i > 0; i--)
-                        Instance.table.Add(new idmtableitem((IP4)formatter.Deserialize(fs), (string)formatter.Deserialize(fs), (DateTime)formatter.Deserialize(fs), (int)formatter.Deserialize(fs)) );
+                        Instance.table.Add(new idmtable.idmtableitem((IP4)formatter.Deserialize(fs), (string)formatter.Deserialize(fs), (DateTime)formatter.Deserialize(fs), (int)formatter.Deserialize(fs)) );
 
                     Instance.idmchangedsincesavedtodisk = false;
                 }
@@ -299,7 +300,7 @@ namespace pviewer5
 
                     for (int i = (int)formatter.Deserialize(fs); i > 0; i--)
                     {
-                        IPDNMap.Instance.MergeItem((IP4)formatter.Deserialize(fs), (string)formatter.Deserialize(fs), (DateTime)formatter.Deserialize(fs), (int)formatter.Deserialize(fs));
+                        IPDNMap.Instance.table.MergeItem((IP4)formatter.Deserialize(fs), (string)formatter.Deserialize(fs), (DateTime)formatter.Deserialize(fs), (int)formatter.Deserialize(fs));
                     }
                 }
                 catch
@@ -473,11 +474,11 @@ namespace pviewer5
             {
                 case 1:         // A - a host address
                     RDATA1 = (uint)pkt.PData[pos] * 0x1000000 + (uint)pkt.PData[pos + 1] * 0x10000 + (uint)pkt.PData[pos + 2] * 0x100 + (uint)pkt.PData[pos + 3]; pos += 4;  // A - internet address (ipv4)
-                    IPDNMap.Instance.MergeItem((IP4)RDATA1, formnamestring(NAME), mypkt.Time, 1);
+                    IPDNMap.Instance.table.MergeItem((IP4)RDATA1, formnamestring(NAME), mypkt.Time, 1);
                     break;
                 case 2:         // NS - an authoritative name server
                     RDATA1 = pos - PDataIndex; pos += RDLENGTH;
-                    IPDNMap.Instance.MergeItem((IP4)RDATA1, formnamestring(NAME), mypkt.Time, 1);
+                    IPDNMap.Instance.table.MergeItem((IP4)RDATA1, formnamestring(NAME), mypkt.Time, 1);
                     break;
                 case 5:         // CNAME - the canonical name for an alias
                     RDATA1 = pos - PDataIndex; pos += RDLENGTH;
