@@ -382,9 +382,9 @@
         <Grid Name="gridleft"
               Grid.Column="0">
             <Grid.RowDefinitions>
-                <RowDefinition MinHeight="150"></RowDefinition>
+                <RowDefinition Height="10*" MinHeight="150"></RowDefinition>
                 <RowDefinition Height="10"></RowDefinition>
-                <RowDefinition MinHeight="150"></RowDefinition>
+                <RowDefinition Height="*" MinHeight="150"></RowDefinition>
             </Grid.RowDefinitions>
             <GridSplitter Grid.Row="1" Grid.Column="0" Height="10" HorizontalAlignment="Stretch" VerticalAlignment="Center" ResizeBehavior="BasedOnAlignment" ShowsPreview="False" Background="Orange"/>
 
@@ -509,11 +509,11 @@
         <Grid Name="gridright"
               Grid.Column="2">
             <Grid.RowDefinitions>
-                <RowDefinition MinHeight="150"></RowDefinition>
+                <RowDefinition Height="500*"></RowDefinition>
                 <RowDefinition Height="10"></RowDefinition>
-                <RowDefinition MinHeight="150"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
                 <RowDefinition Height="10"></RowDefinition>
-                <RowDefinition MinHeight="150"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
             </Grid.RowDefinitions>
             <GridSplitter Grid.Row="1" Grid.Column="0" Height="10" HorizontalAlignment="Stretch" VerticalAlignment="Center" ShowsPreview="False" Background="Orange"/>
             <GridSplitter Grid.Row="3" Grid.Column="0" Height="10" HorizontalAlignment="Stretch" VerticalAlignment="Center" ShowsPreview="False" Background="Orange"/>
@@ -555,7 +555,10 @@
 				            AutoGenerateColumns="False"
                             CanUserDeleteRows="False"
                             CanUserAddRows="False"
-                            ItemsSource="{Binding Path=idm.table}">
+                            ItemsSource="{Binding Path=idm.table}"
+                        
+                        IsTextSearchEnabled="True"
+                        TextSearch.TextPath="name">
 
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="IP4 Address" IsReadOnly="True">

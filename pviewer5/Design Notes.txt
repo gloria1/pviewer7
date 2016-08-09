@@ -4,7 +4,10 @@
 
 
 		general debugging
-			ipdn table not appearing on screen?
+			datagrid not sorting on ip column?
+			want to type keys and skip view first matching item in sorted column - set IsTextSearchEnabled="true" but it's not working????
+			scrolling the datagrid is slow....why?
+			add obsn times and counts as additional columns in datagrid
 			time stamp passed to MergeItem not right?
 			TCP "Sequence failed" messages?
 
