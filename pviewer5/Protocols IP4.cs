@@ -28,7 +28,7 @@ namespace pviewer5
 {
 
     [Serializable]
-    public struct IP4
+    public struct IP4 : IComparable<IP4>
     {
         public uint A;
 
@@ -49,6 +49,10 @@ namespace pviewer5
         public static bool operator <(IP4 a, IP4 b) { return a.A < b.A; }
         public static bool operator >=(IP4 a, IP4 b) { return a.A >= b.A; }
         public static bool operator >(IP4 a, IP4 b) { return a.A > b.A; }
+        public int CompareTo(IP4 a)
+        {
+            return 0;
+        }
 
         public override string ToString() { return ToString(false, true); }
 

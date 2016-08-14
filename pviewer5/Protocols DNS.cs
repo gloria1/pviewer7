@@ -54,10 +54,12 @@ namespace pviewer5
 
             public class idmtableitem : INotifyPropertyChanged
             {
-                public IP4 ip4 { get; set; }
-                public string name = null;
-                public DateTime firstobsn, lastobsn = new DateTime(0);
-                public int numberobserved = 1;
+                public IP4 addr { get; set; }
+                public string name { get; set; } = null;
+                public DateTime firstobsn { get; set; } = new DateTime(0);
+                public DateTime lastobsn { get; set; } = new DateTime(0);
+                public int numberobserved { get; set; } = 1;
+                public uint addrvalue { get { return addr.A; } }
                 public string idminfostring
                 {
                     get
@@ -68,10 +70,9 @@ namespace pviewer5
 
                 public idmtableitem(IP4 a, string n, DateTime ts, int num)
                 {
-                    ip4 = a;
+                    addr = a;
                     name = n;
-                    if (ts < firstobsn) firstobsn = ts;
-                    if (ts > lastobsn) lastobsn = ts;
+                    firstobsn = lastobsn = ts;
                     numberobserved += num;
                 }
 
@@ -95,7 +96,7 @@ namespace pviewer5
             {
                 foreach (idmtableitem i in this)
                 {
-                    if ((a == i.ip4) && (n == i.name))
+                    if ((a == i.addr) && (n == i.name))
                     {
                         // update firstobsn, lastobsn, numberobserved
                         if (i.lastobsn < ts) i.lastobsn = ts;
@@ -176,7 +177,7 @@ namespace pviewer5
                 formatter.Serialize(fs, Instance.table.Count());
                 foreach (idmtable.idmtableitem i in Instance.table)
                 {
-                    formatter.Serialize(fs, i.ip4);
+                    formatter.Serialize(fs, i.addr);
                     formatter.Serialize(fs, i.name);
                     formatter.Serialize(fs, i.firstobsn);
                     formatter.Serialize(fs, i.lastobsn);
@@ -214,7 +215,7 @@ namespace pviewer5
                 formatter.Serialize(fs, Instance.table.Count());
                 foreach (idmtable.idmtableitem i in Instance.table)
                 {
-                    formatter.Serialize(fs, i.ip4);
+                    formatter.Serialize(fs, i.addr);
                     formatter.Serialize(fs, i.name);
                     formatter.Serialize(fs, i.firstobsn);
                     formatter.Serialize(fs, i.lastobsn);
