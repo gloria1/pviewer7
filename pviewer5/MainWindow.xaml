@@ -561,14 +561,11 @@
                         TextSearch.TextPath="name">
 
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="IP4 Address" IsReadOnly="True" SortMemberPath="addr">
+                            <DataGridTextColumn Header="IP4 Address" IsReadOnly="True" SortMemberPath="addrvalue">
                                 <DataGridTextColumn.Binding>
-                                    <MultiBinding Converter="{StaticResource IP4mvconverternumberonly}" UpdateSourceTrigger="LostFocus" PresentationTraceSources.TraceLevel="High">
-                                        <MultiBinding.ValidationRules>
-                                            <local:ValidateIP4NonDup ValidationStep="RawProposedValue"/>
-                                        </MultiBinding.ValidationRules>
-                                        <Binding Path="addr" Mode="TwoWay"/>
-                                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex" Mode="TwoWay"/>
+                                    <MultiBinding Converter="{StaticResource IP4mvconverternumberonly}">
+                                        <Binding Path="addr"/>
+                                        <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.Hex"/>
                                         <Binding Source="{StaticResource GUIUtilKey}" Path="Instance.UseAliases"/>
                                     </MultiBinding>
                                 </DataGridTextColumn.Binding>
