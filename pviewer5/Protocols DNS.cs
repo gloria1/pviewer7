@@ -33,6 +33,10 @@ namespace pviewer5
         {
             if (Instance != null) MessageBox.Show("Something is instantiating a second instance of IPDNMap, which should never happen.");
             else Instance = this;
+
+            tableview = (ListCollectionView)CollectionViewSource.GetDefaultView(table);
+            tableview.Filter = new Predicate<object>(IDMFilter);
+
         }
 
 
@@ -43,10 +47,10 @@ namespace pviewer5
 
 
 
-//  BOOKMARK
+        //  BOOKMARK
 
-//      need:
-//      property for domain display info in tableitem
+        //      need:
+        //      property for domain display info in tableitem
 
 
         public class idmtable : ObservableCollection<idmtable.idmtableitem>
@@ -66,6 +70,10 @@ namespace pviewer5
                     {
                         return name;
                     }
+                }
+                public bool IsVisible()
+                {
+                    return true;
                 }
 
                 public idmtableitem(IP4 a, string n, DateTime ts, int num)
@@ -119,8 +127,15 @@ namespace pviewer5
 
         public idmtable table { get; set; } = new idmtable();
 
+        public ListCollectionView tableview;
+        public string ipfilter { get; set; } = "";
+        public string domainfilter { get; set; } = "";
+        public bool IDMFilter(object p)
+        {
+            return ((idmtable.idmtableitem)p).IsVisible;
+        }
 
-        
+
         // reference to datagrid this table is bound to
         public DataGrid dg = null;
 

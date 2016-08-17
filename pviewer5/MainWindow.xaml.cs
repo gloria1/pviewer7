@@ -42,6 +42,7 @@ namespace pviewer5
         public ObservableCollection<Packet> pkts { get; set; }
         public PVDisplayObject grouplistlist { get; set; }
         public ListCollectionView gllview;
+        public ListCollectionView idmview;
 
 
 
@@ -106,6 +107,7 @@ namespace pviewer5
 
             // set up domain map view
             idm.dg = IDMDG;
+            idmview = (ListCollectionView)CollectionViewSource.GetDefaultView(idm.dg.ItemsSource);
             idmdelrowbinding = new CommandBinding(IPDNMap.idmdelrow, IPDNMap.idmExecuteddelrow, IPDNMap.idmCanExecutedelrow);
             idmsavebinding = new CommandBinding(IPDNMap.idmsave, IPDNMap.idmExecutedsave, IPDNMap.idmCanExecutesave);
             idmsaveasbinding = new CommandBinding(IPDNMap.idmsaveas, IPDNMap.idmExecutedsaveas, IPDNMap.idmCanExecutesaveas);
@@ -432,6 +434,15 @@ namespace pviewer5
             TextBox tBox = (TextBox)sender;
             tBox.SelectionStart = 0;
             tBox.SelectionLength = tBox.Text.Length;
+        }
+
+        private void IDM_Apply_Filter(object sender, RoutedEventArgs e)
+        {
+
+            // instantiate new Regex objects with the values from the filter textboxes
+            // connect view filter to new regexs
+            // refresh the view
+
         }
     }
 

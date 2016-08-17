@@ -4,9 +4,10 @@
 
 
 		general debugging
-			datagrid not sorting on ip column?
-			want to type keys and skip view first matching item in sorted column - set IsTextSearchEnabled="true" but it's not working????
-			scrolling the datagrid is slow....why?
+			want to filter by typing regex into text box and hitting "apply" button
+				create filter function
+				connect filter to view
+				make button click handler apply the filter
 			add obsn times and counts as additional columns in datagrid
 			time stamp passed to MergeItem not right?
 			TCP "Sequence failed" messages?

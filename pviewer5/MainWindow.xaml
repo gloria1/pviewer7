@@ -524,6 +524,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <WrapPanel x:Name="idmbuttonbar"
@@ -540,8 +541,18 @@
                     <Label>Filename:</Label>
                     <Label Content="{Binding Path=idm.idmfilename}"/>
                 </WrapPanel>
-                <GroupBox Header="Map of IP4 Addresses To Domain Names"
+                <WrapPanel x:Name="idmfilterbar"
 			        Grid.Row="2"
+			        HorizontalAlignment="Left"
+			        Margin="5,5,5,5">
+                    <Label Content="IP:"/>
+                    <TextBox Text="{Binding Path=idm.ipfilter}" MinWidth="20"/>
+                    <Label Content="Domain:"/>
+                    <TextBox Text="{Binding Path=idm.domainfilter}" MinWidth="20"/>
+                    <Button Content="Apply Filter" Click="IDM_Apply_Filter"/>
+                </WrapPanel>
+                <GroupBox Header="Map of IP4 Addresses To Domain Names"
+			        Grid.Row="3"
 			        Margin="5,5,5,5">
                     <!-- added Enable*Virtualization lines based on http://www.elegant-software.net/2014/05/performance-of-the-wpf-datagrid.html -->
                     <!-- added VirtualizingPanel lines based on http://www.codewrecks.com/blog/index.php/2012/07/06/wpf-datagrid-poor-performance-on-sorting/ -->
