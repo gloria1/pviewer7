@@ -438,12 +438,17 @@ namespace pviewer5
 
         private void IDM_Apply_Filter(object sender, RoutedEventArgs e)
         {
-
-            // instantiate new Regex objects with the values from the filter textboxes
-            // connect view filter to new regexs
             // refresh the view
-
+            idm.tableview.Refresh();
         }
+        private void IDM_Clear_Filters(object sender, RoutedEventArgs e)
+        {
+            idm.ipfilter = idm.domainfilter = ".*";
+            // refresh the view
+            idm.tableview.Refresh();
+        }
+
+
     }
 
 

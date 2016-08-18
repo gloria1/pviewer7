@@ -71,6 +71,7 @@ namespace pviewer5
         {
             uint temp;
             uint optionbytes;
+            uint i_at_end_of_optionbytes;
             H containingheader = (H)pkt.L[pkt.L.Count()-1];
             TCPOption thisoption;
             List<TCPOption> options = new List<TCPOption>();
@@ -99,17 +100,17 @@ namespace pviewer5
 
             optionbytes = (DataOffset * 4) - 0x14;     // number of bytes of options plus any padding to get TCP header to 32 bit boundary
             if ((pkt.Len - i) < (optionbytes + 0x14)) return;     // if not enough bytes to fill options fields, return without adding header to packet
+            i_at_end_of_optionbytes = i + optionbytes;
 
-            for (uint ob = 0; ob < optionbytes; )
+            while (i < i_at_end_of_optionbytes)
             {
                 thisoption = new TCPOption();
-                thisoption.Kind = (uint)pkt.PData[i++] ; i++;
+                thisoption.Kind = (uint)pkt.PData[i++];
                 switch (thisoption.Kind)
                 {
                     case 0:         // end of options list
                         thisoption.Length = 1;
-                        i += optionbytes - i;    // skip any remaining padding bytes
-                        ob = optionbytes;
+                        i = i_at_end_of_optionbytes;    // skip any remaining padding bytes
                         break;
                     case 1:         // NOP, just eat the byte
                         thisoption.Length = 1;
@@ -117,16 +118,13 @@ namespace pviewer5
                     case 2:         // maximum segment size, len is 4, segment size is 32 bits
                         thisoption.Length = (uint)pkt.PData[i++] ;
                         thisoption.Data = new uint[1]; thisoption.Data[0] = (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
-                        ob += 3;
                         break;
                     case 3:         // window scale
                         thisoption.Length = (uint)pkt.PData[i++] ;
                         thisoption.Data = new uint[1]; thisoption.Data[0] = (uint)pkt.PData[i++] ;
-                        ob += 2;
                         break;
                     case 4:         // selective acknowledgement permitted
                         thisoption.Length = (uint)pkt.PData[i++] ;
-                        ob++;
                         thisoption.Data = null;
                         break;
                     case 5:         // selective acknowledgement
@@ -134,26 +132,22 @@ namespace pviewer5
                         if (thisoption.Length > 0x22) MessageBox.Show("TCP packet with bad Selective Acknowlegement option");
                         thisoption.Data = new uint[(thisoption.Length - 2) / 4];
                         for (int ii = 0; ii < (thisoption.Length - 2) / 4; ii++) thisoption.Data[ii] = (uint)pkt.PData[i++]  * 0x1000000 + (uint)pkt.PData[i++]  * 0x10000 + (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
-                        ob += thisoption.Length - 1;
                         break;
                     case 8:         // timestamp and echo of previous timestamp
                         thisoption.Length = (uint)pkt.PData[i++] ;
                         thisoption.Data = new uint[2];
                         thisoption.Data[0] = (uint)pkt.PData[i++]  * 0x1000000 + (uint)pkt.PData[i++]  * 0x10000 + (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
                         thisoption.Data[1] = (uint)pkt.PData[i++]  * 0x1000000 + (uint)pkt.PData[i++]  * 0x10000 + (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;
-                        ob += 9;
                         break;
                     case 0x0e:         // TCP alternate checksum request
                         thisoption.Length = (uint)pkt.PData[i++] ;
                         thisoption.Data = new uint[1];
                         thisoption.Data[0] = (uint)pkt.PData[i++] ;
-                        ob += 2;
                         break;
                     case 0x0f:         // TCP alternate checksum data
                         thisoption.Length = (uint)pkt.PData[i++] ;
-                        thisoption.Data = new uint[thisoption.Length];
-                        for (int ii = 0; ii < thisoption.Length; ii++) thisoption.Data[ii] = (uint)pkt.PData[i++] ;   // just naively read each byte into a uint - this option is considered "historic" and probably will never be encountered
-                        ob += thisoption.Length - 1;
+                        thisoption.Data = new uint[thisoption.Length-2];
+                        for (int ii = 0; ii < thisoption.Length-2; ii++) thisoption.Data[ii] = (uint)pkt.PData[i++] ;   // just naively read each byte into a uint - this option is considered "historic" and probably will never be encountered
                         break;
                     default:
                         MessageBox.Show("Unknown TCP header option type");

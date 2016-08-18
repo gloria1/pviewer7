@@ -71,9 +71,14 @@ namespace pviewer5
                         return name;
                     }
                 }
-                public bool IsVisible()
+                public bool IsVisible
                 {
-                    return true;
+                    get
+                    {
+                        // returns true only if match on both filters
+                        if (!Regex.IsMatch(name, IPDNMap.Instance.domainfilter)) return false;
+                        return Regex.IsMatch(addr.ToString(false, false), IPDNMap.Instance.ipfilter);
+                    }
                 }
 
                 public idmtableitem(IP4 a, string n, DateTime ts, int num)
@@ -128,8 +133,10 @@ namespace pviewer5
         public idmtable table { get; set; } = new idmtable();
 
         public ListCollectionView tableview;
-        public string ipfilter { get; set; } = "";
-        public string domainfilter { get; set; } = "";
+        private string _ipfilter = ".*";
+        public string ipfilter { get { return _ipfilter; } set { _ipfilter = value; NotifyPropertyChanged(); } }
+        private string _domainfilter = ".*";
+        public string domainfilter { get { return _domainfilter; } set { _domainfilter = value; NotifyPropertyChanged(); } }
         public bool IDMFilter(object p)
         {
             return ((idmtable.idmtableitem)p).IsVisible;

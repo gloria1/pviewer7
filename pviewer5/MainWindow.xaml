@@ -546,10 +546,77 @@
 			        HorizontalAlignment="Left"
 			        Margin="5,5,5,5">
                     <Label Content="IP:"/>
-                    <TextBox Text="{Binding Path=idm.ipfilter}" MinWidth="20"/>
+                    <TextBox Text="{Binding Path=idm.ipfilter}" MinWidth="80" >
+                        <TextBox.ToolTip>
+                            <TextBlock>
+                                [abc]   match one of abc<LineBreak/>
+                                [^abc]  not match one of abc<LineBreak/>
+                                [a-c]   match one in range from a-c<LineBreak/>
+                                \d      match decimal digit<LineBreak/>
+                                \w      match a word character [a-zA-Z_0-9]<LineBreak/>
+                                \s      match whitespace character<LineBreak/>
+                                .       match any character except \n<LineBreak/>
+                                <LineBreak/>
+                                Quantifiers - appear after a match pattern<LineBreak/>
+                                    *   0 or more matches<LineBreak/>
+                                    +   1 or more matches<LineBreak/>
+                                    ?   0 or 1 match<LineBreak/>
+                                    {n} exactly n matches<LineBreak/>
+                                    {n,}  n or more<LineBreak/>
+                                    {n,m} n to m matches<LineBreak/>
+                                <LineBreak/>
+                                Anchors<LineBreak/>
+                                    ^   start of string<LineBreak/>
+                                    $   end of string<LineBreak/>
+                                <LineBreak/>
+                                Special<LineBreak/>
+                                    ()  Grouping<LineBreak/>
+                                    |  or<LineBreak/>
+                                    \  escape - next character is taken literally<LineBreak/>
+                                <LineBreak/>
+                                <LineBreak/>
+                                <LineBreak/>
+                                <LineBreak/>
+                            </TextBlock>
+                        </TextBox.ToolTip>
+                    </TextBox>
                     <Label Content="Domain:"/>
-                    <TextBox Text="{Binding Path=idm.domainfilter}" MinWidth="20"/>
+                    <TextBox Text="{Binding Path=idm.domainfilter}" MinWidth="120">
+                        <TextBox.ToolTip>
+                        <TextBlock>
+                                [abc]   match one of abc<LineBreak/>
+                                [^abc]  not match one of abc<LineBreak/>
+                                [a-c]   match one in range from a-c<LineBreak/>
+                                \d      match decimal digit<LineBreak/>
+                                \w      match a word character [a-zA-Z_0-9]<LineBreak/>
+                                \s      match whitespace character<LineBreak/>
+                                .       match any character except \n<LineBreak/>
+                                <LineBreak/>
+                                Quantifiers - appear after a match pattern<LineBreak/>
+                                    *   0 or more matches<LineBreak/>
+                                    +   1 or more matches<LineBreak/>
+                                    ?   0 or 1 match<LineBreak/>
+                                    {n} exactly n matches<LineBreak/>
+                                    {n,}  n or more<LineBreak/>
+                                    {n,m} n to m matches<LineBreak/>
+                                <LineBreak/>
+                                Anchors<LineBreak/>
+                                    ^   start of string<LineBreak/>
+                                    $   end of string<LineBreak/>
+                                <LineBreak/>
+                                Special<LineBreak/>
+                                    ()  Grouping<LineBreak/>
+                                    |  or<LineBreak/>
+                                    \  escape - next character is taken literally<LineBreak/>
+                                <LineBreak/>
+                                <LineBreak/>
+                                <LineBreak/>
+                                <LineBreak/>
+                        </TextBlock>
+                        </TextBox.ToolTip>
+                    </TextBox>
                     <Button Content="Apply Filter" Click="IDM_Apply_Filter"/>
+                    <Button Content="Clear Filters" Click="IDM_Clear_Filters"/>
                 </WrapPanel>
                 <GroupBox Header="Map of IP4 Addresses To Domain Names"
 			        Grid.Row="3"
