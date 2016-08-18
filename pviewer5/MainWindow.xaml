@@ -626,10 +626,6 @@
                     <!-- added CanUserAddRows="False" to prevent display of blank row at end-->
                     <DataGrid
 				            x:Name="IDMDG"
-				            EnableColumnVirtualization="True"
-				            EnableRowVirtualization="True"
-				            VirtualizingPanel.IsVirtualizing="True"
-				            VirtualizingPanel.VirtualizationMode="Recycling"
 				            AutoGenerateColumns="False"
                             CanUserDeleteRows="False"
                             CanUserAddRows="False"
