@@ -413,7 +413,7 @@
                     <Button Content="Reload" Click="ReloadPCAPFiles" IsEnabled="{Binding Path=FileLoaded, Mode=TwoWay}"/>
                     <Button Content="Append" Click="AppendPCAPFiles"/>
                     <Label Content="Current File(s)= "/>
-                    <Label Content="{Binding Path=PacketFileNames[0]}" MinWidth="100" ToolTip="{Binding Path=PacketFileNamesTooltip}"/>
+                    <Label Content="{Binding Path=FirstFileName}" MinWidth="100" ToolTip="{Binding Path=PacketFileNamesToolTip}"/>
 
                 </WrapPanel>
                 <WrapPanel Name="buttonbar"

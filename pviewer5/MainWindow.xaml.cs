@@ -35,7 +35,8 @@ namespace pviewer5
         
         // properties for packet list view
         public PacketViewer pview;
-        public List<string> PacketFileNames = new List<string>();
+        public ObservableCollection<string> PacketFileNames = new ObservableCollection<string>();
+        public string FirstFileName { get { if (PacketFileNames.Count() == 0) return ""; else return PacketFileNames[0]; } }
         public string PacketFileNamesToolTip
         {
             get
@@ -56,7 +57,7 @@ namespace pviewer5
         public PVDisplayObject grouplistlist { get; set; }
         public ListCollectionView gllview;
         public ListCollectionView idmview;
-        static ulong pktseqno = 0;  // used by LoadPCAPFile to assign sequence numbers to packets
+        ulong pktseqno = 0;  // used by LoadPCAPFile to assign sequence numbers to packets
 
 
 
@@ -247,7 +248,6 @@ namespace pviewer5
 		}
         private void ReloadPCAPFiles(object sender, RoutedEventArgs e)    // reload the list of packetfiles already int he PacketFileNames property
         {
-            PacketFileNames.Clear();
             pkts.Clear();
             pktseqno = 0;
             foreach (GList gl in grouplistlist.L) gl.L.Clear();
@@ -255,11 +255,14 @@ namespace pviewer5
             LoadPCAPFiles(PacketFileNames, false);
 
             filters.ChangedSinceApplied = false;
+            RefreshViews();
+
         }
         private void AppendPCAPFiles(object sender, RoutedEventArgs e)  // append a list of packetfiles, selected in a file chooser dialog
         {
             OpenFileDialog dlg = new OpenFileDialog();
             Nullable<bool> result;
+            ObservableCollection<string> fnl = new ObservableCollection<string>();
 
             dlg.Multiselect = true;
             dlg.InitialDirectory = Properties.Settings.Default.LastDirectory;
@@ -269,11 +272,17 @@ namespace pviewer5
             if (result == true)
             {
                 Properties.Settings.Default.LastDirectory = dlg.InitialDirectory;
-                foreach (string fn in dlg.FileNames) PacketFileNames.Add(fn);
-                LoadPCAPFiles(PacketFileNames, true);
+                fnl.Add("");    // create a dummy value
+                foreach (string fn in dlg.FileNames)
+                {
+                    PacketFileNames.Add(fn);
+                    fnl[0] = fn;
+                    LoadPCAPFiles(fnl, true);
+                }
+                RefreshViews();
             }
         }
-        private void LoadPCAPFiles(List<string> filenames, bool appendflag)     // load or append a set of packetfiles, based on a list of filenames
+        private void LoadPCAPFiles(ObservableCollection<string> filenames, bool appendflag)     // load or append a set of packetfiles, based on a list of filenames
         {
             PcapFile pfh;
             FileStream fs;
