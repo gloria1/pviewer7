@@ -409,11 +409,11 @@
                        Grid.ColumnSpan="2"
                        Grid.Row="0"
                        Margin="5,5,5,5">
-                    <Button Content="Choose File"
-                        Click="ChoosePCAPFile"/>
-                    <Label Content="Current File= "/>
-                    <Label Content="{Binding Path=PacketFileName}"
-                       MinWidth="100"/>
+                    <Button Content="Load" Click="ChoosePCAPFiles"/>
+                    <Button Content="Reload" Click="ReloadPCAPFiles" IsEnabled="{Binding Path=FileLoaded, Mode=TwoWay}"/>
+                    <Button Content="Append" Click="AppendPCAPFiles"/>
+                    <Label Content="Current File(s)= "/>
+                    <Label Content="{Binding Path=PacketFileNames[0]}" MinWidth="100" ToolTip="{Binding Path=PacketFileNamesTooltip}"/>
 
                 </WrapPanel>
                 <WrapPanel Name="buttonbar"
@@ -475,10 +475,6 @@
                             Content="Apply to View"
                             Click="ApplyFilterToView"
                             IsEnabled="{Binding Path=filters.ChangedSinceApplied}"/>
-                            <Button
-                            Content="Reload PCAP File"
-                            Click="ReloadFile"
-                            IsEnabled="{Binding Path=FileLoaded, Mode=TwoWay}"/>
                             <Button Content="Load Filter Set" 
                                 Click="filterset_load"/>
                             <Button
@@ -621,8 +617,8 @@
                 <GroupBox Header="Map of IP4 Addresses To Domain Names"
 			        Grid.Row="3"
 			        Margin="5,5,5,5">
-                    <!-- added Enable*Virtualization lines based on http://www.elegant-software.net/2014/05/performance-of-the-wpf-datagrid.html -->
-                    <!-- added VirtualizingPanel lines based on http://www.codewrecks.com/blog/index.php/2012/07/06/wpf-datagrid-poor-performance-on-sorting/ -->
+                    <!-- did NOT use the virtualizing stuff because when I did, I would get Out Of Range exceptions if a filter was applied to produced and empty view,  -->
+                    <!-- followed by applying a filter that produced a non-empty view  -->
                     <!-- added CanUserAddRows="False" to prevent display of blank row at end-->
                     <DataGrid
 				            x:Name="IDMDG"

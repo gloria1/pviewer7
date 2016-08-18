@@ -35,14 +35,28 @@ namespace pviewer5
         
         // properties for packet list view
         public PacketViewer pview;
-        private string _packetfilename = null;
-        public string PacketFileName { get { return _packetfilename; } set { _packetfilename = value; NotifyPropertyChanged(); } }
+        public List<string> PacketFileNames = new List<string>();
+        public string PacketFileNamesToolTip
+        {
+            get
+            {
+                string s = "";
+                for (int i = 0; i < PacketFileNames.Count(); i++)
+                {
+                    if (i < 10) s += PacketFileNames[i] + "\n";
+                    else if ((i + 10) < PacketFileNames.Count()) { i = PacketFileNames.Count() - 10; s += ".........\n"; }
+                    else s += PacketFileNames[i] + "\n";
+                }
+                return s;
+            }
+        }
         private bool _fileloaded = false;
         public bool FileLoaded { get { return _fileloaded; } set { _fileloaded = value; NotifyPropertyChanged(); } }
         public ObservableCollection<Packet> pkts { get; set; }
         public PVDisplayObject grouplistlist { get; set; }
         public ListCollectionView gllview;
         public ListCollectionView idmview;
+        static ulong pktseqno = 0;  // used by LoadPCAPFile to assign sequence numbers to packets
 
 
 
@@ -206,65 +220,97 @@ namespace pviewer5
             foreach (Window w in Application.Current.Windows) if (w != this) w.Close();
         }
 
-		private void ChoosePCAPFile(object sender, RoutedEventArgs e)
+		private void ChoosePCAPFiles(object sender, RoutedEventArgs e)      // load a set of packetfiles, selected in a file chooser
 		{
 			OpenFileDialog dlg = new OpenFileDialog();
 			Nullable<bool> result;
 
-			dlg.Multiselect = false;
+			dlg.Multiselect = true;
 			dlg.InitialDirectory = Properties.Settings.Default.LastDirectory;
             dlg.FileName = Properties.Settings.Default.LastFile;
 			result = dlg.ShowDialog();
 
 			if (result == true)
 			{
+                PacketFileNames.Clear();
                 pkts.Clear();
+                pktseqno = 0;
                 foreach (GList gl in grouplistlist.L) gl.L.Clear();
 
                 Properties.Settings.Default.LastDirectory = dlg.InitialDirectory;
-                Properties.Settings.Default.LastFile = dlg.FileName;
-                LoadPCAPFile(dlg.FileName);
-			}
+                foreach (string fn in dlg.FileNames) PacketFileNames.Add(fn);
+                LoadPCAPFiles(PacketFileNames, false);
+
+                filters.ChangedSinceApplied = false;
+                RefreshViews();
+            }
 		}
-        private void LoadPCAPFile(string filename)
+        private void ReloadPCAPFiles(object sender, RoutedEventArgs e)    // reload the list of packetfiles already int he PacketFileNames property
+        {
+            PacketFileNames.Clear();
+            pkts.Clear();
+            pktseqno = 0;
+            foreach (GList gl in grouplistlist.L) gl.L.Clear();
+
+            LoadPCAPFiles(PacketFileNames, false);
+
+            filters.ChangedSinceApplied = false;
+        }
+        private void AppendPCAPFiles(object sender, RoutedEventArgs e)  // append a list of packetfiles, selected in a file chooser dialog
+        {
+            OpenFileDialog dlg = new OpenFileDialog();
+            Nullable<bool> result;
+
+            dlg.Multiselect = true;
+            dlg.InitialDirectory = Properties.Settings.Default.LastDirectory;
+            dlg.FileName = Properties.Settings.Default.LastFile;
+            result = dlg.ShowDialog();
+
+            if (result == true)
+            {
+                Properties.Settings.Default.LastDirectory = dlg.InitialDirectory;
+                foreach (string fn in dlg.FileNames) PacketFileNames.Add(fn);
+                LoadPCAPFiles(PacketFileNames, true);
+            }
+        }
+        private void LoadPCAPFiles(List<string> filenames, bool appendflag)     // load or append a set of packetfiles, based on a list of filenames
         {
             PcapFile pfh;
             FileStream fs;
             Packet pkt;
-            ulong seqno;
 
-            byte[] b = new byte[1000];
-
-            pkts.Clear();
-            foreach (GList gl in grouplistlist.L) gl.L.Clear();
-
-            fs = new FileStream(filename, FileMode.Open);
-            PacketFileName = filename;
-            FileLoaded = true;
-
-            pfh = new PcapFile(fs);
-
-            seqno = 0;
-            while (fs.Position < fs.Length)
+            if (appendflag == false)
             {
-                pkt = new Packet(fs, pfh);
-                pkt.SeqNo = seqno++;    // assign sequence number - this is done now so that excluded packets will get sequence numbers
-                if (filters.Include(pkt)) pkts.Add(pkt);
+                pktseqno = 0;
+                pkts.Clear();
+                foreach (GList gl in grouplistlist.L) gl.L.Clear();
             }
 
-            foreach (Packet p in pkts)
-                foreach (GList gl in grouplistlist.L)
-                    if (gl.GroupPacket(p)) break;
-
-            foreach (TCPG tg in ((TCPGList)(grouplistlist.L[2])).L)
+            foreach (string fn in filenames)
             {
-                tg.OPL1.CopyBytes(1000, b);
-                tg.OPL2.CopyBytes(1000, b);
-            }
-            gllview.Refresh();
+                fs = new FileStream(fn, FileMode.Open);
+                Properties.Settings.Default.LastFile = fn;
+                FileLoaded = true;
 
-            fs.Close();
+                pfh = new PcapFile(fs);
+
+                while (fs.Position < fs.Length)
+                {
+                    pkt = new Packet(fs, pfh);
+                    pkt.SeqNo = pktseqno++;    // assign sequence number - this is done now so that excluded packets will get sequence numbers
+                    if (filters.Include(pkt))
+                    {
+                        pkts.Add(pkt);
+                        foreach (GList gl in grouplistlist.L)
+                            if (gl.GroupPacket(pkt)) break;
+                    }
+                }
+                fs.Close();
+            }
+
+
         }
+
         private void grouptree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             if (e.NewValue == null) return;
@@ -308,11 +354,6 @@ namespace pviewer5
             }
             filters.ChangedSinceApplied = false;
             gllview.Refresh();
-        }
-        private void ReloadFile(object sender, RoutedEventArgs e)
-        {
-            if (PacketFileName != null) LoadPCAPFile(PacketFileName);
-            filters.ChangedSinceApplied = false;
         }
         private void filterset_save(object sender, RoutedEventArgs e)
         {

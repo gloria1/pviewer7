@@ -2,13 +2,22 @@
 
 	TO DO
 
+			multipacketfile read
+				test
+					are views updating properly when
+						load 1 file
+						append another file
+						reload files
+						change filter then reload
+					tooltip
+
 
 		general debugging
 			add obsn times and counts as additional columns in datagrid
 			time stamp passed to MergeItem not right?
 			test load/save/merge
 			reload last at startup
-			multipacketfile read
+
 
 			TCP "Sequence failed" messages?
 
