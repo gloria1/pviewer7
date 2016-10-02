@@ -1,29 +1,119 @@
 ﻿
 
+
+
+
+ADD TO LIBRARY:
+	ITU DOCS FROM http://www.itu.int/rec/T-REC-X/en
+	PKCS DOCS FROM http://www.rsa.com/rsalabs/node.asp?id=2124.
+	any good and recent books on tls how-to and security
+		need to learn how to parse tls sessions
+		need to learn how to identify questionable activity
+
+display
+	highest level - tabs for different group types
+	http tab
+		datagrid with columns for
+			characteristics to group and sort by
+				srcip
+				destip
+				start time
+				end time
+				tls chars
+
+
+
+
+
+
+strategy
+	capture all traffic between router and gateway
+	read through the raw traffic captures and catalog the traffic
+		tls characteristics to catalog
+			certificate chain - including which root ca is used
+			oddly formed handshke messages - lots of fragments, or no unfragmented when they should be fragmented?
+			ciphers chosen
+			other aspects of a TLS session
+			need to do research on different pathologies to look out for
+	maintain a cumulative history over time, to observe longer-term averages, outliers, and changes over time
+		outlier examples:  tls errors, fragmented ip packets, 
+	maintain the raw captures for XXXX time
+	IS THIS POSSIBLE????? capture TLS master secrets from, so raw traffic can be decrypted
+		???? via ICAP and squid????
+		???? via netfilter ?????
+		????? via some other linux kernal callback interface?????
+
+
+
+purposes of tool
+	catalog all external ip traffic
+		group packets into sessions of related activity
+			view groups
+			compile a digest of a set of packets loaded
+				domains, addresses visited
+				types of security
+				exceptions and outliers
+			store the digest and append with info from new captures loaded
+	for ssl encrypted traffic, what can we see from the handshake?
+		certificates, cipher suites, tls versions etc.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	TO DO
 
+		while loading, put up modal dialog box with status - scrolling text box of status messages
+		relate names to cnames
+		add timestamp and obsn counts to datagrid (filter on?)
 
-		general debugging
-			add obsn times and counts as additional columns in datagrid
-			time stamp passed to MergeItem not right?
-			test load/save/merge
-			reload last at startup
+		http processing steps
+			group together with DNS messages based on the IP addrses of the traffic
+			identify domain from DNS or from HTTP header?  maybe try both and flag if they disagree???
+			see if domain name can be found in preceding HTTP traffic
+				if so, group this http together with the parent http
+				this "http traffic group" will be a tree, not just a list
+			assemble TCP payloads into HTTP messages
+			for messages that may contain domain names (html, javascript, json?)
+				decode message
+				keep available for searching 
+
+		what to do about https?
+			can i set up a proxy on the router, and capture from the un-encrypted traffic?
 
 
-			TCP "Sequence failed" messages?
+
+			
+		add obsn times and counts as additional columns in datagrid
+		time stamp passed to MergeItem not right?
+		test load/save/merge
+		reload last at startup
+
+
+		TCP "Sequence failed" messages?
 
 
 
-			next steps - not sure which order to pursue these
+		next steps - not sure which order to pursue these
 
-				2) are the IPDM table commands appropraite (add, delete row?  able to edit cells?)
-				3) finish DNS database logic - use RDNS and ARIN to lookup info
-				4) add logic to read multiple pcap files
-				5) add logic to store filtered packet set
-				6) use case is to 
-					- read the set of cap files from sheraton recnetly (or some other)
-					- set up a filter interactively
-					- store the filtered set of packets in a new file
+			2) are the IPDM table commands appropraite (add, delete row?  able to edit cells?)
+			3) finish DNS database logic - use RDNS and ARIN to lookup info
+			5) add logic to store filtered packet set
+			6) use case is to 
+				- read the set of cap files from sheraton recnetly (or some other)
+				- set up a filter interactively
+				- store the filtered set of packets in a new file
 
 
 

@@ -68,6 +68,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="FileLoadStatusDialog.xaml.cs">
+      <DependentUpon>FileLoadStatusDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Filter.cs" />
     <Compile Include="GUIUtil.cs" />
     <Compile Include="PacketViewer.xaml.cs">
@@ -96,6 +99,10 @@
     <Compile Include="StreamViewer.xaml.cs">
       <DependentUpon>StreamViewer.xaml</DependentUpon>
     </Compile>
+    <Page Include="FileLoadStatusDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="ItemTabulationPopup.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
