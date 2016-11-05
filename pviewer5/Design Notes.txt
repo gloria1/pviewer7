@@ -1,6 +1,34 @@
 ﻿
 
 
+11/5/2016 - getting back into it
+	directions
+		design new ui for viewing/filtering captures
+			group on several dimensions - group type (http, arp, etc), srcip, dstip, srcmac, dstmac, protocol, etc
+			sort
+			grouping levels on each dimension
+				all combined
+				itemized (and sorted)
+				some itemized and rest in a combined bucket
+		extend file open/append operations to handle large number of files that grows
+			"load folder" command - one button load all files in a folder
+			"reload folder" - loads all files again (including new files)
+			"load new files" - scans folder for new files and appends those
+			"append folder" - point to new folder and append it to what's already loaded
+			progress indicator when opening files (antipicate opening 100's of files)
+		add more protocols
+			http
+			https
+			vpn
+			whatever skype is using
+			windows network stuff
+		packet viewer - fix it up and extend
+		view encrypted traffic (with help from mitm)
+
+
+
+
+
 
 
 ADD TO LIBRARY:
