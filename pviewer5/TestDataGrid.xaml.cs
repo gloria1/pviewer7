@@ -96,7 +96,7 @@ namespace pviewer5
     public partial class TestDataGrid : Window
     {
         public tdgitemlist l;
-        public ObservableCollection<tdgviewitem> vl;
+        public ObservableCollection<tdgviewitem> vl { get; set; }
         public CollectionView view;
 
         public TestDataGrid()
@@ -127,8 +127,10 @@ namespace pviewer5
 
             view = (ListCollectionView)CollectionViewSource.GetDefaultView(vl);
 
-
             InitializeComponent();
+
+            tdg.DataContext = this;
+
         }
     }
 }

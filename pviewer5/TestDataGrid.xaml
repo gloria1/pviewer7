@@ -18,10 +18,10 @@
 			AutoGenerateColumns="False"
             CanUserDeleteRows="False"
             CanUserAddRows="False"
-			ItemsSource="{Binding Path=vll}">
+			ItemsSource="{Binding Path=vl}">
 
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Timestamp" Binding="{Binding Path=item.timstamp}"/>
+                <DataGridTextColumn Header="Timestamp" Binding="{Binding Path=item.timestamp}"/>
                 <DataGridTextColumn Header="IP" Binding="{Binding grouped_ip}"/>
                 <DataGridTextColumn Header="Proto" Binding="{Binding grouped_proto}"/>
                 <DataGridTextColumn Header="GroupType" Binding="{Binding grouped_grouptype}"/>
