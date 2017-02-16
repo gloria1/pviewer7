@@ -32,8 +32,10 @@ namespace pviewer5
     public partial class MainWindow : Window, INotifyPropertyChanged
 	{
         public static MainWindow Instance = null;
-        
+
         // properties for packet list view
+        // NEXT IS TEMPORARY
+        public TestDataGrid tdgwindow;
         public PacketViewer pview;
         public ObservableCollection<string> PacketFileNames = new ObservableCollection<string>();
         public string FirstFileName { get { if (PacketFileNames.Count() == 0) return ""; else return PacketFileNames[0]; } }
@@ -97,6 +99,12 @@ namespace pviewer5
 
             // initialize window
             InitializeComponent();
+
+            // NEXT IS TEMPORARY
+            tdgwindow = new TestDataGrid();
+            tdgwindow.Show();
+
+
             gridmain.DataContext = this;
 
             // set up packet list view

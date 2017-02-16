@@ -1,0 +1,32 @@
+﻿<Window x:Class="pviewer5.TestDataGrid"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:pviewer5"
+        mc:Ignorable="d"
+        Title="TestDataGrid" Height="316.293" Width="539.787">
+    <Grid>
+        <DataGrid
+            Margin="10,10,10,10.5"
+
+            x:Name="tdg"
+			EnableColumnVirtualization="True"
+			EnableRowVirtualization="True"
+			VirtualizingPanel.IsVirtualizing="True"
+			VirtualizingPanel.VirtualizationMode="Recycling"
+			AutoGenerateColumns="False"
+            CanUserDeleteRows="False"
+            CanUserAddRows="False"
+			ItemsSource="{Binding Path=vll}">
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Timestamp" Binding="{Binding Path=item.timstamp}"/>
+                <DataGridTextColumn Header="IP" Binding="{Binding grouped_ip}"/>
+                <DataGridTextColumn Header="Proto" Binding="{Binding grouped_proto}"/>
+                <DataGridTextColumn Header="GroupType" Binding="{Binding grouped_grouptype}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+    </Grid>
+</Window>

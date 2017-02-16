@@ -1,6 +1,71 @@
 ﻿
 
 
+2/16/2017 
+
+
+grouping
+	view is a datagrid, so we can click columns to change sort order, change column order, change width etc.
+	each row will show either a single packet or a group of packets
+		if it is a group, fields will either show the single value common to all, or a digest
+			digest is a treeview inside a single cell (or something like it)
+				single line view is value (count), value (count), .... showing values in decreasing order by count
+				expanded view is list of value (count) in decreasing order
+					can click on an item and say "ungroup", which will force view to be re-created 
+	un-grouping select items
+		each packet will have a "grouped_" property for each property that things can be grouped by
+		e.g.,
+			for srcip, there will be grouped_srcip
+			datagrid will group by grouped_srcip
+			grouped_srcip will be null by default
+			user can choose an individual srcip and say "break out" - this will set grouped_srcip to its srcip
+			datagrid will group by grouped_srcip
+		in grouped datagrid
+			when the group is "expanded" by the datagrid, user will get a list of broken out items plus a line for the ones still grouped
+			when the group is "collapsed" by the datagrid, there will be only a single line with a count
+		QUESTIONS
+			1) IN DATAGRID, WHAT HAPPENS IF SORT HIERARCHY IS DIFFERENT THAN GROUPING HIERARCHY?
+				1.1) DOES IT SORT FIRST, OR GROUP FIRST?
+				1.2) IF IT SORTS FIRST, DO YOU GET MULTIPLE INSTANCES OF THE SAME GROUP ITEM IF THEY FALL IN DIFFERENT PARTS OF THE LIST BY SORT ORDER?
+		DO AN EXPERIMENT - CREATE A SIMPLIFIED, STATIC EXAMPLE OF A LIST OF PACKETS AND RENDER IT IN A GROUPED, SORTED, DATAGRID
+			
+
+
+
+
+
+
+
+	
+model	
+	list of packets
+	each packet has reference to parent group
+		if packet is un-grouped, parent group will be set to null
+	each group will have a property that describes it, uniquely (so can sort, filter, etc.)
+	
+	
+viewmodel	
+	sorting/grouping/filtering axes (some do not make sense for all three of these operations)
+	   timestamp (sorting only)
+	   packet count (sorting only)
+	   groupfirsttime
+	   grouplasttime
+	   srcip, dstip, ip, srcmac, dstmac, mac
+	   protocol
+	   group type
+	
+	viewmodel has a sort order - list of grouping axes in order of priority
+	
+	each packet will have a view state, consisting of
+	  hide (true/false)
+	  vector of grouping axes, true/false for each one
+	if hide==true, hide it
+	else, group with adjacent packets in list that have same groupingaxis==true settings
+	
+	filtering and grouping rules encoded as regexes (?? will this work ?? how to do and/or ops in regex ??)
+
+
+
 11/5/2016 - getting back into it
 	directions
 		design new ui for viewing/filtering captures
