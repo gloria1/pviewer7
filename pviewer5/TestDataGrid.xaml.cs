@@ -74,8 +74,19 @@ namespace pviewer5
         public tdgviewitem(tdgitem i)
         {
             item = i;
-            grouped_ip = null;
-            grouped_proto = null;
+            switch (i.ip)
+            {
+                case "192.168.11.222":
+                    grouped_ip = "OTHER";
+                    break;
+                case "192.168.11.224":
+                    grouped_ip = "OTHER";
+                    break;
+                default:
+                    grouped_ip = i.ip;
+                    break;
+            }
+            grouped_proto = i.proto;
             grouped_grouptype = null;
         }
 
@@ -97,25 +108,28 @@ namespace pviewer5
     {
         public tdgitemlist l;
         public ObservableCollection<tdgviewitem> vl { get; set; }
-        public CollectionView view;
+        public ListCollectionView view;
 
         public TestDataGrid()
         {
+            InitializeComponent();
+            tdg.DataContext = this;
+
             l = new tdgitemlist();
-            l.Add(new tdgitem("001", "192.168.11.222", "arp", "arp", l));
-            l.Add(new tdgitem("002", "192.168.11.223", "arp", "arp", l));
-            l.Add(new tdgitem("003", "192.168.11.224", "arp", "arp", l));
+            l.Add(new tdgitem("001", "192.168.11.222", "arp", "arp",  l));
+            l.Add(new tdgitem("002", "192.168.11.223", "arp", "arp",  l));
+            l.Add(new tdgitem("003", "192.168.11.224", "arp", "arp",  l));
             l.Add(new tdgitem("004", "192.168.11.222", "dns", "http", l));
-            l.Add(new tdgitem("005", "192.168.11.223", "tcp", "tcp", l));
+            l.Add(new tdgitem("005", "192.168.11.223", "tcp", "tcp",  l));
             l.Add(new tdgitem("006", "192.168.11.222", "tcp", "http", l));
             l.Add(new tdgitem("007", "192.168.11.222", "tcp", "http", l));
-            l.Add(new tdgitem("008", "192.168.11.224", "arp", "arp", l));
+            l.Add(new tdgitem("008", "192.168.11.224", "arp", "arp",  l));
             l.Add(new tdgitem("009", "192.168.11.222", "tcp", "http", l));
-            l.Add(new tdgitem("010", "192.168.11.223", "arp", "arp", l));
-            l.Add(new tdgitem("011", "192.168.11.223", "arp", "arp", l));
-            l.Add(new tdgitem("012", "192.168.11.225", "arp", "arp", l));
-            l.Add(new tdgitem("013", "192.168.11.226", "arp", "arp", l));
-            l.Add(new tdgitem("014", "192.168.11.222", "arp", "arp", l));
+            l.Add(new tdgitem("010", "192.168.11.223", "arp", "arp",  l));
+            l.Add(new tdgitem("011", "192.168.11.223", "arp", "arp",  l));
+            l.Add(new tdgitem("012", "192.168.11.225", "arp", "arp",  l));
+            l.Add(new tdgitem("013", "192.168.11.226", "arp", "arp",  l));
+            l.Add(new tdgitem("014", "192.168.11.222", "arp", "arp",  l));
             l.Add(new tdgitem("015", "192.168.11.222", "tcp", "http", l));
             l.Add(new tdgitem("016", "192.168.11.222", "tcp", "http", l));
             l.Add(new tdgitem("017", "192.168.11.222", "tcp", "http", l));
@@ -125,11 +139,12 @@ namespace pviewer5
             vl = new ObservableCollection<tdgviewitem>();
             foreach (tdgitem t in l) vl.Add(new tdgviewitem(t));
 
+
             view = (ListCollectionView)CollectionViewSource.GetDefaultView(vl);
 
-            InitializeComponent();
-
-            tdg.DataContext = this;
+            view.GroupDescriptions.Add(new PropertyGroupDescription("grouped_proto"));
+            view.GroupDescriptions.Add(new PropertyGroupDescription("grouped_ip"));
+            view.Refresh();
 
         }
     }
