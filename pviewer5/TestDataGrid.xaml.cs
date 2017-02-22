@@ -112,6 +112,7 @@ namespace pviewer5
 
         public TestDataGrid()
         {
+            vl = new ObservableCollection<tdgviewitem>();
             InitializeComponent();
             tdg.DataContext = this;
 
@@ -136,10 +137,12 @@ namespace pviewer5
             l.Add(new tdgitem("018", "192.168.11.222", "tcp", "http", l));
 
 
-            vl = new ObservableCollection<tdgviewitem>();
             foreach (tdgitem t in l) vl.Add(new tdgviewitem(t));
 
-
+            // next line gets view on vl, not on tdg.Itemssource
+            // at this point in execution, tdg.Itemssource is still null,
+            // even though it must get set somewhere later on because the datagrid
+            // does get populated correctly
             view = (ListCollectionView)CollectionViewSource.GetDefaultView(vl);
 
             view.GroupDescriptions.Add(new PropertyGroupDescription("grouped_proto"));
