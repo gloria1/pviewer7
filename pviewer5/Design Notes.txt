@@ -1,5 +1,35 @@
 ﻿
 
+2/26
+	next steps
+		continue build out of test data grid
+			outline user actions
+				add or remove an axis to the grouping hierarchy
+					buttons on column headings?
+				move an axis up or down in grouping hierarchy
+					buttons on group headings?
+				take an item in "other" and break it out
+				take and item that is broken out and return it to "other"
+
+			move datatemplates and control templates into window.resources
+			make template for little control buttons
+
+		does it make sense to create template in window.resources for ip text box?  (and then others like it?)
+		if so, re-vamp the templates already in mainwindow.xaml
+
+		adapt test data grid to main packet view window
+			port logic
+			outline what all the grouping axes are
+				packet group type
+				packet group instance (i.e., members are all packets of one specific group)
+				protocol
+				srcip
+				dstip
+				"other ip"
+			use existing filtering logic
+
+
+
 
 2/16/2017 
 
