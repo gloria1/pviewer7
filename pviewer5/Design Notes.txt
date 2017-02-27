@@ -2,12 +2,15 @@
 
 2/26
 	next steps
+
+		make viewmodel for list of grouping axes
+		make listview in testdatagrid window with list of grouping axes
+		can use drag and drop to re-order?
+
 		continue build out of test data grid
 			outline user actions
-				add or remove an axis to the grouping hierarchy
-					buttons on column headings?
-				move an axis up or down in grouping hierarchy
-					buttons on group headings?
+				separate list of grouping axes
+					each has an up and down button and a checkbox
 				take an item in "other" and break it out
 				take and item that is broken out and return it to "other"
 

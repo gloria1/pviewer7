@@ -62,6 +62,14 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <DataTemplate DataType="x:local GroupingAxis">
+            <Grid  HorizontalAlignment="Left" Height="16" VerticalAlignment="Top" Width="200" Margin="16,-59,0,0" Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}">
+                <CheckBox x:Name="checkBox" Content="" HorizontalAlignment="Left" VerticalAlignment="Center" Width="16" Margin="0,0,0,0" Height="16"/>
+                <Button x:Name="button_up"  Content="Up" FontSize="7"  HorizontalAlignment="Left" Margin="16,1,0,1" Width="16" Height="13" VerticalAlignment="Center"/>
+                <Button x:Name="button_dn" Content="Dn" Padding="0" FontSize="7"  HorizontalAlignment="Left" Margin="33,1,0,1" Width="16" Height="13" VerticalAlignment="Center"/>
+                <Label x:Name="label" Content="{Binding AxisLabel}"  Padding="1" HorizontalAlignment="Left" Margin="52,1,0,1" VerticalAlignment="Center" Height="13" FontSize="7" Width="148"/>
+            </Grid>
+        </DataTemplate>
     </Window.Resources>
     <Grid Margin="0,74,0,0">
         <DataGrid
@@ -145,8 +153,11 @@
                 </GroupStyle>
             </DataGrid.GroupStyle>
         </DataGrid>
-        <Button x:Name="button" Content="&lt;" HorizontalAlignment="Left" Margin="42,-45,0,0" VerticalAlignment="Top" Width="18" Height="29" Style="{DynamicResource ButtonStyle1}"/>
-        <Button x:Name="button2" Content="&gt;" HorizontalAlignment="Left" Margin="62,-45,0,0" VerticalAlignment="Top" Width="18" Height="29" Style="{DynamicResource ButtonStyle1}"/>
-
+        <Grid  HorizontalAlignment="Left" Height="16" VerticalAlignment="Top" Width="200" Margin="16,-59,0,0" Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}">
+            <CheckBox x:Name="checkBox" Content="" HorizontalAlignment="Left" VerticalAlignment="Center" Width="16" Margin="0,0,0,0" Height="16"/>
+            <Button x:Name="button_up"  Content="Up" FontSize="7"  HorizontalAlignment="Left" Margin="16,1,0,1" Width="16" Height="13" VerticalAlignment="Center"/>
+            <Button x:Name="button_dn" Content="Dn" Padding="0" FontSize="7"  HorizontalAlignment="Left" Margin="33,1,0,1" Width="16" Height="13" VerticalAlignment="Center"/>
+            <Label x:Name="label" Content="Label"  Padding="1" HorizontalAlignment="Left" Margin="52,1,0,1" VerticalAlignment="Center" Height="13" FontSize="7" Width="148"/>
+        </Grid>
     </Grid>
 </Window>
