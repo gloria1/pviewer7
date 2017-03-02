@@ -64,9 +64,9 @@
         </Style>
         <DataTemplate DataType="{x:Type local:tdggroupingaxis}">
             <WrapPanel Orientation="Horizontal" Margin="-1" Width="200" Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"  >
-                <CheckBox x:Name="checkBox" IsChecked="{Binding ischecked}" Margin="3"/>
-                <Button x:Name="button_up"  Content="Up" Margin="3" Padding="0" FontSize="10"/>
-                <Button x:Name="button_dn" Content="Dn" Margin ="3" Padding="0" FontSize="10"/>
+                <CheckBox x:Name="checkBox" IsChecked="{Binding ischecked}" Margin="3" Click="tdgaxischeck_Click"/>
+                <Button x:Name="button_up"  Content="Up" Margin="3" Padding="0" FontSize="10" Click="tdgaxisup_Click"/>
+                <Button x:Name="button_dn" Content="Dn" Margin ="3" Padding="0" FontSize="10" Click="tdgaxisdown_Click"/>
                 <Label x:Name="label" Content="{Binding displayname}" Margin="3" Padding="1" FontSize="10"/>
             </WrapPanel>
         </DataTemplate>

@@ -160,10 +160,63 @@ namespace pviewer5
             // does get populated correctly
             view = (ListCollectionView)CollectionViewSource.GetDefaultView(vl);
 
-            view.GroupDescriptions.Add(new PropertyGroupDescription("grouped_proto"));
-            view.GroupDescriptions.Add(new PropertyGroupDescription("grouped_ip"));
+            SetGrouping();
+
+        }
+
+        void SetGrouping()
+        {
+            view.GroupDescriptions.Clear();
+            foreach (tdggroupingaxis a in axes)
+                if (a.ischecked)
+                    view.GroupDescriptions.Add(new PropertyGroupDescription(a.propertyname));
+
             view.Refresh();
 
         }
+
+
+        void tdgaxischeck_Click(object sender, RoutedEventArgs e)
+        {
+            CheckBox b = (CheckBox)sender;
+            tdggroupingaxis i = (tdggroupingaxis)b.DataContext;
+
+            SetGrouping();
+        }
+
+        void tdgaxisup_Click(object sender, RoutedEventArgs e)
+        {
+            Button b = (Button)sender;
+            tdggroupingaxis i = (tdggroupingaxis)b.DataContext;
+
+            ObservableCollection<tdggroupingaxis> mylist = i.parent;
+            int pos = mylist.IndexOf(i);
+
+            if (pos == 0) return;
+            mylist.Move(pos, pos - 1);
+
+            SetGrouping();
+
+        }
+
+        void tdgaxisdown_Click(object sender, RoutedEventArgs e)
+        {
+            Button b = (Button)sender;
+            tdggroupingaxis i = (tdggroupingaxis)b.DataContext;
+
+            ObservableCollection<tdggroupingaxis> mylist = i.parent;
+            int pos = mylist.IndexOf(i);
+
+            if (pos == mylist.Count()) return;
+            mylist.Move(pos, pos + 1);
+
+            SetGrouping();
+
+
+
+        }
+
     }
+
+
 }
