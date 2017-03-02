@@ -62,18 +62,34 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <DataTemplate DataType="x:local GroupingAxis">
-            <Grid  HorizontalAlignment="Left" Height="16" VerticalAlignment="Top" Width="200" Margin="16,-59,0,0" Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}">
-                <CheckBox x:Name="checkBox" Content="" HorizontalAlignment="Left" VerticalAlignment="Center" Width="16" Margin="0,0,0,0" Height="16"/>
-                <Button x:Name="button_up"  Content="Up" FontSize="7"  HorizontalAlignment="Left" Margin="16,1,0,1" Width="16" Height="13" VerticalAlignment="Center"/>
-                <Button x:Name="button_dn" Content="Dn" Padding="0" FontSize="7"  HorizontalAlignment="Left" Margin="33,1,0,1" Width="16" Height="13" VerticalAlignment="Center"/>
-                <Label x:Name="label" Content="{Binding AxisLabel}"  Padding="1" HorizontalAlignment="Left" Margin="52,1,0,1" VerticalAlignment="Center" Height="13" FontSize="7" Width="148"/>
-            </Grid>
+        <DataTemplate DataType="{x:Type local:tdggroupingaxis}">
+            <WrapPanel Orientation="Horizontal" Margin="-1" Width="200" Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"  >
+                <CheckBox x:Name="checkBox" IsChecked="{Binding ischecked}" Margin="3"/>
+                <Button x:Name="button_up"  Content="Up" Margin="3" Padding="0" FontSize="10"/>
+                <Button x:Name="button_dn" Content="Dn" Margin ="3" Padding="0" FontSize="10"/>
+                <Label x:Name="label" Content="{Binding displayname}" Margin="3" Padding="1" FontSize="10"/>
+            </WrapPanel>
         </DataTemplate>
     </Window.Resources>
-    <Grid Margin="0,74,0,0">
-        <DataGrid
+    <Grid 
+        Margin="0,74,0,0"
+        x:Name="tdggrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30" MinHeight="150"></RowDefinition>
+            <RowDefinition Height="150"></RowDefinition>
+            <RowDefinition Height="*" MinHeight="150"></RowDefinition>
+        </Grid.RowDefinitions>
 
+
+        <ListBox
+                Grid.Row="1"
+                x:Name="groupaxislistview"
+                ItemsSource="{Binding Path=axes}">
+        </ListBox>
+        
+
+        <DataGrid
+            Grid.Row="2"
             x:Name="tdg"
 			EnableColumnVirtualization="True"
 			EnableRowVirtualization="True"
@@ -82,11 +98,11 @@
 			AutoGenerateColumns="False"
             CanUserDeleteRows="False"
             CanUserAddRows="False"
-			ItemsSource="{Binding Path=vl}" Height="716" VerticalAlignment="Bottom">
+			ItemsSource="{Binding Path=vl}">
 
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Timestamp" Binding="{Binding Path=item.timestamp}"/>
-                <DataGridTextColumn Header="IP" Binding="{Binding item.ip}"/>
+                <DataGridTextColumn Header="Timestamp" Binding="{Binding Path=timestamp}"/>
+                <DataGridTextColumn Header="IP" Binding="{Binding ip}"/>
                 <DataGridTextColumn Header="Proto" Binding="{Binding grouped_proto}"/>
                 <DataGridTextColumn Header="GroupType" Binding="{Binding grouped_grouptype}"/>
             </DataGrid.Columns>
@@ -153,11 +169,6 @@
                 </GroupStyle>
             </DataGrid.GroupStyle>
         </DataGrid>
-        <Grid  HorizontalAlignment="Left" Height="16" VerticalAlignment="Top" Width="200" Margin="16,-59,0,0" Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}">
-            <CheckBox x:Name="checkBox" Content="" HorizontalAlignment="Left" VerticalAlignment="Center" Width="16" Margin="0,0,0,0" Height="16"/>
-            <Button x:Name="button_up"  Content="Up" FontSize="7"  HorizontalAlignment="Left" Margin="16,1,0,1" Width="16" Height="13" VerticalAlignment="Center"/>
-            <Button x:Name="button_dn" Content="Dn" Padding="0" FontSize="7"  HorizontalAlignment="Left" Margin="33,1,0,1" Width="16" Height="13" VerticalAlignment="Center"/>
-            <Label x:Name="label" Content="Label"  Padding="1" HorizontalAlignment="Left" Margin="52,1,0,1" VerticalAlignment="Center" Height="13" FontSize="7" Width="148"/>
-        </Grid>
+      
     </Grid>
 </Window>
