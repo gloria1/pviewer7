@@ -117,6 +117,12 @@ namespace pviewer5
 
         public ObservableCollection<tdggroupingaxis> axes { get; set; }
 
+        public static RoutedCommand tdg_break_out_cmd = new RoutedCommand();
+        public static RoutedCommand tdg_group_cmd     = new RoutedCommand();
+
+        CommandBinding tdg_break_out_binding;
+        CommandBinding tdg_group_binding;
+
         public string arpgroup1 = "arpgroup1";
         public string arpgroup2 = "arpgroup2";
         public int httpgroup1 = 1;
@@ -129,6 +135,12 @@ namespace pviewer5
 
             InitializeComponent();
             tdggrid.DataContext = this;
+
+            tdg_break_out_binding = new CommandBinding(tdg_break_out_cmd, tdg_break_out_Executed, tdg_break_out_CanExecute);
+            tdg_group_binding     = new CommandBinding(tdg_group_cmd,     tdg_group_Executed,     tdg_group_CanExecute);
+            tdg.CommandBindings.Add(tdg_break_out_binding);
+            tdg.CommandBindings.Add(tdg_group_binding);
+
 
             vl.Add(new tdgitem("001", "192.168.11.222", "arp", arpgroup1,  vl));
             vl.Add(new tdgitem("002", "192.168.11.223", "arp", arpgroup1,  vl));
@@ -175,7 +187,6 @@ namespace pviewer5
 
         }
 
-
         void tdgaxischeck_Click(object sender, RoutedEventArgs e)
         {
             CheckBox b = (CheckBox)sender;
@@ -184,7 +195,7 @@ namespace pviewer5
             SetGrouping();
         }
 
-        void tdgaxisup_Click(object sender, RoutedEventArgs e)
+        void tdgaxisbutton_Click(object sender, RoutedEventArgs e)
         {
             Button b = (Button)sender;
             tdggroupingaxis i = (tdggroupingaxis)b.DataContext;
@@ -192,28 +203,55 @@ namespace pviewer5
             ObservableCollection<tdggroupingaxis> mylist = i.parent;
             int pos = mylist.IndexOf(i);
 
-            if (pos == 0) return;
-            mylist.Move(pos, pos - 1);
+            switch (b.Name)
+            {
+                case "button_top":
+                    mylist.Move(pos, 0); break;
+                case "button_up":
+                    if (pos == 0) break;
+                    mylist.Move(pos, pos - 1); break;
+                case "button_dn":
+                    if (pos == mylist.Count() - 1) break;
+                    mylist.Move(pos, pos + 1); break;
+                case "button_bot":
+                    mylist.Move(pos, mylist.Count() - 1); break;
+                default: break;
+            }
 
             SetGrouping();
 
         }
 
-        void tdgaxisdown_Click(object sender, RoutedEventArgs e)
+        public static void tdg_break_out_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            Button b = (Button)sender;
-            tdggroupingaxis i = (tdggroupingaxis)b.DataContext;
+            int i = 0;  // dummy line so can find out what "sender" is
 
-            ObservableCollection<tdggroupingaxis> mylist = i.parent;
-            int pos = mylist.IndexOf(i);
+            //tdgitem i = (tdgitem)(sender.SelectedItem);
+        }
+        public static void tdg_break_out_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            // only enable if more than one row in table
+            // this is a hack - for some reason, if there is only one row in the table and it gets deleted
+            // the datagrid is left in some bad state such that the next add operation causes a crash
+            // i gave up trying to diagnose it, so my "workaround" is to prevent deletion if there is only one
+            // row left
+            e.CanExecute = true; 
+        }
 
-            if (pos == mylist.Count()) return;
-            mylist.Move(pos, pos + 1);
+        public static void tdg_group_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            int i = 0;  // dummy line so can find out what "sender" is
 
-            SetGrouping();
-
-
-
+            //tdgitem i = (tdgitem)(sender.SelectedItem);
+        }
+        public static void tdg_group_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            // only enable if more than one row in table
+            // this is a hack - for some reason, if there is only one row in the table and it gets deleted
+            // the datagrid is left in some bad state such that the next add operation causes a crash
+            // i gave up trying to diagnose it, so my "workaround" is to prevent deletion if there is only one
+            // row left
+            e.CanExecute = true;
         }
 
     }
