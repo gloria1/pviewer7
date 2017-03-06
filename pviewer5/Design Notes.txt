@@ -3,19 +3,14 @@
 2/26
 	next steps
 
-		make viewmodel for list of grouping axes
-		make listview in testdatagrid window with list of grouping axes
-		can use drag and drop to re-order?
+		next steps:
+			transfer logic to main window
+				identify all goruping axes
+			improve labeling in group headers
+			make sure "OTHER" is always last in sort order (so it will always be at top or bottom of list)
 
-		continue build out of test data grid
-			outline user actions
-				separate list of grouping axes
-					each has an up and down button and a checkbox
-				take an item in "other" and break it out
-				take and item that is broken out and return it to "other"
 
-			move datatemplates and control templates into window.resources
-			make template for little control buttons
+
 
 		does it make sense to create template in window.resources for ip text box?  (and then others like it?)
 		if so, re-vamp the templates already in mainwindow.xaml
