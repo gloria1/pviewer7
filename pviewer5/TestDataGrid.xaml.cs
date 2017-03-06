@@ -222,13 +222,33 @@ namespace pviewer5
 
         }
 
-        public static void tdg_break_out_Executed(object sender, ExecutedRoutedEventArgs e)
+        public void tdg_break_out_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            int i = 0;  // dummy line so can find out what "sender" is
+            DataGrid dg = (DataGrid)sender;
+            string column = dg.CurrentColumn.SortMemberPath;
+            tdgitem t = (tdgitem)(dg.CurrentCell.Item);
 
-            //tdgitem i = (tdgitem)(sender.SelectedItem);
+            // if grouped for this specific value, then
+                // change grouped_xx to specific value
+                // do this for all packets that have this specific value - need to pass through entire packet list
+
+            switch(column)
+            {
+                case "ip":
+                    if (t.grouped_ip == "OTHER")
+                    {
+                        foreach (tdgitem i in vl)
+                            if (i.ip == t.ip) i.grouped_ip = i.ip;
+                        view.Refresh();
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            
         }
-        public static void tdg_break_out_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        public void tdg_break_out_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             // only enable if more than one row in table
             // this is a hack - for some reason, if there is only one row in the table and it gets deleted
@@ -238,13 +258,28 @@ namespace pviewer5
             e.CanExecute = true; 
         }
 
-        public static void tdg_group_Executed(object sender, ExecutedRoutedEventArgs e)
+        public void tdg_group_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            int i = 0;  // dummy line so can find out what "sender" is
+            DataGrid dg = (DataGrid)sender;
+            string column = dg.CurrentColumn.SortMemberPath;
+            tdgitem t = (tdgitem)(dg.CurrentCell.Item);
 
-            //tdgitem i = (tdgitem)(sender.SelectedItem);
+            switch (column)
+            {
+                case "ip":
+                    if (t.grouped_ip != "OTHER")
+                    {
+                        foreach (tdgitem i in vl)
+                            if (i.ip == t.ip) i.grouped_ip = "OTHER";
+                        view.Refresh();
+                    }
+                    break;
+                default:
+                    break;
+            }
+
         }
-        public static void tdg_group_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        public void tdg_group_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             // only enable if more than one row in table
             // this is a hack - for some reason, if there is only one row in the table and it gets deleted
