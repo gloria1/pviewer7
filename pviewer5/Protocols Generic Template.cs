@@ -345,6 +345,7 @@ namespace pviewer5
 
     public class Packet : PVDisplayObject
     {
+
         // convenience properties to contain copies of commonly needed values,
         // so that other functions do not need to search through header list to find them
         public ulong SeqNo = 0; // absolute sequence number in packet file
