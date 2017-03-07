@@ -250,12 +250,23 @@ namespace pviewer5
         }
         public void tdg_break_out_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            // only enable if more than one row in table
-            // this is a hack - for some reason, if there is only one row in the table and it gets deleted
-            // the datagrid is left in some bad state such that the next add operation causes a crash
-            // i gave up trying to diagnose it, so my "workaround" is to prevent deletion if there is only one
-            // row left
-            e.CanExecute = true; 
+            DataGrid dg = (DataGrid)sender;
+            string column = dg.CurrentColumn.SortMemberPath;
+            tdgitem t = (tdgitem)(dg.CurrentCell.Item);
+
+            // if grouped for this specific value, then
+            // change grouped_xx to specific value
+            // do this for all packets that have this specific value - need to pass through entire packet list
+
+            switch (column)
+            {
+                case "ip":
+                    e.CanExecute = (t.grouped_ip == "OTHER");
+                    break;
+                default:
+                    e.CanExecute = false;
+                    break;
+            }
         }
 
         public void tdg_group_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -281,12 +292,23 @@ namespace pviewer5
         }
         public void tdg_group_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            // only enable if more than one row in table
-            // this is a hack - for some reason, if there is only one row in the table and it gets deleted
-            // the datagrid is left in some bad state such that the next add operation causes a crash
-            // i gave up trying to diagnose it, so my "workaround" is to prevent deletion if there is only one
-            // row left
-            e.CanExecute = true;
+            DataGrid dg = (DataGrid)sender;
+            string column = dg.CurrentColumn.SortMemberPath;
+            tdgitem t = (tdgitem)(dg.CurrentCell.Item);
+
+            // if grouped for this specific value, then
+            // change grouped_xx to specific value
+            // do this for all packets that have this specific value - need to pass through entire packet list
+
+            switch (column)
+            {
+                case "ip":
+                    e.CanExecute = (t.grouped_ip != "OTHER");
+                    break;
+                default:
+                    e.CanExecute = false;
+                    break;
+            }
         }
 
     }
