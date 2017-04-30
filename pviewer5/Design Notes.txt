@@ -1,11 +1,55 @@
 ﻿
 
+4/30 dummy note
+
 2/26
 	next steps
 
 		next steps:
+
+			tree nodes are unique tuples of (axis1, axis2, ...)
+			before view change, collect all the tuples and their expansion state
+			WHAT IS THAT STATE?  A TUPLE OF (EXPANDED|COLLAPSED) ?
+			IS THIS A DICTIONARY THAT CAN BE INDEXED BY TUPLE?
+			apply the view change to the tuple dictionary
+				adding an axis
+				deleting an axis
+				changing the order of axes
+
+
+
+			stop overthinking and going for the ultimate design
+			think about likely workflows and what kind of tree expansion behavior will be needed
+			e.g., typical flow will be
+				load full capture
+				start filtering out known good
+					scroll through traffic gropuped by one of ip, mac, or domain, sorted by volume or domain
+					pick items to add to exclusion filter and apply the filter
+					==> filter changes should leave expansion state unchanged 
+					==> if need be, explicitly scan the whole tree before filtering, store the expanded state and re-apply after filter
+					==> only need to handle case where filter adds/removes a whole node
+
+
+
+
+			follow recipe in visual studio help page on "How to Group, Sort, Filter..."
+				define CollectionViewSource etc.
+				make tdgitem inherit frmo PVDisplayObject
+				make the grouping objects inherit from PVDisplayObject
+
+			IF USE DATAGRID, MAY MAKEUSE OF ROWDETAILS
+			FOR PERFORMANCE, SEE ABOUT VIRTUALIZING WITH GROUPING, E.G., PAGE 654 IN PRO WPF
+				apparently virtualization does not happen automatically when grouping
+				need to make certain settings to enable
+
+
+			first make view retain branch open/closed state when change
+				==> try using PVDisplayObject for tdgitem
 			transfer logic to main window
 				identify all goruping axes
+				Packet becomes like tdgitem
+				xaml uses datagrid instead of treeview
+
 			improve labeling in group headers
 			make sure "OTHER" is always last in sort order (so it will always be at top or bottom of list)
 

@@ -23,11 +23,6 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace pviewer5
 {
-    /// <summary>
-    /// Interaction logic for TestDataGrid.xaml
-    /// </summary>
-    /// 
-
 
     public class tdgitem : INotifyPropertyChanged
     {
@@ -76,6 +71,8 @@ namespace pviewer5
                 PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
             }
         }
+
+
     }
 
 
@@ -171,7 +168,7 @@ namespace pviewer5
             // even though it must get set somewhere later on because the datagrid
             // does get populated correctly
             view = (ListCollectionView)CollectionViewSource.GetDefaultView(vl);
-
+            
             SetGrouping();
 
         }
@@ -182,9 +179,6 @@ namespace pviewer5
             foreach (tdggroupingaxis a in axes)
                 if (a.ischecked)
                     view.GroupDescriptions.Add(new PropertyGroupDescription(a.propertyname));
-
-            view.Refresh();
-
         }
 
         void tdgaxischeck_Click(object sender, RoutedEventArgs e)
