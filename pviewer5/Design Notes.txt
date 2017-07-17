@@ -1,14 +1,81 @@
 ﻿
 
-4/30 dummy note
 
-2/26
+2017-07-18 coming back to it
+
+
+THINKING ABOUT IT IN THE ABSTRACT WILL NOT GET MUCH FURTHER
+NEED TO REVIEW EXISTING CODE AND GET IT WORKING (RIGHT CLICK SEEMS BROKEN)
+THEN RE-WRITE TO CAPTURE THE CURRENT VIEW STATE AS SHOWN BELOW 
+	NEED TO HAVE METHOD TO EXTRACT THIS TREE FROM CURRENT WPF VIEW
+	METHOD TO MANIPULATE IT WHEN STATE CHANGES
+	METHOD TO APPLY IT TO NEW WPF VIEW
+NEED TO WORK THROUGH IMPLEMENTATION TO GET MY HEAD INSIDE THE PROBLEM, BE PREPARED TO SCRAP AND REWRITE
+
+
+
+	use cases for the tool overall
+		load one or more capture files
+		append additional capture files and retain the view
+
+		quickly filtering down to traffic of interest when you already know what to look for
+		exploring a blob of traffic when you don't know what you are looking for
+			this is where we want to, say, sort, change hierarchy, apply a filter, sort again, change hierarchy again, etc.
+			want to retain tree state across changes, both those that narrow what is shown and those that broaden it
+			"Cases for view change" below still seems to be the right list
+
+		so, how do we represent the view state that we want to extract from the wpf view and re-apply?
+			current view is:
+				pvdo grouped - state: expanded?
+					pvdo grouped - state: expanded?
+						pvdo grouped - state: expanded?
+						pvdo indiv - state: expanded?
+						pvdo indiv - state: expanded?
+					pvdo indiv - state: expanded?
+						pvdo grouped - state: expanded?
+						pvdo indiv - state: expanded?
+						pvdo indiv - state: expanded?
+					pvdo indiv - state: expanded?
+						pvdo grouped - state: expanded?
+						pvdo indiv - state: expanded?
+						pvdo indiv - state: expanded?
+				pvdo indiv - state: expanded?
+					pvdo grouped - state: expanded?
+						pvdo grouped - state: expanded?
+						pvdo indiv - state: expanded?
+						pvdo indiv - state: expanded?
+					pvdo indiv - state: expanded?
+						pvdo grouped - state: expanded?
+						pvdo indiv - state: expanded?
+						pvdo indiv - state: expanded?
+					pvdo indiv - state: expanded?
+						pvdo grouped - state: expanded?
+						pvdo indiv - state: expanded?
+						pvdo indiv - state: expanded?
+
+
 	next steps
 
 		next steps:
 
 			tree nodes are unique tuples of (axis1, axis2, ...)
 			before view change, collect all the tuples and their expansion state
+			then apply the view change to the list
+			refresh the wpf view
+			apply expanded states to refreshed wpf view
+			cases for view change:
+				packet list changed (appended)
+				packet list changed (a new one, old one gone - if want to keep a certain view while scanning across multiple packet sets)
+				axis hierarchy order changed
+				axis added to hierarchy
+				axis deleted from hierarchy
+				axis item moved into "other" item
+				axis item broken out of "other" item
+
+
+
+
+
 			WHAT IS THAT STATE?  A TUPLE OF (EXPANDED|COLLAPSED) ?
 			IS THIS A DICTIONARY THAT CAN BE INDEXED BY TUPLE?
 			apply the view change to the tuple dictionary
