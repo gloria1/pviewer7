@@ -31,7 +31,7 @@ namespace pviewer5
     [Serializable]
     public class IP4g : IComparable<IP4g>
     {
-        public IP4 ip4;
+        public IP4 ip4 { get; set; }
         public bool grouped = false;
 
         public override bool Equals(object a)

@@ -103,10 +103,9 @@
 			ItemsSource="{Binding Path=vl}">
 
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Timestamp" Binding="{Binding Path=timestamp}"/>
-                <DataGridTextColumn Header="IP" Binding="{Binding ip}"/>
-                <DataGridTextColumn Header="Proto" Binding="{Binding grouped_proto}"/>
-                <DataGridTextColumn Header="GroupType" Binding="{Binding grouped_grouptype}"/>
+                <DataGridTextColumn Header="IP" Binding="{Binding ip4g.IP4}"/>
+                <DataGridTextColumn Header="Proto" Binding="{Binding protocolsg.proto}"/>
+                <DataGridTextColumn Header="GroupType" Binding="{Binding gtypeg.gt}"/>
             </DataGrid.Columns>
             <DataGrid.GroupStyle>
                 <!-- Style for groups at top level. -->

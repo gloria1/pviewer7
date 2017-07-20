@@ -26,7 +26,7 @@ namespace pviewer5
     [Serializable]
     public class Protocolsg : IComparable<Protocolsg>
     {
-        public Protocols proto;
+        public Protocols proto { get; set; }
         public bool grouped = false;
 
         public override bool Equals(object a)
@@ -53,7 +53,7 @@ namespace pviewer5
     [Serializable]
     public class GTypeg : IComparable<GTypeg>
     {
-        public Type gt;
+        public Type gt { get; set; }
         public bool grouped = false;
 
         public override bool Equals(object a)
@@ -423,9 +423,9 @@ namespace pviewer5
         public H groupprotoheader { get; set; }     // packet group logic will set this to point to the header of the protocol relevant to that group type
 
         // properties to be used for grouping in the datagrid
-        public IP4g ip4g;
-        public Protocolsg protocolsg;
-        public GTypeg gtypeg;
+        public IP4g ip4g { get; set; }
+        public Protocolsg protocolsg { get; set; }
+        public GTypeg gtypeg { get; set; }
 
         public override string displayinfo
         {

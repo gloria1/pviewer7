@@ -249,7 +249,7 @@ namespace pviewer5
         {
             DataGrid dg = (DataGrid)sender;
             string column = dg.CurrentColumn.SortMemberPath;
-            tdgitem t = (tdgitem)(dg.CurrentCell.Item);
+            Packet p = (Packet)(dg.CurrentCell.Item);
 
             // if grouped for this specific value, then
                 // change grouped_xx to specific value
@@ -258,10 +258,10 @@ namespace pviewer5
             switch(column)
             {
                 case "ip":
-                    if (t.grouped_ip == "OTHER")
+                    if (p.ip4g.grouped)
                     {
-                        foreach (tdgitem i in vl)
-                            if (i.ip == t.ip) i.grouped_ip = i.ip;
+                        foreach (Packet i in vl)
+                            if (i.ip4g == p.ip4g) i.ip4g.grouped = false;
                         view.Refresh();
                     }
                     break;
@@ -275,7 +275,7 @@ namespace pviewer5
         {
             DataGrid dg = (DataGrid)sender;
             string column = dg.CurrentColumn.SortMemberPath;
-            tdgitem t = (tdgitem)(dg.CurrentCell.Item);
+            Packet p = (Packet)(dg.CurrentCell.Item);
 
             // if grouped for this specific value, then
             // change grouped_xx to specific value
@@ -284,7 +284,7 @@ namespace pviewer5
             switch (column)
             {
                 case "ip":
-                    e.CanExecute = (t.grouped_ip == "OTHER");
+                    e.CanExecute = (p.ip4g.grouped);
                     break;
                 default:
                     e.CanExecute = false;
@@ -296,15 +296,15 @@ namespace pviewer5
         {
             DataGrid dg = (DataGrid)sender;
             string column = dg.CurrentColumn.SortMemberPath;
-            tdgitem t = (tdgitem)(dg.CurrentCell.Item);
+            Packet p = (Packet)(dg.CurrentCell.Item);
 
             switch (column)
             {
                 case "ip":
-                    if (t.grouped_ip != "OTHER")
+                    if (!p.ip4g.grouped)
                     {
-                        foreach (tdgitem i in vl)
-                            if (i.ip == t.ip) i.grouped_ip = "OTHER";
+                        foreach (Packet i in vl)
+                            if (i.ip4g.ip4 == p.ip4g.ip4) i.ip4g.grouped = true;
                         view.Refresh();
                     }
                     break;
@@ -317,7 +317,7 @@ namespace pviewer5
         {
             DataGrid dg = (DataGrid)sender;
             string column = dg.CurrentColumn.SortMemberPath;
-            tdgitem t = (tdgitem)(dg.CurrentCell.Item);
+            Packet p = (Packet)(dg.CurrentCell.Item);
 
             // if grouped for this specific value, then
             // change grouped_xx to specific value
@@ -326,7 +326,7 @@ namespace pviewer5
             switch (column)
             {
                 case "ip":
-                    e.CanExecute = (t.grouped_ip != "OTHER");
+                    e.CanExecute = (!p.ip4g.grouped);
                     break;
                 default:
                     e.CanExecute = false;
