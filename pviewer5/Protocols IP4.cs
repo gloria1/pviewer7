@@ -27,6 +27,35 @@ using System.Runtime.Serialization.Formatters.Binary;
 namespace pviewer5
 {
 
+
+    [Serializable]
+    public class IP4g : IComparable<IP4g>
+    {
+        public IP4 ip4;
+        public bool grouped = false;
+
+        public override bool Equals(object a)
+        {
+            if (a == DependencyProperty.UnsetValue) return false;
+            else return (this == (IP4g)a);
+        }
+        public override int GetHashCode() { return ip4.GetHashCode(); }
+
+        public IP4g(IP4 i) { ip4 = i; }
+
+        public static bool operator ==(IP4g a, IP4g b) { if (a.grouped && b.grouped) return true; else if (a.grouped != b.grouped) return false; else return a.ip4 == b.ip4; }
+        public static bool operator !=(IP4g a, IP4g b) { if (a.grouped && b.grouped) return false; else if (a.grouped != b.grouped) return true; else return a.ip4 != b.ip4; }
+        public static bool operator <=(IP4g a, IP4g b) { if (a.grouped && b.grouped) return true; else if (a.grouped) return true; else return a.ip4.A <= b.ip4.A; }
+        public static bool operator <(IP4g a, IP4g b) { if (a.grouped && b.grouped) return false; else if (a.grouped) return true; else return a.ip4.A < b.ip4.A; }
+        public static bool operator >=(IP4g a, IP4g b) { if (a.grouped && b.grouped) return true; else if (b.grouped) return true; else return a.ip4.A >= b.ip4.A; }
+        public static bool operator >(IP4g a, IP4g b) { if (a.grouped && b.grouped) return false; else if (b.grouped) return true; else return a.ip4.A > b.ip4.A; }
+        public int CompareTo(IP4g a)
+        {
+            return 0;
+        }
+    }
+
+
     [Serializable]
     public struct IP4 : IComparable<IP4>
     {
@@ -35,7 +64,7 @@ namespace pviewer5
         public override bool Equals(object a)
         {
             if (a == DependencyProperty.UnsetValue) return false;
-            else return ((IP4)a).A == A;
+            else return (this == (IP4)a);
         }
         public override int GetHashCode() { return A.GetHashCode(); }
         public static implicit operator IP4(uint i) { IP4 r = new IP4(); r.A = i; return r; }

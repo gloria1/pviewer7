@@ -24,11 +24,21 @@ using System.Runtime.Serialization.Formatters.Binary;
 namespace pviewer5
 {
 
+    // next:
+    //      redo tdgitem to use IP4g, GTypeg and Protocolsg
+    //      redo axes and window code to use the above
+    //      implement grouping buckets and logic described in spreadsheet
+
+
+
+
+
+
     public class tdgitem : INotifyPropertyChanged
     {
         public string timestamp { get; set; }
-        public string ip { get; set; }
-        public string proto { get; set; }
+        public IP4 ip { get; set; }
+        public Protocols proto { get; set; }
         public object group { get; set; }
         public Type grouptype { get { return group.GetType(); } }
         public ObservableCollection<tdgitem> parent { get; set; }

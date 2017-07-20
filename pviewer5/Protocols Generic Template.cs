@@ -23,6 +23,88 @@ using Microsoft.Win32;
 namespace pviewer5
 {
 
+    [Serializable]
+    public class Protocolsg : IComparable<Protocolsg>
+    {
+        public Protocols proto;
+        public bool grouped = false;
+
+        public override bool Equals(object a)
+        {
+            if (a == DependencyProperty.UnsetValue) return false;
+            else return (this == (Protocolsg)a);
+        }
+        public override int GetHashCode() { return proto.GetHashCode(); }
+        public Protocolsg(Protocols p) { proto = p; }
+
+        public static bool operator ==(Protocolsg a, Protocolsg b) { if (a.grouped && b.grouped) return true;  else if (a.grouped != b.grouped) return false; else return a.proto == b.proto; }
+        public static bool operator !=(Protocolsg a, Protocolsg b) { if (a.grouped && b.grouped) return false; else if (a.grouped != b.grouped) return true;  else return a.proto != b.proto; }
+        public static bool operator <=(Protocolsg a, Protocolsg b) { if (a.grouped && b.grouped) return true;  else if (a.grouped             ) return true;  else return a.proto <= b.proto; }
+        public static bool operator  <(Protocolsg a, Protocolsg b) { if (a.grouped && b.grouped) return false; else if (a.grouped             ) return true;  else return a.proto < b.proto; }
+        public static bool operator >=(Protocolsg a, Protocolsg b) { if (a.grouped && b.grouped) return true;  else if (             b.grouped) return true;  else return a.proto >= b.proto; }
+        public static bool operator  >(Protocolsg a, Protocolsg b) { if (a.grouped && b.grouped) return false; else if (             b.grouped) return true;  else return a.proto > b.proto; }
+        public int CompareTo(Protocolsg a)
+        {
+            return 0;
+        }
+
+    }
+
+    [Serializable]
+    public class GTypeg : IComparable<GTypeg>
+    {
+        public Type gt;
+        public bool grouped = false;
+
+        public override bool Equals(object a)
+        {
+            if (a == DependencyProperty.UnsetValue) return false;
+            else return (this == (GTypeg)a);
+        }
+        public override int GetHashCode() { return gt.GetHashCode(); }
+        public GTypeg(Type t) { gt = t; }
+
+        public static bool operator ==(GTypeg a, GTypeg b) { if (a.grouped && b.grouped) return true; else if (a.grouped != b.grouped) return false; else return a.gt == b.gt; }
+        public static bool operator !=(GTypeg a, GTypeg b) { if (a.grouped && b.grouped) return false; else if (a.grouped != b.grouped) return true; else return a.gt != b.gt; }
+
+        // do we need the next four operators? error messages say they do not work on string types
+        /*        public static bool operator <=(GTypeg a, GTypeg b) { if (a.grouped && b.grouped) return true; else if (a.grouped) return true; else return a.gt.ToString() <= b.gt.ToString(); }
+                public static bool operator <(GTypeg a, GTypeg b) { if (a.grouped && b.grouped) return false; else if (a.grouped) return true; else return a.gt.ToString < b.gt.ToString; }
+                public static bool operator >=(GTypeg a, GTypeg b) { if (a.grouped && b.grouped) return true; else if (b.grouped) return true; else return a.gt >= b.gt.ToString(); }
+                public static bool operator >(GTypeg a, GTypeg b) { if (a.grouped && b.grouped) return false; else if (b.grouped) return true; else return a.gt > b.gt; }
+          */
+        public int CompareTo(GTypeg a)
+        {
+            return 0;
+        }
+
+    }
+
+
+
+
+    [Flags]
+    public enum Protocols : ulong
+    {
+        Generic = 1,
+        Ungrouped = 2,
+        PcapOld = 4,
+        PcapNG = 8,
+        Ethernet = 0x10,
+        Wifi = 0x20,
+        IP4 = 0x40,
+        ARP = 0x80,
+        IP6 = 0x100,
+        TCP = 0x200,
+        UDP = 0x400,
+        ICMP = 0x800,
+        IGMP = 0x1000,
+        GGP = 0x2000,
+        DHCP4 = 0x4000,
+        BOOTP = 0x8000,
+        DNS = 0x10000
+    }
+
     public class PVDisplayObject : IEditableObject
         // propagation of ExceptionLevel property:
         //   0) basically, it propagates up but not down, and propagation only ratchets the parents level up, never down
@@ -319,28 +401,6 @@ namespace pviewer5
         }
     }
 
-    [Flags]
-    public enum Protocols : ulong
-    {
-        Generic = 1,
-        Ungrouped = 2,
-        PcapOld = 4,
-        PcapNG = 8,
-        Ethernet = 0x10,
-        Wifi = 0x20,
-        IP4 = 0x40,
-        ARP = 0x80,
-        IP6 = 0x100,
-        TCP = 0x200,
-        UDP = 0x400,
-        ICMP = 0x800,
-        IGMP = 0x1000,
-        GGP = 0x2000,
-        DHCP4 = 0x4000,
-        BOOTP = 0x8000,
-        DNS = 0x10000
-    }
-
 
 
     public class Packet : PVDisplayObject
@@ -361,7 +421,12 @@ namespace pviewer5
         public IP4H ip4hdr = null;
         public TCPH tcphdr = null;
         public H groupprotoheader { get; set; }     // packet group logic will set this to point to the header of the protocol relevant to that group type
-        
+
+        // properties to be used for grouping in the datagrid
+        public IP4g ip4g;
+        public Protocolsg protocolsg;
+        public GTypeg gtypeg;
+
         public override string displayinfo
         {
             get
@@ -415,6 +480,12 @@ namespace pviewer5
 
             if (pfh.Type == PcapFile.PcapFileTypes.PcapNG)
                 fs.Seek((long)(pch.NGBlockLen - 0x1c - pch.CapLen), SeekOrigin.Current);       // skip over any padding bytes, options and trailing block length field
+
+            // set the grouping properties
+            ip4g = new IP4g(SrcIP4);
+            protocolsg = new Protocolsg(Prots);
+            gtypeg = new GTypeg(Parent.GetType());
+
         }
 
         // implement INotifyPropertyChanged
