@@ -461,6 +461,11 @@ namespace pviewer5
         }
         */
 
+        public Packet() : base(null)
+        {
+
+        }
+
         public Packet(FileStream fs, PcapFile pfh) : base(null)     // constructor does not have a parent argument, because at the time a packet is instantiated its parent cannot be known yet
         {
             PcapH pch;
