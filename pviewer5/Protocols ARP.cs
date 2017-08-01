@@ -122,6 +122,7 @@ namespace pviewer5
             // note: base class constructor is called first (due to : base(pkt) above)
 
             // set group properties here
+            Type = GTypes.ARP;
             ARPH arph = null;
             foreach (H ph in pkt.L) if (ph.headerprot == Protocols.ARP) { arph = (ARPH)ph; break; }
             HWType = arph.HWType;
@@ -175,6 +176,7 @@ namespace pviewer5
         {
             // set headerselector to protocol header that G.GroupPacket should extract
             headerselector = Protocols.ARP;
+            Type = GTypes.ARP;
         }
 
 

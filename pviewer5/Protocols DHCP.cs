@@ -112,9 +112,10 @@ namespace pviewer5
             public DHCP4G(Packet pkt, GList parent) : base(pkt, parent)
             {
 
-                // note: base class constructor is called first (due to : base(pkt) above)
+            // note: base class constructor is called first (due to : base(pkt) above)
 
-                // set group properties here
+            // set group properties here
+                Type = GTypes.DHCP4;
                 foreach (H h in pkt.L) if (h.headerprot == Protocols.DHCP4)
                     {
                         DHCP4XID = ((DHCP4H)h).DHCP4XID;
@@ -154,6 +155,7 @@ namespace pviewer5
         {
             // set headerselector to protocol header that G.GroupPacket should extract
             headerselector = Protocols.DHCP4;
+            Type = GTypes.DHCP4;
         }
 
 

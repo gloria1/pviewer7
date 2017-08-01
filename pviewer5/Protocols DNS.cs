@@ -729,6 +729,7 @@ namespace pviewer5
 
             // set group properties here
             ID = 0;
+            Type = GTypes.DNS;
 
             foreach (H h in pkt.L)
                 if (h.headerprot == Protocols.DNS)
@@ -773,6 +774,7 @@ namespace pviewer5
         public DNSGList(string n, PVDisplayObject parent) : base(n, parent)
         {
             // set headerselector to protocol header that G.GroupPacket should extract
+            Type = GTypes.DNS ;
             headerselector = Protocols.DNS;
         }
 

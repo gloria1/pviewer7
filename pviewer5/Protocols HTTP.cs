@@ -65,7 +65,7 @@ namespace pviewer5
 
 
             // set group properties here
-
+            Type = GTypes.HTTP;
         }
 
         public override bool Belongs(Packet pkt, H h)        // returns true if pkt belongs to group
@@ -99,6 +99,7 @@ namespace pviewer5
         {
             // set headerselector to protocol header that G.GroupPacket should extract
             headerselector = Protocols.Generic;
+            Type = GTypes.HTTP;
         }
 
 

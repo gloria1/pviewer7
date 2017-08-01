@@ -424,6 +424,7 @@ namespace pviewer5
 
             // set group properties here
 
+            Type = GTypes.TCP;
             S1IP4 = pkt.SrcIP4;
             S1Port = pkt.SrcPort;
             S2IP4 = pkt.DestIP4;
@@ -518,6 +519,7 @@ namespace pviewer5
         {
             // set headerselector to protocol header that G.GroupPacket should extract
             headerselector = Protocols.TCP;
+            Type = GTypes.TCP;
         }
 
 

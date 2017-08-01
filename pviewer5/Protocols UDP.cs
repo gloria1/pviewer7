@@ -97,6 +97,7 @@ namespace pviewer5
 
 
             // set group properties here
+            Type = GTypes.UDP;
             SrcIP4 = pkt.SrcIP4;
             SrcPort = pkt.SrcPort;
             DestIP4 = pkt.DestIP4;
@@ -139,6 +140,7 @@ namespace pviewer5
         {
             // set headerselector to protocol header that G.GroupPacket should extract
             headerselector = Protocols.UDP;
+            Type = GTypes.UDP;
         }
 
 

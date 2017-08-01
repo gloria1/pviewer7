@@ -27,7 +27,8 @@ using System.Runtime.Serialization.Formatters.Binary;
 namespace pviewer5
 {
 
-
+    /* PROBABLY GOING TO DELETE, BUT KEEP FOR NOW IN CASE NEED TO REVERT...
+     * 
     [Serializable]
     public class IP4g : IComparable<IP4g>
     {
@@ -54,6 +55,8 @@ namespace pviewer5
             return 0;
         }
     }
+
+    */
 
 
     [Serializable]

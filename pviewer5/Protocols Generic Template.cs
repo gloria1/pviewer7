@@ -23,6 +23,9 @@ using Microsoft.Win32;
 namespace pviewer5
 {
 
+/*  PROBABLY GOING TO DELETE THESE, BUT KEEP IN CASE I NEED TO REVERT TO THEM..
+
+
     [Serializable]
     public class Protocolsg : IComparable<Protocolsg>
     {
@@ -68,11 +71,11 @@ namespace pviewer5
         public static bool operator !=(GTypeg a, GTypeg b) { if (a.grouped && b.grouped) return false; else if (a.grouped != b.grouped) return true; else return a.gt != b.gt; }
 
         // do we need the next four operators? error messages say they do not work on string types
-        /*        public static bool operator <=(GTypeg a, GTypeg b) { if (a.grouped && b.grouped) return true; else if (a.grouped) return true; else return a.gt.ToString() <= b.gt.ToString(); }
-                public static bool operator <(GTypeg a, GTypeg b) { if (a.grouped && b.grouped) return false; else if (a.grouped) return true; else return a.gt.ToString < b.gt.ToString; }
-                public static bool operator >=(GTypeg a, GTypeg b) { if (a.grouped && b.grouped) return true; else if (b.grouped) return true; else return a.gt >= b.gt.ToString(); }
-                public static bool operator >(GTypeg a, GTypeg b) { if (a.grouped && b.grouped) return false; else if (b.grouped) return true; else return a.gt > b.gt; }
-          */
+        //        public static bool operator <=(GTypeg a, GTypeg b) { if (a.grouped && b.grouped) return true; else if (a.grouped) return true; else return a.gt.ToString() <= b.gt.ToString(); }
+        //        public static bool operator <(GTypeg a, GTypeg b) { if (a.grouped && b.grouped) return false; else if (a.grouped) return true; else return a.gt.ToString < b.gt.ToString; }
+        //        public static bool operator >=(GTypeg a, GTypeg b) { if (a.grouped && b.grouped) return true; else if (b.grouped) return true; else return a.gt >= b.gt.ToString(); }
+        //        public static bool operator >(GTypeg a, GTypeg b) { if (a.grouped && b.grouped) return false; else if (b.grouped) return true; else return a.gt > b.gt; }
+          
         public int CompareTo(GTypeg a)
         {
             return 0;
@@ -80,6 +83,7 @@ namespace pviewer5
 
     }
 
+    */
 
 
 
@@ -103,6 +107,19 @@ namespace pviewer5
         DHCP4 = 0x4000,
         BOOTP = 0x8000,
         DNS = 0x10000
+    }
+
+
+    [Flags]
+    public enum GTypes : ulong
+    {
+        Ungrouped = 1,
+        ARP = 2,
+        TCP = 4,
+        UDP = 8,
+        DHCP4 = 0x10,
+        DNS = 0x20,
+        HTTP = 0x40
     }
 
     public class PVDisplayObject : IEditableObject
@@ -237,6 +254,7 @@ namespace pviewer5
     {
         public bool Complete = false;
         public DateTime FirstTime, LastTime;   // earliest and latest timestamp in this group
+        public GTypes Type;
 
         public override string displayinfo {
             get
@@ -304,6 +322,7 @@ namespace pviewer5
     {
         public string name;
         public virtual Protocols headerselector { get; set; }   // used by G.GroupPacket to pull the header for the relevant protocol out of the packet, to pass into the Belongs and StartNewGroup functions
+        public GTypes Type;
 
         public override string displayinfo {
             get
@@ -320,7 +339,7 @@ namespace pviewer5
         public GList(string n, PVDisplayObject parent) : base(parent)
         {
             name = n;
-
+            Type = GTypes.Ungrouped;
             L = new ObservableCollection<PVDisplayObject>();
 
         }
@@ -423,9 +442,16 @@ namespace pviewer5
         public H groupprotoheader { get; set; }     // packet group logic will set this to point to the header of the protocol relevant to that group type
 
         // properties to be used for grouping in the datagrid
-        public IP4g ip4g { get; set; }
-        public Protocolsg protocolsg { get; set; }
-        public GTypeg gtypeg { get; set; }
+        public IP4? ip4g { get; set; }
+        public Protocols? protocolsg { get; set; }
+        public GTypes? gtypeg { get; set; }
+
+        // TEMPORARY PLUGS
+        public IP4 ip4temp;
+        public Protocols prottemp;
+        public GTypes gtypetemp;
+        // end temp plugs
+
 
         public override string displayinfo
         {
@@ -485,11 +511,7 @@ namespace pviewer5
 
             if (pfh.Type == PcapFile.PcapFileTypes.PcapNG)
                 fs.Seek((long)(pch.NGBlockLen - 0x1c - pch.CapLen), SeekOrigin.Current);       // skip over any padding bytes, options and trailing block length field
-
-            // set the grouping properties
-            ip4g = new IP4g(SrcIP4);
-            protocolsg = new Protocolsg(Prots);
-            gtypeg = new GTypeg(Parent.GetType());
+            
 
         }
 
