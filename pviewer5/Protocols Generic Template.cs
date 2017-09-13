@@ -423,9 +423,11 @@ namespace pviewer5
         public H groupprotoheader { get; set; }     // packet group logic will set this to point to the header of the protocol relevant to that group type
 
         // properties to be used for grouping in the datagrid
-        public IP4g ip4g { get; set; }
-        public Protocolsg protocolsg { get; set; }
-        public GTypeg gtypeg { get; set; }
+        public IP4? ip4g { get; set; }
+        public Protocols? protocolsg { get; set; }
+        public Type gtypeg { get; set; }
+        // next one is temporary while doing test data grid experiments
+        public Type gtypegtemp { get; set; }
 
         public override string displayinfo
         {
@@ -487,9 +489,9 @@ namespace pviewer5
                 fs.Seek((long)(pch.NGBlockLen - 0x1c - pch.CapLen), SeekOrigin.Current);       // skip over any padding bytes, options and trailing block length field
 
             // set the grouping properties
-            ip4g = new IP4g(SrcIP4);
-            protocolsg = new Protocolsg(Prots);
-            gtypeg = new GTypeg(Parent.GetType());
+            ip4g = SrcIP4;
+            protocolsg = Prots;
+            gtypeg = Parent.GetType();
 
         }
 

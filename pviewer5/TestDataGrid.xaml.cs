@@ -150,46 +150,27 @@ namespace pviewer5
             tdg.CommandBindings.Add(tdg_break_out_binding);
             tdg.CommandBindings.Add(tdg_group_binding);
 
-
-            vl.Add(new Packet()); vl[00].ip4g = new IP4g(0xc0a80b03); vl[00].protocolsg = new Protocolsg(Protocols.ARP); vl[00].gtypeg = new GTypeg(typeof(ARPG));
-            vl.Add(new Packet()); vl[01].ip4g = new IP4g(0xc0a80b04); vl[01].protocolsg = new Protocolsg(Protocols.ARP); vl[01].gtypeg = new GTypeg(typeof(ARPG));
-            vl.Add(new Packet()); vl[02].ip4g = new IP4g(0xc0a80b02); vl[02].protocolsg = new Protocolsg(Protocols.DNS); vl[02].gtypeg = new GTypeg(typeof(HTTPG));
-            vl.Add(new Packet()); vl[03].ip4g = new IP4g(0xc0a80b03); vl[03].protocolsg = new Protocolsg(Protocols.TCP); vl[03].gtypeg = new GTypeg(typeof(HTTPG));
-            vl.Add(new Packet()); vl[04].ip4g = new IP4g(0xc0a80b02); vl[04].protocolsg = new Protocolsg(Protocols.TCP); vl[04].gtypeg = new GTypeg(typeof(HTTPG));
-            vl.Add(new Packet()); vl[05].ip4g = new IP4g(0xc0a80b02); vl[05].protocolsg = new Protocolsg(Protocols.TCP); vl[05].gtypeg = new GTypeg(typeof(HTTPG));
-            vl.Add(new Packet()); vl[06].ip4g = new IP4g(0xc0a80b04); vl[06].protocolsg = new Protocolsg(Protocols.ARP); vl[06].gtypeg = new GTypeg(typeof(ARPG));
-            vl.Add(new Packet()); vl[07].ip4g = new IP4g(0xc0a80b02); vl[07].protocolsg = new Protocolsg(Protocols.TCP); vl[07].gtypeg = new GTypeg(typeof(HTTPG));
-            vl.Add(new Packet()); vl[08].ip4g = new IP4g(0xc0a80b03); vl[08].protocolsg = new Protocolsg(Protocols.ARP); vl[08].gtypeg = new GTypeg(typeof(ARPG));
-            vl.Add(new Packet()); vl[09].ip4g = new IP4g(0xc0a80b03); vl[09].protocolsg = new Protocolsg(Protocols.ARP); vl[09].gtypeg = new GTypeg(typeof(ARPG));
-            vl.Add(new Packet()); vl[10].ip4g = new IP4g(0xc0a80b05); vl[10].protocolsg = new Protocolsg(Protocols.ARP); vl[10].gtypeg = new GTypeg(typeof(ARPG));
-            vl.Add(new Packet()); vl[11].ip4g = new IP4g(0xc0a80b06); vl[11].protocolsg = new Protocolsg(Protocols.ARP); vl[11].gtypeg = new GTypeg(typeof(ARPG));
-            vl.Add(new Packet()); vl[12].ip4g = new IP4g(0xc0a80b02); vl[12].protocolsg = new Protocolsg(Protocols.ARP); vl[12].gtypeg = new GTypeg(typeof(ARPG));
-            vl.Add(new Packet()); vl[13].ip4g = new IP4g(0xc0a80b02); vl[13].protocolsg = new Protocolsg(Protocols.TCP); vl[13].gtypeg = new GTypeg(typeof(HTTPG));
-            vl.Add(new Packet()); vl[14].ip4g = new IP4g(0xc0a80b02); vl[14].protocolsg = new Protocolsg(Protocols.TCP); vl[14].gtypeg = new GTypeg(typeof(HTTPG));
-            vl.Add(new Packet()); vl[15].ip4g = new IP4g(0xc0a80b02); vl[15].protocolsg = new Protocolsg(Protocols.TCP); vl[15].gtypeg = new GTypeg(typeof(HTTPG));
-            vl.Add(new Packet()); vl[16].ip4g = new IP4g(0xc0a80b02); vl[16].protocolsg = new Protocolsg(Protocols.TCP); vl[16].gtypeg = new GTypeg(typeof(HTTPG));
-
-/*            vl.Add(new tdgitem("002", "192.168.11.223", "arp", arpgroup1,  vl));
-            vl.Add(new tdgitem("003", "192.168.11.224", "arp", arpgroup1,  vl));
-            vl.Add(new tdgitem("004", "192.168.11.222", "dns", httpgroup1, vl));
-            vl.Add(new tdgitem("005", "192.168.11.223", "tcp", httpgroup1, vl));
-            vl.Add(new tdgitem("006", "192.168.11.222", "tcp", httpgroup1, vl));
-            vl.Add(new tdgitem("007", "192.168.11.222", "tcp", httpgroup1, vl));
-            vl.Add(new tdgitem("008", "192.168.11.224", "arp", arpgroup2,  vl));
-            vl.Add(new tdgitem("009", "192.168.11.222", "tcp", httpgroup2, vl));
-            vl.Add(new tdgitem("010", "192.168.11.223", "arp", arpgroup2,  vl));
-            vl.Add(new tdgitem("011", "192.168.11.223", "arp", arpgroup2,  vl));
-            vl.Add(new tdgitem("012", "192.168.11.225", "arp", arpgroup2,  vl));
-            vl.Add(new tdgitem("013", "192.168.11.226", "arp", arpgroup2,  vl));
-            vl.Add(new tdgitem("014", "192.168.11.222", "arp", arpgroup2,  vl));
-            vl.Add(new tdgitem("015", "192.168.11.222", "tcp", httpgroup2, vl));
-            vl.Add(new tdgitem("016", "192.168.11.222", "tcp", httpgroup2, vl));
-            vl.Add(new tdgitem("017", "192.168.11.222", "tcp", httpgroup2, vl));
-            vl.Add(new tdgitem("018", "192.168.11.222", "tcp", httpgroup2, vl));
-*/
-            axes.Add(new tdggroupingaxis("grouped_proto", "Protocol", axes));
-            axes.Add(new tdggroupingaxis("grouped_ip", "IP Address", axes));
-            axes.Add(new tdggroupingaxis("grouped_group", "Group", axes));
+            vl.Add(new Packet()); vl[00].ip4g = vl[00].SrcIP4 = 0xc0a80b03; vl[00].protocolsg = vl[00].Prots = Protocols.ARP; vl[00].gtypeg = vl[00].gtypegtemp = typeof(ARPG);
+            vl.Add(new Packet()); vl[01].ip4g = vl[01].SrcIP4 = 0xc0a80b04; vl[01].protocolsg = vl[01].Prots = Protocols.ARP; vl[01].gtypeg = vl[01].gtypegtemp = typeof(ARPG);
+            vl.Add(new Packet()); vl[02].ip4g = vl[02].SrcIP4 = 0xc0a80b02; vl[02].protocolsg = vl[02].Prots = Protocols.DNS; vl[02].gtypeg = vl[02].gtypegtemp = typeof(HTTPG);
+            vl.Add(new Packet()); vl[03].ip4g = vl[03].SrcIP4 = 0xc0a80b03; vl[03].protocolsg = vl[03].Prots = Protocols.TCP; vl[03].gtypeg = vl[03].gtypegtemp = typeof(HTTPG);
+            vl.Add(new Packet()); vl[04].ip4g = vl[04].SrcIP4 = 0xc0a80b02; vl[04].protocolsg = vl[04].Prots = Protocols.TCP; vl[04].gtypeg = vl[04].gtypegtemp = typeof(HTTPG);
+            vl.Add(new Packet()); vl[05].ip4g = vl[05].SrcIP4 = 0xc0a80b02; vl[05].protocolsg = vl[05].Prots = Protocols.TCP; vl[05].gtypeg = vl[05].gtypegtemp = typeof(HTTPG);
+            vl.Add(new Packet()); vl[06].ip4g = vl[06].SrcIP4 = 0xc0a80b04; vl[06].protocolsg = vl[06].Prots = Protocols.ARP; vl[06].gtypeg = vl[06].gtypegtemp = typeof(ARPG);
+            vl.Add(new Packet()); vl[07].ip4g = vl[07].SrcIP4 = 0xc0a80b02; vl[07].protocolsg = vl[07].Prots = Protocols.TCP; vl[07].gtypeg = vl[07].gtypegtemp = typeof(HTTPG);
+            vl.Add(new Packet()); vl[08].ip4g = vl[08].SrcIP4 = 0xc0a80b03; vl[08].protocolsg = vl[08].Prots = Protocols.ARP; vl[08].gtypeg = vl[08].gtypegtemp = typeof(ARPG);
+            vl.Add(new Packet()); vl[09].ip4g = vl[09].SrcIP4 = 0xc0a80b03; vl[09].protocolsg = vl[09].Prots = Protocols.ARP; vl[09].gtypeg = vl[09].gtypegtemp = typeof(ARPG);
+            vl.Add(new Packet()); vl[10].ip4g = vl[10].SrcIP4 = 0xc0a80b05; vl[10].protocolsg = vl[10].Prots = Protocols.ARP; vl[10].gtypeg = vl[10].gtypegtemp = typeof(ARPG);
+            vl.Add(new Packet()); vl[11].ip4g = vl[11].SrcIP4 = 0xc0a80b06; vl[11].protocolsg = vl[11].Prots = Protocols.ARP; vl[11].gtypeg = vl[11].gtypegtemp = typeof(ARPG);
+            vl.Add(new Packet()); vl[12].ip4g = vl[12].SrcIP4 = 0xc0a80b02; vl[12].protocolsg = vl[12].Prots = Protocols.ARP; vl[12].gtypeg = vl[12].gtypegtemp = typeof(ARPG);
+            vl.Add(new Packet()); vl[13].ip4g = vl[13].SrcIP4 = 0xc0a80b02; vl[13].protocolsg = vl[13].Prots = Protocols.TCP; vl[13].gtypeg = vl[13].gtypegtemp = typeof(HTTPG);
+            vl.Add(new Packet()); vl[14].ip4g = vl[14].SrcIP4 = 0xc0a80b02; vl[14].protocolsg = vl[14].Prots = Protocols.TCP; vl[14].gtypeg = vl[14].gtypegtemp = typeof(HTTPG);
+            vl.Add(new Packet()); vl[15].ip4g = vl[15].SrcIP4 = 0xc0a80b02; vl[15].protocolsg = vl[15].Prots = Protocols.TCP; vl[15].gtypeg = vl[15].gtypegtemp = typeof(HTTPG);
+            vl.Add(new Packet()); vl[16].ip4g = vl[16].SrcIP4 = 0xc0a80b02; vl[16].protocolsg = vl[16].Prots = Protocols.TCP; vl[16].gtypeg = vl[16].gtypegtemp = typeof(HTTPG);
+            
+            axes.Add(new tdggroupingaxis("protocolsg", "Protocol", axes));
+            axes.Add(new tdggroupingaxis("ip4g", "IP Address", axes));
+            axes.Add(new tdggroupingaxis("gtypeg", "Group", axes));
 
 
             // next line gets view on vl, not on tdg.Itemssource
@@ -208,6 +189,22 @@ namespace pviewer5
             foreach (tdggroupingaxis a in axes)
                 if (a.ischecked)
                     view.GroupDescriptions.Add(new PropertyGroupDescription(a.propertyname));
+
+            view.Refresh();
+
+            Traverse(tdg);
+
+        }
+
+        void Traverse(DependencyObject depo)
+        {
+            DependencyObject child;
+
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(depo); i++)
+            {
+                child = VisualTreeHelper.GetChild(depo, i);
+                Traverse(child);
+            }
         }
 
         void tdgaxischeck_Click(object sender, RoutedEventArgs e)
@@ -257,11 +254,11 @@ namespace pviewer5
 
             switch(column)
             {
-                case "ip":
-                    if (p.ip4g.grouped)
+                case "ip4g":
+                    if (p.ip4g == null)
                     {
                         foreach (Packet i in vl)
-                            if (i.ip4g == p.ip4g) i.ip4g.grouped = false;
+                            if (i.SrcIP4 == p.SrcIP4) i.ip4g = i.SrcIP4;
                         view.Refresh();
                     }
                     break;
@@ -283,8 +280,8 @@ namespace pviewer5
 
             switch (column)
             {
-                case "ip":
-                    e.CanExecute = (p.ip4g.grouped);
+                case "SrcIP4":
+                    e.CanExecute = (p.ip4g == null);
                     break;
                 default:
                     e.CanExecute = false;
@@ -300,11 +297,11 @@ namespace pviewer5
 
             switch (column)
             {
-                case "ip":
-                    if (!p.ip4g.grouped)
+                case "SrcIP4":
+                    if (p.ip4g != null)
                     {
                         foreach (Packet i in vl)
-                            if (i.ip4g.ip4 == p.ip4g.ip4) i.ip4g.grouped = true;
+                            if (i.SrcIP4 == p.SrcIP4) i.ip4g = null;
                         view.Refresh();
                     }
                     break;
@@ -325,8 +322,8 @@ namespace pviewer5
 
             switch (column)
             {
-                case "ip":
-                    e.CanExecute = (!p.ip4g.grouped);
+                case "SrcIP4":
+                    e.CanExecute = (p.ip4g != null);
                     break;
                 default:
                     e.CanExecute = false;

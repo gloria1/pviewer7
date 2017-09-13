@@ -103,9 +103,9 @@
 			ItemsSource="{Binding Path=vl}">
 
             <DataGrid.Columns>
-                <DataGridTextColumn Header="IP" Binding="{Binding ip4g.IP4}"/>
-                <DataGridTextColumn Header="Proto" Binding="{Binding protocolsg.proto}"/>
-                <DataGridTextColumn Header="GroupType" Binding="{Binding gtypeg.gt}"/>
+                <DataGridTextColumn Header="IP" Binding="{Binding SrcIP4}"/>
+                <DataGridTextColumn Header="Proto" Binding="{Binding Prots}"/>
+                <DataGridTextColumn Header="GroupType" Binding="{Binding gtypegtemp}"/>
             </DataGrid.Columns>
             <DataGrid.GroupStyle>
                 <!-- Style for groups at top level. -->
