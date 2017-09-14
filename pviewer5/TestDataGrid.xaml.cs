@@ -192,18 +192,24 @@ namespace pviewer5
 
             view.Refresh();
 
-            Traverse(tdg);
+            Traverse(null, tdg);
 
         }
 
-        void Traverse(DependencyObject depo)
+        void Traverse(DependencyObject parent, DependencyObject depo)
         {
             DependencyObject child;
+            int ccount = VisualTreeHelper.GetChildrenCount(depo);
 
-            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(depo); i++)
+            for (int i = 0; i < ccount; i++)
             {
                 child = VisualTreeHelper.GetChild(depo, i);
-                Traverse(child);
+                if (parent != null)
+                {
+                    if ((typeof(System.Windows.Controls.Grid) == parent.GetType()) && (typeof(System.Windows.Controls.ScrollContentPresenter) != depo.GetType()))
+                        continue;
+                }
+                Traverse(depo, child);
             }
         }
 
