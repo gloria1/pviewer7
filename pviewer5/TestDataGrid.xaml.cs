@@ -192,7 +192,7 @@ namespace pviewer5
 
             view.Refresh();
 
-            Traverse(null, tdg);
+            // Traverse(null, tdg);
 
         }
 
@@ -206,7 +206,7 @@ namespace pviewer5
                 child = VisualTreeHelper.GetChild(depo, i);
                 if (parent != null)
                 {
-                    if ((typeof(System.Windows.Controls.Grid) == parent.GetType()) && (typeof(System.Windows.Controls.ScrollContentPresenter) != depo.GetType()))
+                    if ((typeof(System.Windows.Controls.Grid) == depo.GetType()) && (typeof(System.Windows.Controls.ScrollContentPresenter) != child.GetType()))
                         continue;
                 }
                 Traverse(depo, child);
