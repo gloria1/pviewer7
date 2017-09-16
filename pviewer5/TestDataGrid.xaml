@@ -80,6 +80,7 @@
             <RowDefinition Height="30" MinHeight="150"></RowDefinition>
             <RowDefinition Height="150"></RowDefinition>
             <RowDefinition Height="*" MinHeight="150"></RowDefinition>
+            <RowDefinition Height="*" MinHeight="150"></RowDefinition>
         </Grid.RowDefinitions>
 
 
@@ -202,6 +203,12 @@
             </DataGrid.ContextMenu>
 
         </DataGrid>
-      
+
+        <TreeView
+            Grid.Row="3"
+            x:Name="tdgtree"
+            ItemsSource="{Binding}">
+        </TreeView>
+            
     </Grid>
 </Window>

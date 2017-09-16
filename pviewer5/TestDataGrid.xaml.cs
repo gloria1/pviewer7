@@ -19,7 +19,7 @@ using System.IO;
 using Microsoft.Win32;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-
+using System.Collections;
 
 namespace pviewer5
 {
@@ -123,7 +123,7 @@ namespace pviewer5
     {
         public ObservableCollection<Packet> vl { get; set; }
         public ListCollectionView view;
-
+        
         public ObservableCollection<tdggroupingaxis> axes { get; set; }
 
         public static RoutedCommand tdg_break_out_cmd = new RoutedCommand();
@@ -172,6 +172,10 @@ namespace pviewer5
             axes.Add(new tdggroupingaxis("ip4g", "IP Address", axes));
             axes.Add(new tdggroupingaxis("gtypeg", "Group", axes));
 
+            //var query  = from P in vl group P by P.ip4g into groups1 select from Packet in groups1 group Packet by Packet.protocolsg into groups2 select from Packet in groups2 group Packet by Packet.gtypeg;
+            var query  = from P in vl group P by P.ip4g into groups1 select from Packet in groups1 group Packet by Packet.protocolsg into groups2 select from Packet in groups2 group Packet by Packet.gtypeg;
+            IEnumerable<IGrouping<IP4?, Packet>> query1 = from P in vl group P by P.ip4g;// into groups1; // select new { Key = groups1.Key, Items = groups1 }; // from Packet in groups group Packet by Packet.protocolsg into groups2 select from Packet in groups2 group Packet by Packet.gtypeg;
+            var query2 = from Packet P in query1 group P by P.protocolsg;// into groups2 select new { Key = groups2.Key, Items = groups2 };
 
             // next line gets view on vl, not on tdg.Itemssource
             // at this point in execution, tdg.Itemssource is still null,
@@ -182,6 +186,7 @@ namespace pviewer5
             SetGrouping();
 
         }
+
 
         void SetGrouping()
         {

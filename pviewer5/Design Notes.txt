@@ -1,6 +1,13 @@
 ﻿
 
 
+2017-09-15 bookmark
+	examine result of query with select statement
+	transplant mainwindow treeview and hierarchicaldatatemplate
+
+
+
+
 2017-07-18 coming back to it
 
 
