@@ -174,8 +174,22 @@ namespace pviewer5
 
             //var query  = from P in vl group P by P.ip4g into groups1 select from Packet in groups1 group Packet by Packet.protocolsg into groups2 select from Packet in groups2 group Packet by Packet.gtypeg;
             var query  = from P in vl group P by P.ip4g into groups1 select from Packet in groups1 group Packet by Packet.protocolsg into groups2 select from Packet in groups2 group Packet by Packet.gtypeg;
-            IEnumerable<IGrouping<IP4?, Packet>> query1 = from P in vl group P by P.ip4g;// into groups1; // select new { Key = groups1.Key, Items = groups1 }; // from Packet in groups group Packet by Packet.protocolsg into groups2 select from Packet in groups2 group Packet by Packet.gtypeg;
-            var query2 = from Packet P in query1 group P by P.protocolsg;// into groups2 select new { Key = groups2.Key, Items = groups2 };
+            
+            var query1 = from P in vl group P by P.ip4g;// into groups1; // select new { Key = groups1.Key, Items = groups1 }; // from Packet in groups group Packet by Packet.protocolsg into groups2 select from Packet in groups2 group Packet by Packet.gtypeg;
+
+            foreach (var g in query1)
+            {
+                var query2 = from P in g group P by P.protocolsg;
+
+                foreach (var gg in query2)
+                {
+                    IP4? ip = g.Key;
+                    Protocols? prot = gg.Key;
+                    List < Packet > l1 = gg.ToList();
+                }
+            }
+
+
 
             // next line gets view on vl, not on tdg.Itemssource
             // at this point in execution, tdg.Itemssource is still null,
