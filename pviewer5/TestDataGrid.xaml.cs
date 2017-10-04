@@ -20,6 +20,7 @@ using Microsoft.Win32;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Collections;
+using System.Reflection;
 
 namespace pviewer5
 {
@@ -95,6 +96,12 @@ namespace pviewer5
         public bool ischecked { get; set; }
         public ObservableCollection<tdggroupingaxis> parent;
 
+        public Type keytype;
+        public delegate object keyselectordel(Packet p);
+        public keyselectordel keysel;
+        public static object ipselector(Packet p) { return p.ip4g; }
+
+
         public tdggroupingaxis(string pn, string dn, ObservableCollection<tdggroupingaxis> par)
         {
             propertyname = pn;
@@ -116,7 +123,15 @@ namespace pviewer5
 
     }
 
+    public class gtnode : PVDisplayObject
+    {
+        public tdggroupingaxis axis { get; set; }
 
+        public gtnode(PVDisplayObject par) : base(par)
+        {
+
+        }
+    }
 
 
     public partial class TestDataGrid : Window
@@ -125,6 +140,8 @@ namespace pviewer5
         public ListCollectionView view;
         
         public ObservableCollection<tdggroupingaxis> axes { get; set; }
+
+        public ObservableCollection<gtnode> gt { get; set; }
 
         public static RoutedCommand tdg_break_out_cmd = new RoutedCommand();
         public static RoutedCommand tdg_group_cmd     = new RoutedCommand();
@@ -141,6 +158,7 @@ namespace pviewer5
         {
             vl = new ObservableCollection<Packet>();
             axes = new ObservableCollection<tdggroupingaxis>();
+            gt = new ObservableCollection<gtnode>();
 
             InitializeComponent();
             tdggrid.DataContext = this;
@@ -172,13 +190,56 @@ namespace pviewer5
             axes.Add(new tdggroupingaxis("ip4g", "IP Address", axes));
             axes.Add(new tdggroupingaxis("gtypeg", "Group", axes));
 
-            //var query  = from P in vl group P by P.ip4g into groups1 select from Packet in groups1 group Packet by Packet.protocolsg into groups2 select from Packet in groups2 group Packet by Packet.gtypeg;
-            var query  = from P in vl group P by P.ip4g into groups1 select from Packet in groups1 group Packet by Packet.protocolsg into groups2 select from Packet in groups2 group Packet by Packet.gtypeg;
+            // var query = from P in vl group P by P.ip4g into groups1 select from Packet in groups1 group Packet by Packet.protocolsg into groups2 select from Packet in groups2 group Packet by Packet.gtypeg;
+            // var query  = from P in vl group P by P.ip4g into groups1 select from Packet in groups1 group Packet by Packet.protocolsg into groups2 select from Packet in groups2 group Packet by Packet.gtypeg;
+
+            var query1 = from P in vl group P by P.ip4g; // into groups1 select new { Key = groups1.Key, Items = groups1 }; // from Packet in groups group Packet by Packet.protocolsg into groups2 select from Packet in groups2 group Packet by Packet.gtypeg;
+
+            var query22 = vl.GroupBy<Packet, IP4?>(x => x.ip4g);
+            Packet p = (query22.First()).First();
+            List<object> query222 = new List<object>();
+            foreach (IGrouping<IP4?, Packet> g in query22) query222.Add(g.GroupBy<Packet, Protocols?>(x => x.protocolsg));
+
+            tdggroupingaxis a = axes[1];
+            a.keytype = typeof(IP4?);
+            a.keysel = x => x.ip4g;  //tdggroupingaxis.ipselector;
+            var query33 = vl.GroupBy<Packet, >();
             
-            var query1 = from P in vl group P by P.ip4g;// into groups1; // select new { Key = groups1.Key, Items = groups1 }; // from Packet in groups group Packet by Packet.protocolsg into groups2 select from Packet in groups2 group Packet by Packet.gtypeg;
+            //MethodInfo mi = typeof(System.Linq.Enumerable).GetMethod("GroupBy");
+            //MethodInfo[] mis = typeof(Enumerable).GetMethods();
+
+            //MethodInfo[] mi1 = typeof(Enumerable).GetMethods();
+            //ParameterInfo[] parmTypes = mi1.GetParameters();
+
+            Type gen = typeof(ObservableCollection<>);
+            Type nongen = typeof(ObservableCollection<Packet>);
+
+            var mis = from m in typeof(Enumerable).GetMethods()
+                           where m.Name == "GroupBy" && m.IsGenericMethod
+                           let parameters = m.GetParameters()
+                           where parameters.Length == 2
+                           select m;
+
+
+            MethodInfo mi = mis.First();
+            Type[] argtypes = mi.GetGenericArguments();
+            ParameterInfo[] pi = mi.GetParameters();
+
+            MethodInfo miclosed = mi.MakeGenericMethod( typeof(Packet), typeof(IP4));
+            object[] miclosedargs = { "x => x.ip4g" };
+            query22 = miclosed.Invoke(vl, );
+
+            //MethodInfo miclosed = mi.MakeGenericMethod(typeof(Packet), typeof())
+            
+            //Type[] argtypes2 = { typeof(IEnumerable<Packet>), typeof(Func<Packet, IP4>) };
+            //MethodInfo mi2 = typeof(Enumerable).GetMethod("GroupBy", argtypes2);
+            //ParameterInfo[] pi2 = mi2.GetParameters();
+            
 
             foreach (var g in query1)
             {
+                            
+
                 var query2 = from P in g group P by P.protocolsg;
 
                 foreach (var gg in query2)
@@ -188,7 +249,6 @@ namespace pviewer5
                     List < Packet > l1 = gg.ToList();
                 }
             }
-
 
 
             // next line gets view on vl, not on tdg.Itemssource

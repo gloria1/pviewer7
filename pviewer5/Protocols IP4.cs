@@ -34,6 +34,9 @@ namespace pviewer5
         public IP4 ip4 { get; set; }
         public bool grouped = false;
 
+        delegate 
+
+
         public override bool Equals(object a)
         {
             if (a == DependencyProperty.UnsetValue) return false;

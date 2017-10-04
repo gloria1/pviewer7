@@ -1,6 +1,26 @@
 ﻿
 
 
+
+2017-10-04
+	thoughts on how to get dynamic grouping
+		don't need delegates
+		just need a method inside each class that can be a grouping axis
+		make tdggroupingaxis have a member that returns the result of GroupBy
+		initialize axes with instances of tdggrouping axis, one for each grouping class
+		therefore, need a class for each grouping axis
+			ip4g
+			protocolsg
+			gtypeg
+
+
+
+
+
+
+
+
+
 2017-09-15 bookmark
 	examine result of query with select statement
 	transplant mainwindow treeview and hierarchicaldatatemplate
