@@ -4,7 +4,30 @@
 
 2017-10-04
 	thoughts on how to get dynamic grouping
-		don't need delegates
+		data types
+			grouping properties
+				e.g., ip4g
+				e.g., PGT or packet group type (see below)
+				these are just copies of the underlying property, except they are nullable
+					initialize them to equal the base property
+					can change to null if grouped
+
+			grouping axis
+				an axis used for grouping
+				each axis includes
+					whether it is actively being used to group packets
+					the type of object used for grouping, e.g., IP4
+					a list of the items that are grouped
+					a lambda expression for getting that property from a packet
+					a GroupBy function that will group a list (which form?) of Packets
+			axes
+				list of grouping axes, in order of tree hierarchy
+			"tree group"
+				a group of packets with a common key value on a certain grouping axis
+			"packet group"
+				a group of packets that are related in some way, e.g, a DNS transation or a TCP stream
+
+
 		just need a method inside each class that can be a grouping axis
 		make tdggroupingaxis have a member that returns the result of GroupBy
 		initialize axes with instances of tdggrouping axis, one for each grouping class

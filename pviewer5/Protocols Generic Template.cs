@@ -104,7 +104,7 @@ namespace pviewer5
         DNS = 0x10000
     }
 
-    public class PVDisplayObject : IEditableObject, IGrouping<object, PVDisplayObject>
+    public class PVDisplayObject : IEditableObject
         // propagation of ExceptionLevel property:
         //   0) basically, it propagates up but not down, and propagation only ratchets the parents level up, never down
         //   1) exception level based on the item itself is determined when item is loaded
@@ -143,6 +143,7 @@ namespace pviewer5
             }
         }
         public ListCollectionView Lview = null;
+        public object LKey = null;  // if L has a common Key value (from a grouping operation), LKey will be set to that value  
 
         public bool IsExpanded { get; set; } = false;
 
@@ -181,7 +182,7 @@ namespace pviewer5
         {
             Parent = parent;
             // do not instantiate anything for L here - do not want the overhead of the L and the Lview
-            // for headers which are leaves of the tree
+            // for instances which are leaves of the tree
         }
 
         public bool PVDOFilter(object p)
@@ -191,8 +192,6 @@ namespace pviewer5
 
         public virtual PVDisplayObject self { get { return this; } }    // so that data binding can bind to a reference to the PVDisplayObject itself
 
-        object IGrouping<object, PVDisplayObject>.Key => throw new NotImplementedException();
-
         // implement IEditableObject interface - this somehow enables saving of tree expansion state
         // see
         //  http://www.codeproject.com/Articles/61316/Tuning-Up-The-TreeView-Part
@@ -201,15 +200,6 @@ namespace pviewer5
         public void CancelEdit() { }
         public void EndEdit() { }
 
-        IEnumerator<PVDisplayObject> IEnumerable<PVDisplayObject>.GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
     }
 
 

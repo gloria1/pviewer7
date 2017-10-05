@@ -29,13 +29,10 @@ namespace pviewer5
 
 
     [Serializable]
-    public class IP4g : IComparable<IP4g>
+    public struct IP4g : IComparable<IP4g>
     {
-        public IP4 ip4 { get; set; }
-        public bool grouped = false;
-
-        delegate 
-
+        public IP4? ip4 { get; set; }
+        public bool grouped { get { return false; } }
 
         public override bool Equals(object a)
         {

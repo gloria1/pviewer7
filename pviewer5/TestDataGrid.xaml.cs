@@ -199,18 +199,7 @@ namespace pviewer5
             Packet p = (query22.First()).First();
             List<object> query222 = new List<object>();
             foreach (IGrouping<IP4?, Packet> g in query22) query222.Add(g.GroupBy<Packet, Protocols?>(x => x.protocolsg));
-
-            tdggroupingaxis a = axes[1];
-            a.keytype = typeof(IP4?);
-            a.keysel = x => x.ip4g;  //tdggroupingaxis.ipselector;
-            var query33 = vl.GroupBy<Packet, >();
             
-            //MethodInfo mi = typeof(System.Linq.Enumerable).GetMethod("GroupBy");
-            //MethodInfo[] mis = typeof(Enumerable).GetMethods();
-
-            //MethodInfo[] mi1 = typeof(Enumerable).GetMethods();
-            //ParameterInfo[] parmTypes = mi1.GetParameters();
-
             Type gen = typeof(ObservableCollection<>);
             Type nongen = typeof(ObservableCollection<Packet>);
 
@@ -225,15 +214,6 @@ namespace pviewer5
             Type[] argtypes = mi.GetGenericArguments();
             ParameterInfo[] pi = mi.GetParameters();
 
-            MethodInfo miclosed = mi.MakeGenericMethod( typeof(Packet), typeof(IP4));
-            object[] miclosedargs = { "x => x.ip4g" };
-            query22 = miclosed.Invoke(vl, );
-
-            //MethodInfo miclosed = mi.MakeGenericMethod(typeof(Packet), typeof())
-            
-            //Type[] argtypes2 = { typeof(IEnumerable<Packet>), typeof(Func<Packet, IP4>) };
-            //MethodInfo mi2 = typeof(Enumerable).GetMethod("GroupBy", argtypes2);
-            //ParameterInfo[] pi2 = mi2.GetParameters();
             
 
             foreach (var g in query1)
