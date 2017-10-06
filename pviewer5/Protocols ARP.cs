@@ -81,6 +81,7 @@ namespace pviewer5
 
             // set packet-level convenience properties
             pkt.Prots |= Protocols.ARP;
+            pkt.ProtOuter = Protocols.ARP;
 
             // add to packet header list
             pkt.L.Add(this);

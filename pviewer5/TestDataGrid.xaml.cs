@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -89,20 +90,21 @@ namespace pviewer5
         */
 
 
-    public class tdggroupingaxis : INotifyPropertyChanged
+    public class tdggroupingaxis<T> : INotifyPropertyChanged
     {
         public string propertyname { get; set; }
         public string displayname { get; set; }
         public bool ischecked { get; set; }
-        public ObservableCollection<tdggroupingaxis> parent;
+        public OrderedDictionary parent;
 
-        public Type keytype;
-        public delegate object keyselectordel(Packet p);
-        public keyselectordel keysel;
-        public static object ipselector(Packet p) { return p.ip4g; }
+        public List<object> groupeditems = new List<object>();
+        public Type keytype = typeof(T);
+        public Func<Packet, T> getkey;   // will be a lambda expression that gets the key property from the packet
+        public Func<Packet, bool> isgrouped;   // will be a function to determine whether the packet is grouped for its value on this axis
+        public 
 
 
-        public tdggroupingaxis(string pn, string dn, ObservableCollection<tdggroupingaxis> par)
+        public tdggroupingaxis(string pn, string dn, OrderedDictionary par)
         {
             propertyname = pn;
             displayname = dn;
@@ -122,16 +124,7 @@ namespace pviewer5
         }
 
     }
-
-    public class gtnode : PVDisplayObject
-    {
-        public tdggroupingaxis axis { get; set; }
-
-        public gtnode(PVDisplayObject par) : base(par)
-        {
-
-        }
-    }
+    
 
 
     public partial class TestDataGrid : Window
@@ -140,8 +133,6 @@ namespace pviewer5
         public ListCollectionView view;
         
         public ObservableCollection<tdggroupingaxis> axes { get; set; }
-
-        public ObservableCollection<gtnode> gt { get; set; }
 
         public static RoutedCommand tdg_break_out_cmd = new RoutedCommand();
         public static RoutedCommand tdg_group_cmd     = new RoutedCommand();
@@ -158,7 +149,6 @@ namespace pviewer5
         {
             vl = new ObservableCollection<Packet>();
             axes = new ObservableCollection<tdggroupingaxis>();
-            gt = new ObservableCollection<gtnode>();
 
             InitializeComponent();
             tdggrid.DataContext = this;

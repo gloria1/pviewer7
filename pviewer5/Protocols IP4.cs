@@ -28,32 +28,7 @@ namespace pviewer5
 {
 
 
-    [Serializable]
-    public struct IP4g : IComparable<IP4g>
-    {
-        public IP4? ip4 { get; set; }
-        public bool grouped { get { return false; } }
-
-        public override bool Equals(object a)
-        {
-            if (a == DependencyProperty.UnsetValue) return false;
-            else return (this == (IP4g)a);
-        }
-        public override int GetHashCode() { return ip4.GetHashCode(); }
-
-        public IP4g(IP4 i) { ip4 = i; }
-
-        public static bool operator ==(IP4g a, IP4g b) { if (a.grouped && b.grouped) return true; else if (a.grouped != b.grouped) return false; else return a.ip4 == b.ip4; }
-        public static bool operator !=(IP4g a, IP4g b) { if (a.grouped && b.grouped) return false; else if (a.grouped != b.grouped) return true; else return a.ip4 != b.ip4; }
-        public static bool operator <=(IP4g a, IP4g b) { if (a.grouped && b.grouped) return true; else if (a.grouped) return true; else return a.ip4.A <= b.ip4.A; }
-        public static bool operator <(IP4g a, IP4g b) { if (a.grouped && b.grouped) return false; else if (a.grouped) return true; else return a.ip4.A < b.ip4.A; }
-        public static bool operator >=(IP4g a, IP4g b) { if (a.grouped && b.grouped) return true; else if (b.grouped) return true; else return a.ip4.A >= b.ip4.A; }
-        public static bool operator >(IP4g a, IP4g b) { if (a.grouped && b.grouped) return false; else if (b.grouped) return true; else return a.ip4.A > b.ip4.A; }
-        public int CompareTo(IP4g a)
-        {
-            return 0;
-        }
-    }
+ 
 
 
     [Serializable]
@@ -789,6 +764,7 @@ namespace pviewer5
 
             // set packet level convenience properties
             pkt.Prots |= Protocols.IP4;
+            pkt.ProtOuter = Protocols.IP4;
             pkt.SrcIP4 = SrcIP4;
             pkt.DestIP4 = DestIP4;
             pkt.ip4hdr = this;

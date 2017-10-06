@@ -53,6 +53,7 @@ namespace pviewer5
 
             // set packet-level convenience properties
             pkt.Prots |= Protocols.UDP;
+            pkt.ProtOuter = Protocols.UDP;
             pkt.udphdr = this;
             pkt.SrcPort = SrcPort;
             pkt.DestPort = DestPort;

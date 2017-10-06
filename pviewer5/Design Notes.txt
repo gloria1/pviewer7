@@ -14,11 +14,13 @@
 
 			grouping axis
 				an axis used for grouping
+				the class will be a generic type, where T is the type of the property used for grouping
 				each axis includes
 					whether it is actively being used to group packets
 					the type of object used for grouping, e.g., IP4
 					a list of the items that are grouped
 					a lambda expression for getting that property from a packet
+					a method that tests whether a packet's property is grouped, and sets it accordingly (this will be called by a foreach over the whole list of packets when a grouping change occurs)
 					a GroupBy function that will group a list (which form?) of Packets
 			axes
 				list of grouping axes, in order of tree hierarchy

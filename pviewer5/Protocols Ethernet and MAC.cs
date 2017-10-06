@@ -709,6 +709,7 @@ namespace pviewer5
 
             // set packet-level convenience properties
             pkt.Prots |= Protocols.Ethernet;
+            pkt.ProtOuter = Protocols.Ethernet;
             pkt.SrcMAC = SrcMAC;
             pkt.DestMAC = DestMAC;
 

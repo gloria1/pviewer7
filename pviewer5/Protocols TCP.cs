@@ -167,6 +167,7 @@ namespace pviewer5
             // set packet-level convenience properties
             pkt.tcphdr = this;
             pkt.Prots |= Protocols.TCP;
+            pkt.ProtOuter = Protocols.TCP;
             pkt.SrcPort = SrcPort;
             pkt.DestPort = DestPort;
 

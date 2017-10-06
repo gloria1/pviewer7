@@ -225,7 +225,7 @@ namespace pviewer5
 
             // if header is parsed correctly,
             //  set the generic header properties
-            //  set the packet-level convenience properties (e.g., pkt.ip4hdr)
+            //  set the packet-level convenience properties (e.g., pkt.ip4hdr, pkt.Prots, pkt.ProtOuter)
             //  add it to pkt's header list
             //  determine next layer hheader (if any) and call its constructor
 
@@ -409,6 +409,7 @@ namespace pviewer5
         // so that other functions do not need to search through header list to find them
         public ulong SeqNo = 0; // absolute sequence number in packet file
         public Protocols Prots = Protocols.Generic;     // flags for protocols present in this packet
+        public Protocols ProtOuter = Protocols.Generic;   // flag for "outermost" protcol - each header constructor will replace the previous value with its own
         public DateTime Time = new DateTime(0);
         public MAC SrcMAC = 0;
         public MAC DestMAC = 0;
@@ -422,12 +423,12 @@ namespace pviewer5
         public H groupprotoheader { get; set; }     // packet group logic will set this to point to the header of the protocol relevant to that group type
 
         // properties to be used for grouping in the datagrid
-        public IP4? ip4g { get; set; }
-        public Protocols? protocolsg { get; set; }
-        public Type gtypeg { get; set; }
-        // next one is temporary while doing test data grid experiments
-        public Type gtypegtemp { get; set; }
-
+        // these should be set initially when the underlying packet properties are set
+        // they may be changed as the user changes grouping in the tree view
+        public IP4? IP4g { get; set; } = null;
+        public Protocols? Protocolsg { get; set; } = null;
+        public Type PGTypeg { get; set; } = null;
+ 
         public override string displayinfo
         {
             get
@@ -487,10 +488,10 @@ namespace pviewer5
             if (pfh.Type == PcapFile.PcapFileTypes.PcapNG)
                 fs.Seek((long)(pch.NGBlockLen - 0x1c - pch.CapLen), SeekOrigin.Current);       // skip over any padding bytes, options and trailing block length field
 
-            // set the grouping properties
-            ip4g = SrcIP4;
-            protocolsg = Prots;
-            gtypeg = Parent.GetType();
+            // set the treeview grouping properties
+            IP4g = SrcIP4;
+            Protocolsg = ProtOuter;
+            PGTypeg = Parent.GetType();
 
         }
 

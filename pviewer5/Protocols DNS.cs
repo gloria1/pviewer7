@@ -687,6 +687,7 @@ namespace pviewer5
 
             // set packet-level convenience properties
             pkt.Prots |= Protocols.DNS;
+            pkt.ProtOuter = Protocols.DNS;
 
             // add header to packet's header list
             pkt.L.Add(this);

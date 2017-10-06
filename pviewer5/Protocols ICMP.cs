@@ -79,6 +79,7 @@ namespace pviewer5
 
             // set generic header utility properties
             headerprot = Protocols.ICMP;
+            pkt.ProtOuter = Protocols.ICMP;
             payloadindex = i;
             payloadlen = (int)(pkt.Len - i);
 

@@ -424,6 +424,7 @@ namespace pviewer5
 
             pkt.L.Add(this);
             pkt.Prots |= headerprot;
+            pkt.ProtOuter = headerprot;
 
             switch (DataLink)
             {

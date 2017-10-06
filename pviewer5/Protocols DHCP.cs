@@ -87,6 +87,7 @@ namespace pviewer5
 
             // set packet-level convenience properties
             pkt.Prots |= Protocols.DHCP4;
+            pkt.ProtOuter = Protocols.DHCP4;
 
             // add header to packet's header list
             pkt.L.Add(this);
