@@ -90,28 +90,26 @@ namespace pviewer5
         */
 
 
-    public class tdggroupingaxis<T> : INotifyPropertyChanged
+    public class tdggroupingaxis : INotifyPropertyChanged
     {
         public string propertyname { get; set; }
         public string displayname { get; set; }
         public bool ischecked { get; set; }
-        public OrderedDictionary parent;
+        public List<tdggroupingaxis> parent;
 
         public List<object> groupeditems = new List<object>();
-        public Type keytype = typeof(T);
-        public Func<Packet, T> getkey;   // will be a lambda expression that gets the key property from the packet
-        public Func<Packet, bool> isgrouped;   // will be a function to determine whether the packet is grouped for its value on this axis
-        public 
-
-
-        public tdggroupingaxis(string pn, string dn, OrderedDictionary par)
+        public Func<Packet, bool> isgrouped      ;   // will be a function to determine whether the packet is grouped for its value on this axis
+        
+        public tdggroupingaxis(List<tdggroupingaxis> par)
         {
-            propertyname = pn;
-            displayname = dn;
             ischecked = true;
             parent = par;
         }
 
+        public virtual List<List<Packet>> groupfn(List<Packet> pkts)
+        {
+            return null;
+        }
 
         // implement INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;
@@ -124,15 +122,75 @@ namespace pviewer5
         }
 
     }
-    
+
+    public class tdggroupingaxisip4 : tdggroupingaxis
+    {
+        public tdggroupingaxisip4(List<tdggroupingaxis> par) : base(par)
+        {
+            propertyname = "SrcIP4";
+            displayname = "Source IP4";
+        }
+
+        public override List<List<Packet>> groupfn(List<Packet> pkts)
+        {
+            List<List<Packet>> result = new List<List<Packet>>();
+            var query = (pkts.GroupBy<Packet, IP4?>(x => x.IP4g));
+            foreach (var g in query) result.Add(g.ToList<Packet>());
+            return result;
+        }
+    }
+
+    public class tdggroupingaxisprot : tdggroupingaxis
+    {
+        public tdggroupingaxisprot(List<tdggroupingaxis> par) : base(par)
+        {
+            propertyname = "ProtOuter";
+            displayname = "Protocol";
+        }
+        public override List<List<Packet>> groupfn(List<Packet> pkts)
+        {
+            List<List<Packet>> result = new List<List<Packet>>();
+            var query = (pkts.GroupBy<Packet, Protocols?>(x => x.Protocolsg));
+            foreach (var g in query) result.Add(g.ToList<Packet>());
+            return result;
+        }
+    }
+
+    public class tdggroupingaxispgtype : tdggroupingaxis
+    {
+        public tdggroupingaxispgtype(List<tdggroupingaxis> par) : base(par)
+        {
+            propertyname = "PGType";
+            displayname = "Packet Group Type";
+        }
+        public override List<List<Packet>> groupfn(List<Packet> pkts)
+        {
+            List<List<Packet>> result = new List<List<Packet>>();
+            var query = (pkts.GroupBy<Packet, Type>(x => x.PGTypeg));
+            foreach (var g in query) result.Add(g.ToList<Packet>());
+            return result;
+        }
+    }
+
+
+
+    public class tdgtreegroup : PVDisplayObject
+    {
+
+        public tdgtreegroup(PVDisplayObject par) : base (par)
+        {
+            L = new ObservableCollection<PVDisplayObject>();
+        }
+    }
 
 
     public partial class TestDataGrid : Window
     {
-        public ObservableCollection<Packet> vl { get; set; }
+        public tdgtreegroup tree { get; set; }
         public ListCollectionView view;
-        
-        public ObservableCollection<tdggroupingaxis> axes { get; set; }
+        public List<tdggroupingaxis> axes { get; set; }
+        public List<Packet> pkts;
+
 
         public static RoutedCommand tdg_break_out_cmd = new RoutedCommand();
         public static RoutedCommand tdg_group_cmd     = new RoutedCommand();
@@ -140,15 +198,14 @@ namespace pviewer5
         CommandBinding tdg_break_out_binding;
         CommandBinding tdg_group_binding;
 
-        public string arpgroup1 = "arpgroup1";
-        public string arpgroup2 = "arpgroup2";
-        public int httpgroup1 = 1;
-        public int httpgroup2 = 2;
-
-        public TestDataGrid()
+         public TestDataGrid()
         {
-            vl = new ObservableCollection<Packet>();
-            axes = new ObservableCollection<tdggroupingaxis>();
+            Packet p;
+
+            tree = new tdgtreegroup(null);
+            tree.L = new ObservableCollection<PVDisplayObject>();
+            axes = new List<tdggroupingaxis>();
+            pkts = new List<Packet>();
 
             InitializeComponent();
             tdggrid.DataContext = this;
@@ -158,37 +215,42 @@ namespace pviewer5
             tdg.CommandBindings.Add(tdg_break_out_binding);
             tdg.CommandBindings.Add(tdg_group_binding);
 
-            vl.Add(new Packet()); vl[00].ip4g = vl[00].SrcIP4 = 0xc0a80b03; vl[00].protocolsg = vl[00].Prots = Protocols.ARP; vl[00].gtypeg = vl[00].gtypegtemp = typeof(ARPG);
-            vl.Add(new Packet()); vl[01].ip4g = vl[01].SrcIP4 = 0xc0a80b04; vl[01].protocolsg = vl[01].Prots = Protocols.ARP; vl[01].gtypeg = vl[01].gtypegtemp = typeof(ARPG);
-            vl.Add(new Packet()); vl[02].ip4g = vl[02].SrcIP4 = 0xc0a80b02; vl[02].protocolsg = vl[02].Prots = Protocols.DNS; vl[02].gtypeg = vl[02].gtypegtemp = typeof(HTTPG);
-            vl.Add(new Packet()); vl[03].ip4g = vl[03].SrcIP4 = 0xc0a80b03; vl[03].protocolsg = vl[03].Prots = Protocols.TCP; vl[03].gtypeg = vl[03].gtypegtemp = typeof(HTTPG);
-            vl.Add(new Packet()); vl[04].ip4g = vl[04].SrcIP4 = 0xc0a80b02; vl[04].protocolsg = vl[04].Prots = Protocols.TCP; vl[04].gtypeg = vl[04].gtypegtemp = typeof(HTTPG);
-            vl.Add(new Packet()); vl[05].ip4g = vl[05].SrcIP4 = 0xc0a80b02; vl[05].protocolsg = vl[05].Prots = Protocols.TCP; vl[05].gtypeg = vl[05].gtypegtemp = typeof(HTTPG);
-            vl.Add(new Packet()); vl[06].ip4g = vl[06].SrcIP4 = 0xc0a80b04; vl[06].protocolsg = vl[06].Prots = Protocols.ARP; vl[06].gtypeg = vl[06].gtypegtemp = typeof(ARPG);
-            vl.Add(new Packet()); vl[07].ip4g = vl[07].SrcIP4 = 0xc0a80b02; vl[07].protocolsg = vl[07].Prots = Protocols.TCP; vl[07].gtypeg = vl[07].gtypegtemp = typeof(HTTPG);
-            vl.Add(new Packet()); vl[08].ip4g = vl[08].SrcIP4 = 0xc0a80b03; vl[08].protocolsg = vl[08].Prots = Protocols.ARP; vl[08].gtypeg = vl[08].gtypegtemp = typeof(ARPG);
-            vl.Add(new Packet()); vl[09].ip4g = vl[09].SrcIP4 = 0xc0a80b03; vl[09].protocolsg = vl[09].Prots = Protocols.ARP; vl[09].gtypeg = vl[09].gtypegtemp = typeof(ARPG);
-            vl.Add(new Packet()); vl[10].ip4g = vl[10].SrcIP4 = 0xc0a80b05; vl[10].protocolsg = vl[10].Prots = Protocols.ARP; vl[10].gtypeg = vl[10].gtypegtemp = typeof(ARPG);
-            vl.Add(new Packet()); vl[11].ip4g = vl[11].SrcIP4 = 0xc0a80b06; vl[11].protocolsg = vl[11].Prots = Protocols.ARP; vl[11].gtypeg = vl[11].gtypegtemp = typeof(ARPG);
-            vl.Add(new Packet()); vl[12].ip4g = vl[12].SrcIP4 = 0xc0a80b02; vl[12].protocolsg = vl[12].Prots = Protocols.ARP; vl[12].gtypeg = vl[12].gtypegtemp = typeof(ARPG);
-            vl.Add(new Packet()); vl[13].ip4g = vl[13].SrcIP4 = 0xc0a80b02; vl[13].protocolsg = vl[13].Prots = Protocols.TCP; vl[13].gtypeg = vl[13].gtypegtemp = typeof(HTTPG);
-            vl.Add(new Packet()); vl[14].ip4g = vl[14].SrcIP4 = 0xc0a80b02; vl[14].protocolsg = vl[14].Prots = Protocols.TCP; vl[14].gtypeg = vl[14].gtypegtemp = typeof(HTTPG);
-            vl.Add(new Packet()); vl[15].ip4g = vl[15].SrcIP4 = 0xc0a80b02; vl[15].protocolsg = vl[15].Prots = Protocols.TCP; vl[15].gtypeg = vl[15].gtypegtemp = typeof(HTTPG);
-            vl.Add(new Packet()); vl[16].ip4g = vl[16].SrcIP4 = 0xc0a80b02; vl[16].protocolsg = vl[16].Prots = Protocols.TCP; vl[16].gtypeg = vl[16].gtypegtemp = typeof(HTTPG);
-            
-            axes.Add(new tdggroupingaxis("protocolsg", "Protocol", axes));
-            axes.Add(new tdggroupingaxis("ip4g", "IP Address", axes));
-            axes.Add(new tdggroupingaxis("gtypeg", "Group", axes));
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b03; p.Protocolsg = p.Prots = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b04; p.Protocolsg = p.Prots = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.Prots = Protocols.DNS; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b03; p.Protocolsg = p.Prots = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.Prots = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.Prots = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b04; p.Protocolsg = p.Prots = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.Prots = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b03; p.Protocolsg = p.Prots = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b03; p.Protocolsg = p.Prots = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b05; p.Protocolsg = p.Prots = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b06; p.Protocolsg = p.Prots = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.Prots = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.Prots = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.Prots = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.Prots = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.Prots = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
 
+            axes.Add(new tdggroupingaxisprot(axes));
+            axes.Add(new tdggroupingaxisip4(axes));
+            axes.Add(new tdggroupingaxispgtype(axes));
+
+
+            BuildTree(tree, pkts, axes, 0);
+
+
+/*
             // var query = from P in vl group P by P.ip4g into groups1 select from Packet in groups1 group Packet by Packet.protocolsg into groups2 select from Packet in groups2 group Packet by Packet.gtypeg;
             // var query  = from P in vl group P by P.ip4g into groups1 select from Packet in groups1 group Packet by Packet.protocolsg into groups2 select from Packet in groups2 group Packet by Packet.gtypeg;
 
-            var query1 = from P in vl group P by P.ip4g; // into groups1 select new { Key = groups1.Key, Items = groups1 }; // from Packet in groups group Packet by Packet.protocolsg into groups2 select from Packet in groups2 group Packet by Packet.gtypeg;
+            var query1 = from P in vl group P by P.IP4g; // into groups1 select new { Key = groups1.Key, Items = groups1 }; // from Packet in groups group Packet by Packet.protocolsg into groups2 select from Packet in groups2 group Packet by Packet.gtypeg;
 
-            var query22 = vl.GroupBy<Packet, IP4?>(x => x.ip4g);
+            var query22 = vl.GroupBy<Packet, IP4?>(x => x.IP4g);
             Packet p = (query22.First()).First();
             List<object> query222 = new List<object>();
-            foreach (IGrouping<IP4?, Packet> g in query22) query222.Add(g.GroupBy<Packet, Protocols?>(x => x.protocolsg));
+            foreach (IGrouping<IP4?, Packet> g in query22) query222.Add(g.GroupBy<Packet, Protocols?>(x => x.Protocolsg));
             
             Type gen = typeof(ObservableCollection<>);
             Type nongen = typeof(ObservableCollection<Packet>);
@@ -210,7 +272,7 @@ namespace pviewer5
             {
                             
 
-                var query2 = from P in g group P by P.protocolsg;
+                var query2 = from P in g group P by P.Protocolsg;
 
                 foreach (var gg in query2)
                 {
@@ -228,46 +290,49 @@ namespace pviewer5
             view = (ListCollectionView)CollectionViewSource.GetDefaultView(vl);
             
             SetGrouping();
-
+*/
         }
 
-
-        void SetGrouping()
+        void BuildTree(tdgtreegroup t, List<Packet> pkts, List<tdggroupingaxis> axes, int axisnum)    // builds out next level of tree under t
         {
-            view.GroupDescriptions.Clear();
-            foreach (tdggroupingaxis a in axes)
-                if (a.ischecked)
-                    view.GroupDescriptions.Add(new PropertyGroupDescription(a.propertyname));
+            tdgtreegroup tnew;
 
-            view.Refresh();
-
-            // Traverse(null, tdg);
-
-        }
-
-        void Traverse(DependencyObject parent, DependencyObject depo)
-        {
-            DependencyObject child;
-            int ccount = VisualTreeHelper.GetChildrenCount(depo);
-
-            for (int i = 0; i < ccount; i++)
+            // find next active axis in axes starting at axes[nextaxistocheck]
+            for (; axisnum < axes.Count; axisnum++) if (((tdggroupingaxis)(axes[axisnum])).ischecked) break;
+            
+            // if no further active axes, just put pkts into t.L
+            if(axisnum == axes.Count)
             {
-                child = VisualTreeHelper.GetChild(depo, i);
-                if (parent != null)
-                {
-                    if ((typeof(System.Windows.Controls.Grid) == depo.GetType()) && (typeof(System.Windows.Controls.ScrollContentPresenter) != child.GetType()))
-                        continue;
-                }
-                Traverse(depo, child);
+                t.L = new ObservableCollection<PVDisplayObject>();
+                foreach (Packet p in pkts) t.L.Add(p);
+                return;
             }
+            // else group pkts by that axis and assign the groups to t
+            else
+            {
+                // group pkts by axes[axisnum]
+                List<List<Packet>> query = ((tdggroupingaxis)(axes[axisnum])).groupfn(pkts);
+                // foreach group in the result
+                foreach (List<Packet> list in query)
+                {
+                    //     assign it to t
+                    tnew = new tdgtreegroup(t);
+                    t.L.Add(tnew);
+                    //     recursively call this function to group it
+                    BuildTree(tnew, list, axes, axisnum+1);
+                }
+            }
+
         }
+
+
 
         void tdgaxischeck_Click(object sender, RoutedEventArgs e)
         {
             CheckBox b = (CheckBox)sender;
             tdggroupingaxis i = (tdggroupingaxis)b.DataContext;
 
-            SetGrouping();
+            //SetGrouping();
         }
 
         void tdgaxisbutton_Click(object sender, RoutedEventArgs e)
@@ -275,25 +340,31 @@ namespace pviewer5
             Button b = (Button)sender;
             tdggroupingaxis i = (tdggroupingaxis)b.DataContext;
 
-            ObservableCollection<tdggroupingaxis> mylist = i.parent;
-            int pos = mylist.IndexOf(i);
+            List<tdggroupingaxis> mylist = i.parent;
+            int pos;
+            for (pos = 0; pos < mylist.Count; pos++) if (mylist[pos] == i) break;
 
             switch (b.Name)
             {
                 case "button_top":
-                    mylist.Move(pos, 0); break;
+                    mylist.RemoveAt(pos);
+                    mylist.Insert(0, i); break;
                 case "button_up":
                     if (pos == 0) break;
-                    mylist.Move(pos, pos - 1); break;
+                    mylist.RemoveAt(pos);
+                    mylist.Insert(pos - 1, i); break;
                 case "button_dn":
-                    if (pos == mylist.Count() - 1) break;
-                    mylist.Move(pos, pos + 1); break;
+                    if (pos == mylist.Count - 1) break;
+                    mylist.RemoveAt(pos);
+                    mylist.Insert(pos+1, i); break;
                 case "button_bot":
-                    mylist.Move(pos, mylist.Count() - 1); break;
+                    if (pos == mylist.Count - 1) break;
+                    mylist.RemoveAt(pos);
+                    mylist.Insert(pos+1, i); break;
                 default: break;
             }
 
-            SetGrouping();
+            //SetGrouping();
 
         }
 
@@ -309,11 +380,11 @@ namespace pviewer5
 
             switch(column)
             {
-                case "ip4g":
-                    if (p.ip4g == null)
+                case "IP4g":
+                    if (p.IP4g == null)
                     {
-                        foreach (Packet i in vl)
-                            if (i.SrcIP4 == p.SrcIP4) i.ip4g = i.SrcIP4;
+                        foreach (Packet i in pkts)
+                            if (i.SrcIP4 == p.SrcIP4) i.IP4g = i.SrcIP4;
                         view.Refresh();
                     }
                     break;
@@ -336,7 +407,7 @@ namespace pviewer5
             switch (column)
             {
                 case "SrcIP4":
-                    e.CanExecute = (p.ip4g == null);
+                    e.CanExecute = (p.IP4g == null);
                     break;
                 default:
                     e.CanExecute = false;
@@ -353,10 +424,10 @@ namespace pviewer5
             switch (column)
             {
                 case "SrcIP4":
-                    if (p.ip4g != null)
+                    if (p.IP4g != null)
                     {
-                        foreach (Packet i in vl)
-                            if (i.SrcIP4 == p.SrcIP4) i.ip4g = null;
+                        foreach (Packet i in pkts)
+                            if (i.SrcIP4 == p.SrcIP4) i.IP4g = null;
                         view.Refresh();
                     }
                     break;
@@ -378,7 +449,7 @@ namespace pviewer5
             switch (column)
             {
                 case "SrcIP4":
-                    e.CanExecute = (p.ip4g != null);
+                    e.CanExecute = (p.IP4g != null);
                     break;
                 default:
                     e.CanExecute = false;

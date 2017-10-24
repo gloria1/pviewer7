@@ -421,6 +421,7 @@ namespace pviewer5
         public IP4H ip4hdr = null;
         public TCPH tcphdr = null;
         public H groupprotoheader { get; set; }     // packet group logic will set this to point to the header of the protocol relevant to that group type
+        public Type PGType { get { if (Parent == null) return null; else return Parent.GetType(); } }    // the type of the packet group this gets assigned to, will be set by group assignment methods
 
         // properties to be used for grouping in the datagrid
         // these should be set initially when the underlying packet properties are set
@@ -491,7 +492,7 @@ namespace pviewer5
             // set the treeview grouping properties
             IP4g = SrcIP4;
             Protocolsg = ProtOuter;
-            PGTypeg = Parent.GetType();
+            PGTypeg = PGType;
 
         }
 
