@@ -104,7 +104,7 @@ namespace pviewer5
         DNS = 0x10000
     }
 
-    public class PVDisplayObject : IEditableObject
+    public class PVDisplayObject : IEditableObject, INotifyPropertyChanged
         // propagation of ExceptionLevel property:
         //   0) basically, it propagates up but not down, and propagation only ratchets the parents level up, never down
         //   1) exception level based on the item itself is determined when item is loaded
@@ -135,6 +135,7 @@ namespace pviewer5
             set
             {
                 _L = value;
+                NotifyPropertyChanged();
                 if (value != null)
                 {
                     Lview = (ListCollectionView)CollectionViewSource.GetDefaultView(value);
@@ -199,6 +200,16 @@ namespace pviewer5
         public void BeginEdit() { }
         public void CancelEdit() { }
         public void EndEdit() { }
+
+        // implement INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged(String propertyName = "")
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
 
     }
 

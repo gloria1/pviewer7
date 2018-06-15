@@ -62,6 +62,13 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <DataTemplate DataType="{x:Type local:Packet}">
+            <WrapPanel Orientation="Horizontal" Margin="-1" Width="200" Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"  >
+                <Label Content="{Binding IP4g}" Margin="3" Padding="1" FontSize="10"/>
+                <Label Content="{Binding Protocolsg}" Margin="3" Padding="1" FontSize="10"/>
+                <Label Content="{Binding PGTypeg}" Margin="3" Padding="1" FontSize="10"/>
+            </WrapPanel>
+        </DataTemplate>
         <DataTemplate DataType="{x:Type local:tdggroupingaxis}">
             <WrapPanel Orientation="Horizontal" Margin="-1" Width="200" Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"  >
                 <CheckBox x:Name="checkBox" IsChecked="{Binding ischecked}" Margin="3" Click="tdgaxischeck_Click"/>
@@ -72,6 +79,11 @@
                 <Label x:Name="label" Content="{Binding displayname}" Margin="3" Padding="1" FontSize="10"/>
             </WrapPanel>
         </DataTemplate>
+        <HierarchicalDataTemplate DataType="{x:Type local:tdgtreegroup}"
+                                  ItemsSource="{Binding Path=L}">
+
+            <Label x:Name="label" Content="{Binding Parent.axis.displayname}" Margin="3" Padding="1" FontSize="10"/>
+        </HierarchicalDataTemplate>
     </Window.Resources>
     <Grid 
         Margin="0,74,0,0"
@@ -79,7 +91,6 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="30" MinHeight="150"></RowDefinition>
             <RowDefinition Height="150"></RowDefinition>
-            <RowDefinition Height="*" MinHeight="150"></RowDefinition>
             <RowDefinition Height="*" MinHeight="150"></RowDefinition>
         </Grid.RowDefinitions>
 
@@ -91,7 +102,7 @@
         </ListBox>
         
 
-        <DataGrid
+<!--        <DataGrid
             Grid.Row="2"
             x:Name="tdg"
 			EnableColumnVirtualization="True"
@@ -109,7 +120,6 @@
                 <DataGridTextColumn Header="GroupType" Binding="{Binding gtypegtemp}"/>
             </DataGrid.Columns>
             <DataGrid.GroupStyle>
-                <!-- Style for groups at top level. -->
                 <GroupStyle>
                     <GroupStyle.ContainerStyle>
                         <Style TargetType="{x:Type GroupItem}">
@@ -183,7 +193,6 @@
                     </GroupStyle.ContainerStyle>
                 </GroupStyle>
 
-                <!-- Style for groups under the top level. -->
                 <GroupStyle>
                     <GroupStyle.HeaderTemplate>
                         <DataTemplate>
@@ -203,11 +212,17 @@
             </DataGrid.ContextMenu>
 
         </DataGrid>
-
+-->
         <TreeView
-            Grid.Row="3"
+            Grid.Row="2"
             x:Name="tdgtree"
-            ItemsSource="{Binding}">
+            ItemsSource="{Binding Path=tree.L}">
+            <TreeView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem x:Name="tdg_break_out" Header="Break Out" Command="{x:Static local:TestDataGrid.tdg_break_out_cmd}"/>
+                    <MenuItem x:Name="tdg_group"     Header="Group"     Command="{x:Static local:TestDataGrid.tdg_group_cmd}"/>
+                </ContextMenu>
+            </TreeView.ContextMenu>
         </TreeView>
             
     </Grid>

@@ -95,7 +95,7 @@ namespace pviewer5
         public string propertyname { get; set; }
         public string displayname { get; set; }
         public bool ischecked { get; set; }
-        public List<tdggroupingaxis> parent;
+        public List<tdggroupingaxis> parent { get; set; }
 
         public List<object> groupeditems = new List<object>();
         public Func<Packet, bool> isgrouped      ;   // will be a function to determine whether the packet is grouped for its value on this axis
@@ -176,9 +176,11 @@ namespace pviewer5
 
     public class tdgtreegroup : PVDisplayObject
     {
+        public tdggroupingaxis axis { get; set; }
 
-        public tdgtreegroup(PVDisplayObject par) : base (par)
+        public tdgtreegroup(tdggroupingaxis ax, PVDisplayObject par) : base (par)
         {
+            axis = ax;
             L = new ObservableCollection<PVDisplayObject>();
         }
     }
@@ -187,7 +189,6 @@ namespace pviewer5
     public partial class TestDataGrid : Window
     {
         public tdgtreegroup tree { get; set; }
-        public ListCollectionView view;
         public List<tdggroupingaxis> axes { get; set; }
         public List<Packet> pkts;
 
@@ -202,7 +203,7 @@ namespace pviewer5
         {
             Packet p;
 
-            tree = new tdgtreegroup(null);
+            tree = new tdgtreegroup(null, null);
             tree.L = new ObservableCollection<PVDisplayObject>();
             axes = new List<tdggroupingaxis>();
             pkts = new List<Packet>();
@@ -212,8 +213,8 @@ namespace pviewer5
 
             tdg_break_out_binding = new CommandBinding(tdg_break_out_cmd, tdg_break_out_Executed, tdg_break_out_CanExecute);
             tdg_group_binding     = new CommandBinding(tdg_group_cmd,     tdg_group_Executed,     tdg_group_CanExecute);
-            tdg.CommandBindings.Add(tdg_break_out_binding);
-            tdg.CommandBindings.Add(tdg_group_binding);
+            tdgtree.CommandBindings.Add(tdg_break_out_binding);
+            tdgtree.CommandBindings.Add(tdg_group_binding);
 
             p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b03; p.Protocolsg = p.Prots = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
             p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b04; p.Protocolsg = p.Prots = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
@@ -239,63 +240,15 @@ namespace pviewer5
 
 
             BuildTree(tree, pkts, axes, 0);
-
-
-/*
-            // var query = from P in vl group P by P.ip4g into groups1 select from Packet in groups1 group Packet by Packet.protocolsg into groups2 select from Packet in groups2 group Packet by Packet.gtypeg;
-            // var query  = from P in vl group P by P.ip4g into groups1 select from Packet in groups1 group Packet by Packet.protocolsg into groups2 select from Packet in groups2 group Packet by Packet.gtypeg;
-
-            var query1 = from P in vl group P by P.IP4g; // into groups1 select new { Key = groups1.Key, Items = groups1 }; // from Packet in groups group Packet by Packet.protocolsg into groups2 select from Packet in groups2 group Packet by Packet.gtypeg;
-
-            var query22 = vl.GroupBy<Packet, IP4?>(x => x.IP4g);
-            Packet p = (query22.First()).First();
-            List<object> query222 = new List<object>();
-            foreach (IGrouping<IP4?, Packet> g in query22) query222.Add(g.GroupBy<Packet, Protocols?>(x => x.Protocolsg));
-            
-            Type gen = typeof(ObservableCollection<>);
-            Type nongen = typeof(ObservableCollection<Packet>);
-
-            var mis = from m in typeof(Enumerable).GetMethods()
-                           where m.Name == "GroupBy" && m.IsGenericMethod
-                           let parameters = m.GetParameters()
-                           where parameters.Length == 2
-                           select m;
-
-
-            MethodInfo mi = mis.First();
-            Type[] argtypes = mi.GetGenericArguments();
-            ParameterInfo[] pi = mi.GetParameters();
-
-            
-
-            foreach (var g in query1)
-            {
-                            
-
-                var query2 = from P in g group P by P.Protocolsg;
-
-                foreach (var gg in query2)
-                {
-                    IP4? ip = g.Key;
-                    Protocols? prot = gg.Key;
-                    List < Packet > l1 = gg.ToList();
-                }
-            }
-
-
-            // next line gets view on vl, not on tdg.Itemssource
-            // at this point in execution, tdg.Itemssource is still null,
-            // even though it must get set somewhere later on because the datagrid
-            // does get populated correctly
-            view = (ListCollectionView)CollectionViewSource.GetDefaultView(vl);
-            
-            SetGrouping();
-*/
+     
         }
 
         void BuildTree(tdgtreegroup t, List<Packet> pkts, List<tdggroupingaxis> axes, int axisnum)    // builds out next level of tree under t
         {
             tdgtreegroup tnew;
+
+            // clear previous tree
+            t.L = new ObservableCollection<PVDisplayObject>();
 
             // find next active axis in axes starting at axes[nextaxistocheck]
             for (; axisnum < axes.Count; axisnum++) if (((tdggroupingaxis)(axes[axisnum])).ischecked) break;
@@ -310,13 +263,14 @@ namespace pviewer5
             // else group pkts by that axis and assign the groups to t
             else
             {
+                t.axis = axes[axisnum];
                 // group pkts by axes[axisnum]
                 List<List<Packet>> query = ((tdggroupingaxis)(axes[axisnum])).groupfn(pkts);
                 // foreach group in the result
                 foreach (List<Packet> list in query)
                 {
                     //     assign it to t
-                    tnew = new tdgtreegroup(t);
+                    tnew = new tdgtreegroup(null, t);
                     t.L.Add(tnew);
                     //     recursively call this function to group it
                     BuildTree(tnew, list, axes, axisnum+1);
@@ -332,7 +286,8 @@ namespace pviewer5
             CheckBox b = (CheckBox)sender;
             tdggroupingaxis i = (tdggroupingaxis)b.DataContext;
 
-            //SetGrouping();
+            BuildTree(tree, pkts, axes, 0);
+            tree.Lview.Refresh();
         }
 
         void tdgaxisbutton_Click(object sender, RoutedEventArgs e)
@@ -363,14 +318,18 @@ namespace pviewer5
                     mylist.Insert(pos+1, i); break;
                 default: break;
             }
+            (CollectionViewSource.GetDefaultView(mylist)).Refresh();
 
-            //SetGrouping();
+            BuildTree(tree, pkts, axes, 0);
+            tree.Lview.Refresh();
 
         }
 
         public void tdg_break_out_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            DataGrid dg = (DataGrid)sender;
+
+
+/*            DataGrid dg = (DataGrid)sender;
             string column = dg.CurrentColumn.SortMemberPath;
             Packet p = (Packet)(dg.CurrentCell.Item);
 
@@ -385,39 +344,42 @@ namespace pviewer5
                     {
                         foreach (Packet i in pkts)
                             if (i.SrcIP4 == p.SrcIP4) i.IP4g = i.SrcIP4;
-                        view.Refresh();
+                        BuildTree(tree, pkts, axes, 0);
+                        tree.Lview.Refresh();
                     }
                     break;
                 default:
                     break;
             }
-
+            */
             
         }
         public void tdg_break_out_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            DataGrid dg = (DataGrid)sender;
-            string column = dg.CurrentColumn.SortMemberPath;
-            Packet p = (Packet)(dg.CurrentCell.Item);
+            e.CanExecute = true;
+            /*            DataGrid dg = (DataGrid)sender;
+                        string column = dg.CurrentColumn.SortMemberPath;
+                        Packet p = (Packet)(dg.CurrentCell.Item);
 
-            // if grouped for this specific value, then
-            // change grouped_xx to specific value
-            // do this for all packets that have this specific value - need to pass through entire packet list
+                        // if grouped for this specific value, then
+                        // change grouped_xx to specific value
+                        // do this for all packets that have this specific value - need to pass through entire packet list
 
-            switch (column)
-            {
-                case "SrcIP4":
-                    e.CanExecute = (p.IP4g == null);
-                    break;
-                default:
-                    e.CanExecute = false;
-                    break;
-            }
+                        switch (column)
+                        {
+                            case "SrcIP4":
+                                e.CanExecute = (p.IP4g == null);
+                                break;
+                            default:
+                                e.CanExecute = false;
+                                break;
+                        }
+              */
         }
 
         public void tdg_group_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            DataGrid dg = (DataGrid)sender;
+        /*    DataGrid dg = (DataGrid)sender;
             string column = dg.CurrentColumn.SortMemberPath;
             Packet p = (Packet)(dg.CurrentCell.Item);
 
@@ -428,16 +390,20 @@ namespace pviewer5
                     {
                         foreach (Packet i in pkts)
                             if (i.SrcIP4 == p.SrcIP4) i.IP4g = null;
-                        view.Refresh();
+                        BuildTree(tree, pkts, axes, 0);
+                        tree.Lview.Refresh();
                     }
                     break;
                 default:
                     break;
             }
+            */
 
         }
         public void tdg_group_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
+            e.CanExecute = true;
+            /*
             DataGrid dg = (DataGrid)sender;
             string column = dg.CurrentColumn.SortMemberPath;
             Packet p = (Packet)(dg.CurrentCell.Item);
@@ -455,6 +421,7 @@ namespace pviewer5
                     e.CanExecute = false;
                     break;
             }
+            */
         }
 
     }
