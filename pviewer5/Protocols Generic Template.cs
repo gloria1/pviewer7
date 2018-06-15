@@ -104,6 +104,10 @@ namespace pviewer5
         DNS = 0x10000
     }
 
+
+
+
+
     public class PVDisplayObject : IEditableObject, INotifyPropertyChanged
         // propagation of ExceptionLevel property:
         //   0) basically, it propagates up but not down, and propagation only ratchets the parents level up, never down
@@ -126,7 +130,27 @@ namespace pviewer5
                         _parent.ExceptionLevel = ExceptionLevel;
             }
         }
+        public bool IsExpanded { get; set; } = false;
+        public virtual bool IsVisible
+        {
+            get
+            {
+                return true;        // default is to be always visible; subclasses can override with logic to hide based on exception level, filters, etc.
+            }
+        }
+        public bool PVDOFilter(object p)
+        {
+            return ((PVDisplayObject)p).IsVisible;
+        }
 
+        public virtual string displayinfo {
+            get
+            {
+                string s = "";
+                if (ExceptionLevel > 0) s += "EXCEPTION LEVEL " + ExceptionLevel.ToString() + "   ";
+                return s;
+            }
+        }
 
         private ObservableCollection<PVDisplayObject> _L = null;
         public ObservableCollection<PVDisplayObject> L            // list of child items
@@ -146,8 +170,6 @@ namespace pviewer5
         public ListCollectionView Lview = null;
         public object LKey = null;  // if L has a common Key value (from a grouping operation), LKey will be set to that value  
 
-        public bool IsExpanded { get; set; } = false;
-
         private int _exceptionlevel = 0;      // default value is 0
         public int ExceptionLevel
         {
@@ -161,22 +183,9 @@ namespace pviewer5
             }
         }
 
-        public virtual bool IsVisible
-        {
-            get
-            {
-                return true;        // default is to be always visible; subclasses can override with logic to hide based on exception level, filters, etc.
-            }
-        }
+        public virtual PVDisplayObject self { get { return this; } }    // so that data binding can bind to a reference to the PVDisplayObject itself
 
-        public virtual string displayinfo {
-            get
-            {
-                string s = "";
-                if (ExceptionLevel > 0) s += "EXCEPTION LEVEL " + ExceptionLevel.ToString() + "   ";
-                return s;
-            }
-        }
+
 
         // private PVDisplayObject() : this(null) { }
         public PVDisplayObject(PVDisplayObject parent)
@@ -186,12 +195,6 @@ namespace pviewer5
             // for instances which are leaves of the tree
         }
 
-        public bool PVDOFilter(object p)
-        {
-            return ((PVDisplayObject)p).IsVisible;
-        }
-
-        public virtual PVDisplayObject self { get { return this; } }    // so that data binding can bind to a reference to the PVDisplayObject itself
 
         // implement IEditableObject interface - this somehow enables saving of tree expansion state
         // see
