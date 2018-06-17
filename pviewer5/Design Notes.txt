@@ -1,6 +1,52 @@
 ﻿
 
 
+2018-06-16
+	review of class structure
+		existing
+			class PVDisplayObject
+				base type for all items in viewmodel
+				provides
+					virtual self - reference to itself, so data binding to self is easy
+					Parent
+					IsExpanded (for binding to wpf tree)
+					virtual IsVisible (referred to by PVDOFilter property, could be referred to elsewhere in future)
+					PVDOFilter (currently just returns value of IsVisible, used in view filter for the item list inside the PVDisplayObject)
+					virtual displayinfo
+					L - list of PVDisplayObjects that are children
+					Lview - view on L
+					LKey - for grouping operations, the common key value, or null if there is more than one
+					ExceptionLevel - will be used to determine IsVisible, not implemented yet
+				implements
+					INotifyPropertyChanged
+					IEditableObject - somehow enables saving of tree expansion state
+
+			class H : PVDisplayObject
+			class G : PVDisplayObject
+			class GList : PVDisplayObject
+
+
+			class tdggroupingaxis : INotifyPropertyChanged
+			SEEMS LIKE AN OPPORTUNITY FOR A GENERIC
+			WOULD NEED A NEW TYPE FOR "GROUPINGAXISTYPE", WHICH IMPLEMENTS THINGS SPECIFIC TO IP4, PROTOCOL, ETC.
+						
+			class tdggroupingaxisip4 : tdggroupingaxis
+			class tdggroupingaxisprot : tdggroupingaxis
+			class tdggroupingaxispgtype : tdggroupingaxis
+
+			class tdgtreegroup : PVDisplayObject
+
+		to consider
+			PVDisplayObject as a base class?  or should it be an interface?
+				--> base class seems right:
+						the things to be implemented are mostly common, so not much need for sub-class-specific implementations
+
+			tdg* seems in need of a re-organization
+
+
+
+
+
 
 
 2017-10-25

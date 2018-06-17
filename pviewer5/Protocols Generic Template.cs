@@ -117,6 +117,7 @@ namespace pviewer5
         //   4) there is a separate method for ExceptionLevelSetAndPushDown that does this
     {
 
+        public virtual PVDisplayObject self { get { return this; } }    // so that data binding can bind to a reference to the PVDisplayObject itself
         private PVDisplayObject _parent = null;
         public PVDisplayObject Parent
         {
@@ -183,7 +184,6 @@ namespace pviewer5
             }
         }
 
-        public virtual PVDisplayObject self { get { return this; } }    // so that data binding can bind to a reference to the PVDisplayObject itself
 
 
 

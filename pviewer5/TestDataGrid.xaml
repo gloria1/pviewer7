@@ -64,7 +64,7 @@
         </Style>
         <DataTemplate DataType="{x:Type local:Packet}">
             <WrapPanel Orientation="Horizontal" Margin="-1" Width="200" Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"  >
-                <Label Content="{Binding IP4g}" Margin="3" Padding="1" FontSize="10"/>
+                <Label Content="{Binding SrcIP4}" Margin="3" Padding="1" FontSize="10"/>
                 <Label Content="{Binding Protocolsg}" Margin="3" Padding="1" FontSize="10"/>
                 <Label Content="{Binding PGTypeg}" Margin="3" Padding="1" FontSize="10"/>
             </WrapPanel>
