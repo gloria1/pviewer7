@@ -26,69 +26,8 @@ using System.Reflection;
 namespace pviewer5
 {
 
-    // next:
-    //      redo tdgitem to use IP4g, GTypeg and Protocolsg
-    //      redo axes and window code to use the above
-    //      implement grouping buckets and logic described in spreadsheet
-
-
-
-
-
-
-    /*  old tdgitem spec
-     *  public class tdgitem : INotifyPropertyChanged
-        {
-            public string timestamp { get; set; }
-            public IP4 ip { get; set; }
-            public Protocols proto { get; set; }
-            public object group { get; set; }
-            public Type grouptype { get { return group.GetType(); } }
-            public ObservableCollection<tdgitem> parent { get; set; }
-
-            public string grouped_ip { get; set; }
-            public string grouped_proto { get; set; }
-            public object grouped_group { get; set; }
-            public Type grouped_grouptype { get; set; }
-
-            public tdgitem(string t, string i, string p, object g, ObservableCollection<tdgitem> par)
-            {
-                timestamp = t;
-                ip = i;
-                proto = p;
-                group = g;
-                parent = par;
-                switch (ip)
-                {
-                    case "192.168.11.222":
-                        grouped_ip = "OTHER";
-                        break;
-                    case "192.168.11.224":
-                        grouped_ip = "OTHER";
-                        break;
-                    default:
-                        grouped_ip = ip;
-                        break;
-                }
-                grouped_proto = proto;
-                grouped_group = group;
-                grouped_grouptype = grouptype;
-            }
-
-            // implement INotifyPropertyChanged
-            public event PropertyChangedEventHandler PropertyChanged;
-            private void NotifyPropertyChanged(String propertyName = "")
-            {
-                if (PropertyChanged != null)
-                {
-                    PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-                }
-            }
-
-
-        }
-        */
-
+    /*
+     * PRIOR tdggroupingaxis classes
 
     public class tdggroupingaxis : INotifyPropertyChanged
     {
@@ -185,9 +124,118 @@ namespace pviewer5
         }
     }
 
+    */
+
+
+
+    public class tdggroupingaxis : INotifyPropertyChanged
+    {
+        public Type type { get; set; }
+        public string displayname { get; set; }
+        public bool ischecked { get; set; }
+        public List<tdggroupingaxis> parent { get; set; }
+
+        public tdggroupingaxis(List<tdggroupingaxis> par)
+        {
+            type = typeof(object);
+            ischecked = true;
+            parent = par;
+        }
+
+        public virtual List<List<Packet>> groupfn(List<Packet> pkts)
+        {
+            return null;
+        }
+
+        // implement INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged(String propertyName = "")
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+    }
+
+    public class tdggroupingaxisprot : tdggroupingaxis
+    {
+        public tdggroupingaxisprot(List<tdggroupingaxis> par) : base(par)
+        {
+            type = typeof(Protocols);
+            displayname = "Protocols";
+        }
+        public override List<List<Packet>> groupfn(List<Packet> pkts)
+        {
+            List<List<Packet>> result = new List<List<Packet>>();
+            var query = (pkts.GroupBy<Packet, Protocols?>(x => x.Protocolsg));
+            foreach (var g in query) result.Add(g.ToList<Packet>());
+            return result;
+        }
+    }
+
+    public class tdggroupingaxisip4 : tdggroupingaxis
+    {
+        public tdggroupingaxisip4(List<tdggroupingaxis> par) : base(par)
+        {
+            type = typeof(IP4);
+            displayname = "IP4 address";
+        }
+        public override List<List<Packet>> groupfn(List<Packet> pkts)
+        {
+            List<List<Packet>> result = new List<List<Packet>>();
+            var query = (pkts.GroupBy<Packet, IP4?>(x => x.IP4g));
+            foreach (var g in query) result.Add(g.ToList<Packet>());
+            return result;
+        }
+    }
+
+    public class tdggroupingaxispgtype : tdggroupingaxis
+    {
+        public tdggroupingaxispgtype(List<tdggroupingaxis> par) : base(par)
+        {
+            type = typeof(Type);
+            displayname = "Packet Group Type";
+        }
+
+        public override List<List<Packet>> groupfn(List<Packet> pkts)
+        {
+            List<List<Packet>> result = new List<List<Packet>>();
+            var query = (pkts.GroupBy<Packet, Type>(x => x.PGTypeg));
+            foreach (var g in query) result.Add(g.ToList<Packet>());
+            return result;
+        }
+    }
+
+
+    public class tdgnode : PVDisplayObject
+    {
+        public object key { get; set; }   // the common value of the key for the axis of this level of the tree for the items in this node
+
+        public tdgnode(object k, tdgnode par) : base(par)
+        {
+            key = k;
+            // note: L will be instantiated by the tree building function, based on the type of the objects under this node
+        }
+        public override string displayinfo
+        {
+            get
+            {
+                if (key.GetType() == typeof(IP4)) return "IP4 address = " + ((IP4)key).ToString();
+                else if (key.GetType() == typeof(Protocols)) return "Protocol = " + ((Protocols)key).ToString();
+                else if (key.GetType() == typeof(Type)) return "Packet Group Type = " + ((Type)key).ToString();
+                else return "Unknown";
+            }
+        }
+
+
+    }
+
 
     public partial class TestDataGrid : Window
     {
+        
         public tdgtreegroup tree { get; set; }
         public List<tdggroupingaxis> axes { get; set; }
         public List<Packet> pkts;
@@ -205,7 +253,7 @@ namespace pviewer5
 
             tree = new tdgtreegroup(null, null);
             tree.L = new ObservableCollection<PVDisplayObject>();
-            axes = new List<tdggroupingaxis>();
+            axes = new List<tdggroupingaxis<object>>();
             pkts = new List<Packet>();
 
             InitializeComponent();
@@ -234,8 +282,8 @@ namespace pviewer5
             p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.Prots = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
             p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.Prots = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
 
-            axes.Add(new tdggroupingaxisprot(axes));
-            axes.Add(new tdggroupingaxisip4(axes));
+            axes.Add(new tdggroupingaxis<Protocols>(axes));
+            axes.Add(new tdggroupingaxis<IP4>(axes));
             axes.Add(new tdggroupingaxispgtype(axes));
 
 

@@ -7,6 +7,12 @@
 *.userosscache
 *.sln.docstates
 
+# Visual Studio 2015/2017 cache/options directory
+.vs/
+
+db.lock
+storage.ide*
+
 
 # Build results
 [Dd]ebug/

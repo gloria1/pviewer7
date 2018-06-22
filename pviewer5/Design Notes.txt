@@ -42,6 +42,16 @@
 						the things to be implemented are mostly common, so not much need for sub-class-specific implementations
 
 			tdg* seems in need of a re-organization
+				==>
+					need a class for "tdgnode" : PVDisplayObject
+					properties will be
+						type - the type of grouping item of which this is an item
+						key - the value of the grouping item for this node (or null if ungrouped)
+					subclasses by type, e.g., "tdgnodeip4"
+					properties of the subclasses will be
+						displayinfo
+						grouping function
+
 
 
 
