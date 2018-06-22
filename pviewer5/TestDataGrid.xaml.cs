@@ -146,6 +146,10 @@ namespace pviewer5
         {
             return null;
         }
+        public virtual object getkey(Packet p)
+        {
+            return null;
+        }
 
         // implement INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;
@@ -173,6 +177,10 @@ namespace pviewer5
             foreach (var g in query) result.Add(g.ToList<Packet>());
             return result;
         }
+        public override object getkey(Packet p)
+        {
+            return p.Protocolsg;
+        }
     }
 
     public class tdggroupingaxisip4 : tdggroupingaxis
@@ -188,6 +196,10 @@ namespace pviewer5
             var query = (pkts.GroupBy<Packet, IP4?>(x => x.IP4g));
             foreach (var g in query) result.Add(g.ToList<Packet>());
             return result;
+        }
+        public override object getkey(Packet p)
+        {
+            return p.IP4g;
         }
     }
 
@@ -205,6 +217,10 @@ namespace pviewer5
             var query = (pkts.GroupBy<Packet, Type>(x => x.PGTypeg));
             foreach (var g in query) result.Add(g.ToList<Packet>());
             return result;
+        }
+        public override object getkey(Packet p)
+        {
+            return p.PGTypeg;
         }
     }
 
@@ -235,8 +251,7 @@ namespace pviewer5
 
     public partial class TestDataGrid : Window
     {
-        
-        public tdgtreegroup tree { get; set; }
+        public tdgnode root { get; set; }
         public List<tdggroupingaxis> axes { get; set; }
         public List<Packet> pkts;
 
@@ -251,9 +266,8 @@ namespace pviewer5
         {
             Packet p;
 
-            tree = new tdgtreegroup(null, null);
-            tree.L = new ObservableCollection<PVDisplayObject>();
-            axes = new List<tdggroupingaxis<object>>();
+            root = new tdgnode(null, null);
+            axes = new List<tdggroupingaxis>();
             pkts = new List<Packet>();
 
             InitializeComponent();
@@ -282,46 +296,44 @@ namespace pviewer5
             p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.Prots = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
             p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.Prots = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
 
-            axes.Add(new tdggroupingaxis<Protocols>(axes));
-            axes.Add(new tdggroupingaxis<IP4>(axes));
+            axes.Add(new tdggroupingaxisprot(axes));
+            axes.Add(new tdggroupingaxisip4(axes));
             axes.Add(new tdggroupingaxispgtype(axes));
 
 
-            BuildTree(tree, pkts, axes, 0);
+            BuildTreeNode(root, pkts, axes, 0);
      
         }
 
-        void BuildTree(tdgtreegroup t, List<Packet> pkts, List<tdggroupingaxis> axes, int axisnum)    // builds out next level of tree under t
+        void BuildTreeNode(tdgnode t, List<Packet> pkts, List<tdggroupingaxis> axes, int axisnum)    // builds out next level of tree under t
         {
-            tdgtreegroup tnew;
+            tdgnode tnew;
 
-            // clear previous tree
+            // clear previous subtree
             t.L = new ObservableCollection<PVDisplayObject>();
 
             // find next active axis in axes starting at axes[nextaxistocheck]
             for (; axisnum < axes.Count; axisnum++) if (((tdggroupingaxis)(axes[axisnum])).ischecked) break;
             
-            // if no further active axes, just put pkts into t.L
+            // if no further active axes, just put pkts into t
             if(axisnum == axes.Count)
             {
-                t.L = new ObservableCollection<PVDisplayObject>();
                 foreach (Packet p in pkts) t.L.Add(p);
                 return;
             }
             // else group pkts by that axis and assign the groups to t
             else
             {
-                t.axis = axes[axisnum];
                 // group pkts by axes[axisnum]
                 List<List<Packet>> query = ((tdggroupingaxis)(axes[axisnum])).groupfn(pkts);
                 // foreach group in the result
                 foreach (List<Packet> list in query)
                 {
                     //     assign it to t
-                    tnew = new tdgtreegroup(null, t);
+                    tnew = new tdgnode(axes[axisnum].getkey(list[0]), t);
                     t.L.Add(tnew);
                     //     recursively call this function to group it
-                    BuildTree(tnew, list, axes, axisnum+1);
+                    BuildTreeNode(tnew, list, axes, axisnum+1);
                 }
             }
 
@@ -334,8 +346,8 @@ namespace pviewer5
             CheckBox b = (CheckBox)sender;
             tdggroupingaxis i = (tdggroupingaxis)b.DataContext;
 
-            BuildTree(tree, pkts, axes, 0);
-            tree.Lview.Refresh();
+            BuildTreeNode(root, pkts, axes, 0);
+            root.Lview.Refresh();
         }
 
         void tdgaxisbutton_Click(object sender, RoutedEventArgs e)
@@ -368,8 +380,8 @@ namespace pviewer5
             }
             (CollectionViewSource.GetDefaultView(mylist)).Refresh();
 
-            BuildTree(tree, pkts, axes, 0);
-            tree.Lview.Refresh();
+            BuildTreeNode(root, pkts, axes, 0);
+            root.Lview.Refresh();
 
         }
 

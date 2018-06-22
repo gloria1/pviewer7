@@ -216,7 +216,7 @@
         <TreeView
             Grid.Row="2"
             x:Name="tdgtree"
-            ItemsSource="{Binding Path=tree.L}">
+            ItemsSource="{Binding Path=tdgtreetoplevel}">
             <TreeView.ContextMenu>
                 <ContextMenu>
                     <MenuItem x:Name="tdg_break_out" Header="Break Out" Command="{x:Static local:TestDataGrid.tdg_break_out_cmd}"/>
