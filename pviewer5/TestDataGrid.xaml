@@ -79,10 +79,124 @@
                 <Label x:Name="label" Content="{Binding displayname}" Margin="3" Padding="1" FontSize="10"/>
             </WrapPanel>
         </DataTemplate>
-        <HierarchicalDataTemplate DataType="{x:Type local:tdgtreegroup}"
+        <HierarchicalDataTemplate DataType="{x:Type local:tdgnodenonleaf}"
                                   ItemsSource="{Binding Path=L}">
 
-            <Label x:Name="label" Content="{Binding Parent.axis.displayname}" Margin="3" Padding="1" FontSize="10"/>
+            <Label x:Name="label" Content="{Binding displayinfo}" Margin="3" Padding="1" FontSize="10"/>
+        </HierarchicalDataTemplate>
+        <HierarchicalDataTemplate DataType="{x:Type local:tdgnodeleaf}">
+            <DataGrid
+            Grid.Row="2"
+			EnableColumnVirtualization="True"
+			EnableRowVirtualization="True"
+			VirtualizingPanel.IsVirtualizing="True"
+			VirtualizingPanel.VirtualizationMode="Recycling"
+			AutoGenerateColumns="False"
+            CanUserDeleteRows="False"
+            CanUserAddRows="False"
+			ItemsSource="{Binding Path=L}">
+
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="IP" Binding="{Binding SrcIP4}"/>
+                    <DataGridTextColumn Header="Proto" Binding="{Binding Prots}"/>
+                    <DataGridTextColumn Header="GroupType" Binding="{Binding PGTypeg}"/>
+                </DataGrid.Columns>
+               <DataGrid.GroupStyle>
+                    <GroupStyle>
+                        <GroupStyle.ContainerStyle>
+                            <Style TargetType="{x:Type GroupItem}">
+                                <Setter Property="Margin" Value="0,0,0,5"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="{x:Type GroupItem}">
+                                            <Expander Background="LightBlue" BorderBrush="#FF002255" Foreground="Blue" BorderThickness="1,1,1,5">
+                                                <Expander.Header>
+                                                    <DockPanel>
+                                                        <TextBlock FontWeight="Bold" Text="{Binding Path=Name}" Margin="5,0,0,0" Width="100"/>
+                                                        <TextBlock FontWeight="Bold" Text="{Binding Path=ItemCount}"/>
+                                                    </DockPanel>
+                                                </Expander.Header>
+                                                <Expander.Content>
+                                                    <ItemsPresenter />
+                                                </Expander.Content>
+                                            </Expander>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </GroupStyle.ContainerStyle>
+                    </GroupStyle>
+<!--                    <GroupStyle>
+                        <GroupStyle.ContainerStyle>
+                            <Style TargetType="{x:Type GroupItem}">
+                                <Setter Property="Margin" Value="20,0,0,5"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="{x:Type GroupItem}">
+                                            <Expander IsExpanded="False" Background="LightBlue" BorderBrush="#FF002255" Foreground="Blue" BorderThickness="1,1,1,5">
+                                                <Expander.Header>
+                                                    <DockPanel>
+                                                        <TextBlock FontWeight="Bold" Text="{Binding Path=Name}" Margin="5,0,0,0" Width="100"/>
+                                                        <TextBlock FontWeight="Bold" Text="{Binding Path=ItemCount}"/>
+                                                    </DockPanel>
+                                                </Expander.Header>
+                                                <Expander.Content>
+                                                    <ItemsPresenter />
+                                                </Expander.Content>
+                                            </Expander>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </GroupStyle.ContainerStyle>
+                    </GroupStyle>
+                    <GroupStyle>
+                        <GroupStyle.ContainerStyle>
+                            <Style TargetType="{x:Type GroupItem}">
+                                <Setter Property="Margin" Value="20,0,0,5"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="{x:Type GroupItem}">
+                                            <Expander IsExpanded="False" Background="LightBlue" BorderBrush="#FF002255" Foreground="Blue" BorderThickness="1,1,1,5">
+                                                <Expander.Header>
+                                                    <DockPanel>
+                                                        <TextBlock FontWeight="Bold" Text="{Binding Path=Name}" Margin="5,0,0,0" Width="100"/>
+                                                        <TextBlock FontWeight="Bold" Text="{Binding Path=ItemCount}"/>
+                                                    </DockPanel>
+                                                </Expander.Header>
+                                                <Expander.Content>
+                                                    <ItemsPresenter />
+                                                </Expander.Content>
+                                            </Expander>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </GroupStyle.ContainerStyle>
+                    </GroupStyle>
+
+                    <GroupStyle>
+                        <GroupStyle.HeaderTemplate>
+                            <DataTemplate>
+                                <DockPanel Background="LightBlue">
+                                    <TextBlock Text="{Binding Path=Name}" Foreground="Blue" Margin="30,0,0,0" Width="100"/>
+                                    <TextBlock Text="{Binding Path=ItemCount}" Foreground="Blue"/>
+                                </DockPanel>
+                            </DataTemplate>
+                        </GroupStyle.HeaderTemplate>
+                    </GroupStyle>
+                   -->
+                </DataGrid.GroupStyle>
+                
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem x:Name="tdg_break_out" Header="Break Out" Command="{x:Static local:TestDataGrid.tdg_break_out_cmd}"/>
+                        <MenuItem x:Name="tdg_group"     Header="Group"     Command="{x:Static local:TestDataGrid.tdg_group_cmd}"/>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+
+            </DataGrid>
+
         </HierarchicalDataTemplate>
     </Window.Resources>
     <Grid 
@@ -102,128 +216,18 @@
         </ListBox>
         
 
-<!--        <DataGrid
-            Grid.Row="2"
-            x:Name="tdg"
-			EnableColumnVirtualization="True"
-			EnableRowVirtualization="True"
-			VirtualizingPanel.IsVirtualizing="True"
-			VirtualizingPanel.VirtualizationMode="Recycling"
-			AutoGenerateColumns="False"
-            CanUserDeleteRows="False"
-            CanUserAddRows="False"
-			ItemsSource="{Binding Path=vl}">
-
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="IP" Binding="{Binding SrcIP4}"/>
-                <DataGridTextColumn Header="Proto" Binding="{Binding Prots}"/>
-                <DataGridTextColumn Header="GroupType" Binding="{Binding gtypegtemp}"/>
-            </DataGrid.Columns>
-            <DataGrid.GroupStyle>
-                <GroupStyle>
-                    <GroupStyle.ContainerStyle>
-                        <Style TargetType="{x:Type GroupItem}">
-                            <Setter Property="Margin" Value="0,0,0,5"/>
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="{x:Type GroupItem}">
-                                        <Expander Background="LightBlue" BorderBrush="#FF002255" Foreground="Blue" BorderThickness="1,1,1,5">
-                                            <Expander.Header>
-                                                <DockPanel>
-                                                    <TextBlock FontWeight="Bold" Text="{Binding Path=Name}" Margin="5,0,0,0" Width="100"/>
-                                                    <TextBlock FontWeight="Bold" Text="{Binding Path=ItemCount}"/>
-                                                </DockPanel>
-                                            </Expander.Header>
-                                            <Expander.Content>
-                                                <ItemsPresenter />
-                                            </Expander.Content>
-                                        </Expander>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </GroupStyle.ContainerStyle>
-                </GroupStyle>
-                <GroupStyle>
-                    <GroupStyle.ContainerStyle>
-                        <Style TargetType="{x:Type GroupItem}">
-                            <Setter Property="Margin" Value="20,0,0,5"/>
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="{x:Type GroupItem}">
-                                        <Expander IsExpanded="False" Background="LightBlue" BorderBrush="#FF002255" Foreground="Blue" BorderThickness="1,1,1,5">
-                                            <Expander.Header>
-                                                <DockPanel>
-                                                    <TextBlock FontWeight="Bold" Text="{Binding Path=Name}" Margin="5,0,0,0" Width="100"/>
-                                                    <TextBlock FontWeight="Bold" Text="{Binding Path=ItemCount}"/>
-                                                </DockPanel>
-                                            </Expander.Header>
-                                            <Expander.Content>
-                                                <ItemsPresenter />
-                                            </Expander.Content>
-                                        </Expander>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </GroupStyle.ContainerStyle>
-                </GroupStyle>
-                <GroupStyle>
-                    <GroupStyle.ContainerStyle>
-                        <Style TargetType="{x:Type GroupItem}">
-                            <Setter Property="Margin" Value="20,0,0,5"/>
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="{x:Type GroupItem}">
-                                        <Expander IsExpanded="False" Background="LightBlue" BorderBrush="#FF002255" Foreground="Blue" BorderThickness="1,1,1,5">
-                                            <Expander.Header>
-                                                <DockPanel>
-                                                    <TextBlock FontWeight="Bold" Text="{Binding Path=Name}" Margin="5,0,0,0" Width="100"/>
-                                                    <TextBlock FontWeight="Bold" Text="{Binding Path=ItemCount}"/>
-                                                </DockPanel>
-                                            </Expander.Header>
-                                            <Expander.Content>
-                                                <ItemsPresenter />
-                                            </Expander.Content>
-                                        </Expander>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </GroupStyle.ContainerStyle>
-                </GroupStyle>
-
-                <GroupStyle>
-                    <GroupStyle.HeaderTemplate>
-                        <DataTemplate>
-                            <DockPanel Background="LightBlue">
-                                <TextBlock Text="{Binding Path=Name}" Foreground="Blue" Margin="30,0,0,0" Width="100"/>
-                                <TextBlock Text="{Binding Path=ItemCount}" Foreground="Blue"/>
-                            </DockPanel>
-                        </DataTemplate>
-                    </GroupStyle.HeaderTemplate>
-                </GroupStyle>
-            </DataGrid.GroupStyle>
-            <DataGrid.ContextMenu>
-                <ContextMenu>
-                    <MenuItem x:Name="tdg_break_out" Header="Break Out" Command="{x:Static local:TestDataGrid.tdg_break_out_cmd}"/>
-                    <MenuItem x:Name="tdg_group"     Header="Group"     Command="{x:Static local:TestDataGrid.tdg_group_cmd}"/>
-                </ContextMenu>
-            </DataGrid.ContextMenu>
-
-        </DataGrid>
--->
+<!---->
         <TreeView
             Grid.Row="2"
             x:Name="tdgtree"
-            ItemsSource="{Binding Path=tdgtreetoplevel}">
-            <TreeView.ContextMenu>
+            ItemsSource="{Binding Path=root.L}">
+<!--            <TreeView.ContextMenu>
                 <ContextMenu>
                     <MenuItem x:Name="tdg_break_out" Header="Break Out" Command="{x:Static local:TestDataGrid.tdg_break_out_cmd}"/>
                     <MenuItem x:Name="tdg_group"     Header="Group"     Command="{x:Static local:TestDataGrid.tdg_group_cmd}"/>
                 </ContextMenu>
             </TreeView.ContextMenu>
-        </TreeView>
+-->        </TreeView>
             
     </Grid>
 </Window>

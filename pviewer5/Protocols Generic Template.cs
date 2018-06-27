@@ -422,7 +422,7 @@ namespace pviewer5
         // convenience properties to contain copies of commonly needed values,
         // so that other functions do not need to search through header list to find them
         public ulong SeqNo = 0; // absolute sequence number in packet file
-        public Protocols Prots = Protocols.Generic;     // flags for protocols present in this packet
+        public Protocols Prots { get; set; } = Protocols.Generic;     // flags for protocols present in this packet
         public Protocols ProtOuter = Protocols.Generic;   // flag for "outermost" protcol - each header constructor will replace the previous value with its own
         public DateTime Time = new DateTime(0);
         public MAC SrcMAC = 0;
@@ -440,9 +440,9 @@ namespace pviewer5
         // properties to be used for grouping in the datagrid
         // these should be set initially when the underlying packet properties are set
         // they may be changed as the user changes grouping in the tree view
-        public IP4? IP4g { get; set; } = null;
-        public Protocols? Protocolsg { get; set; } = null;
-        public Type PGTypeg { get; set; } = null;
+        public IP4? IP4g { get; set; } = (IP4?)null;
+        public Protocols? Protocolsg { get; set; } = (Protocols?)null;
+        public Type PGTypeg { get; set; } = (Type)null;
  
         public override string displayinfo
         {

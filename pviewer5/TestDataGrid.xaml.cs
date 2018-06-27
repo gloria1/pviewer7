@@ -167,7 +167,7 @@ namespace pviewer5
     {
         public tdggroupingaxisprot(List<tdggroupingaxis> par) : base(par)
         {
-            type = typeof(Protocols);
+            type = typeof(Protocols?);
             displayname = "Protocols";
         }
         public override List<List<Packet>> groupfn(List<Packet> pkts)
@@ -187,7 +187,7 @@ namespace pviewer5
     {
         public tdggroupingaxisip4(List<tdggroupingaxis> par) : base(par)
         {
-            type = typeof(IP4);
+            type = typeof(IP4?);
             displayname = "IP4 address";
         }
         public override List<List<Packet>> groupfn(List<Packet> pkts)
@@ -227,10 +227,12 @@ namespace pviewer5
 
     public class tdgnode : PVDisplayObject
     {
+        public Type keytype { get; set; }  // the type of the key - we cannot just use key.GetType because the key may be null
         public object key { get; set; }   // the common value of the key for the axis of this level of the tree for the items in this node
 
-        public tdgnode(object k, tdgnode par) : base(par)
+        public tdgnode(Type t, object k, PVDisplayObject par) : base(par)
         {
+            keytype = t;
             key = k;
             // note: L will be instantiated by the tree building function, based on the type of the objects under this node
         }
@@ -238,22 +240,26 @@ namespace pviewer5
         {
             get
             {
-                if (key.GetType() == typeof(IP4)) return "IP4 address = " + ((IP4)key).ToString();
-                else if (key.GetType() == typeof(Protocols)) return "Protocol = " + ((Protocols)key).ToString();
-                else if (key.GetType() == typeof(Type)) return "Packet Group Type = " + ((Type)key).ToString();
+                if (keytype == null) return "Unknown";
+                else if (keytype == typeof(IP4?)) return "IP4 address = " + ((key == null) ? "All Other" : ((IP4?)key).ToString());
+                else if (keytype == typeof(Protocols?)) return "Protocol = " + ((key == null) ? "All Other" : ((Protocols?)key).ToString());
+                else if (keytype == typeof(Type)) return "Packet Group Type = " + ((key == null) ? "All Other" : ((Type)key).ToString());
                 else return "Unknown";
             }
         }
-
-
     }
+    public class tdgnodeleaf : tdgnode { public tdgnodeleaf(Type t, object k, PVDisplayObject par) : base(t, k, par) { } }
+    public class tdgnodenonleaf : tdgnode { public tdgnodenonleaf(Type t, object k, PVDisplayObject par) : base(t, k, par) { } }
+
+    public class pktlist : ObservableCollection<PVDisplayObject> { }
+    public class tdgnodelist : ObservableCollection<PVDisplayObject> { }
 
 
     public partial class TestDataGrid : Window
     {
-        public tdgnode root { get; set; }
-        public List<tdggroupingaxis> axes { get; set; }
-        public List<Packet> pkts;
+        public tdgnode root { get; set; } = new tdgnode(null, null, null);
+        public List<tdggroupingaxis> axes { get; set; } = new List<tdggroupingaxis>();
+        public List<Packet> pkts = new List<Packet>();
 
 
         public static RoutedCommand tdg_break_out_cmd = new RoutedCommand();
@@ -265,10 +271,6 @@ namespace pviewer5
          public TestDataGrid()
         {
             Packet p;
-
-            root = new tdgnode(null, null);
-            axes = new List<tdggroupingaxis>();
-            pkts = new List<Packet>();
 
             InitializeComponent();
             tdggrid.DataContext = this;
@@ -297,16 +299,18 @@ namespace pviewer5
             p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.Prots = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
 
             axes.Add(new tdggroupingaxisprot(axes));
-            axes.Add(new tdggroupingaxisip4(axes));
             axes.Add(new tdggroupingaxispgtype(axes));
+            axes.Add(new tdggroupingaxisip4(axes));
 
 
+            root = new tdgnodenonleaf(null, null, null);
             BuildTreeNode(root, pkts, axes, 0);
      
         }
 
-        void BuildTreeNode(tdgnode t, List<Packet> pkts, List<tdggroupingaxis> axes, int axisnum)    // builds out next level of tree under t
+        void BuildTreeNode(tdgnode t, List<Packet> pkts, List<tdggroupingaxis> axes, int axisnum)    // builds out next level of tree under t, based on axes[axisnum]
         {
+            int subaxes;
             tdgnode tnew;
 
             // clear previous subtree
@@ -314,14 +318,17 @@ namespace pviewer5
 
             // find next active axis in axes starting at axes[nextaxistocheck]
             for (; axisnum < axes.Count; axisnum++) if (((tdggroupingaxis)(axes[axisnum])).ischecked) break;
+            // count number of active axes under axes[axisnum]
+            subaxes = 0;
+            for (int i = axisnum; i < axes.Count; i++) if (axes[i].ischecked) subaxes++;
             
             // if no further active axes, just put pkts into t
-            if(axisnum == axes.Count)
+            if(subaxes == 0)
             {
                 foreach (Packet p in pkts) t.L.Add(p);
                 return;
             }
-            // else group pkts by that axis and assign the groups to t
+            // else group pkts by that axis and assign the groups to parent
             else
             {
                 // group pkts by axes[axisnum]
@@ -329,10 +336,11 @@ namespace pviewer5
                 // foreach group in the result
                 foreach (List<Packet> list in query)
                 {
-                    //     assign it to t
-                    tnew = new tdgnode(axes[axisnum].getkey(list[0]), t);
+                    // create new node - leaf or non-leaf depending on number of active subaxes
+                    if (subaxes == 1) tnew = new tdgnodeleaf   (axes[axisnum].type, (axes[axisnum].getkey(list[0])), t);
+                    else              tnew = new tdgnodenonleaf(axes[axisnum].type, (axes[axisnum].getkey(list[0])), t);
                     t.L.Add(tnew);
-                    //     recursively call this function to group it
+                    // recursively call this function to group it
                     BuildTreeNode(tnew, list, axes, axisnum+1);
                 }
             }
