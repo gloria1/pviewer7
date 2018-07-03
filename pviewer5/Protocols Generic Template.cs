@@ -206,7 +206,7 @@ namespace pviewer5
 
         // implement INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;
-        private void NotifyPropertyChanged(String propertyName = "")
+        public void NotifyPropertyChanged(String propertyName = "")
         {
             if (PropertyChanged != null)
             {

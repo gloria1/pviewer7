@@ -248,16 +248,40 @@ namespace pviewer5
             }
         }
     }
-    public class tdgnodeleaf : tdgnode { public tdgnodeleaf(Type t, object k, PVDisplayObject par) : base(t, k, par) { } }
-    public class tdgnodenonleaf : tdgnode { public tdgnodenonleaf(Type t, object k, PVDisplayObject par) : base(t, k, par) { } }
 
     public class pktlist : ObservableCollection<PVDisplayObject> { }
-    public class tdgnodelist : ObservableCollection<PVDisplayObject> { }
+
+  //  WHY DOESN'T pktlist TRIGGER THE pktlist DATA TEMPLATE????
+
+    public class tdgleaf : tdgnode
+    {
+        public tdgleaf(Type t, object k, PVDisplayObject par) : base(t, k, par)
+        {
+        }
+
+/*        private ObservableCollection<Packet> _L = null;
+        public ObservableCollection<Packet> L
+        {
+            get { return _L; }
+            set
+            {
+                _L = value;
+                NotifyPropertyChanged();
+                if (value != null)
+                {
+                    Lview = (ListCollectionView)CollectionViewSource.GetDefaultView(value);
+                    Lview.Filter = new Predicate<object>(PVDOFilter);
+                }
+            }
+        }
+        */
+
+    }
 
 
     public partial class TestDataGrid : Window
     {
-        public tdgnode root { get; set; } = new tdgnode(null, null, null);
+        public tdgnode root;
         public List<tdggroupingaxis> axes { get; set; } = new List<tdggroupingaxis>();
         public List<Packet> pkts = new List<Packet>();
 
@@ -303,45 +327,45 @@ namespace pviewer5
             axes.Add(new tdggroupingaxisip4(axes));
 
 
-            root = new tdgnodenonleaf(null, null, null);
-            BuildTreeNode(root, pkts, axes, 0);
+            BuildTreeNode(out root, null, null, pkts, axes, 0, null);
      
+
         }
 
-        void BuildTreeNode(tdgnode t, List<Packet> pkts, List<tdggroupingaxis> axes, int axisnum)    // builds out next level of tree under t, based on axes[axisnum]
+        void BuildTreeNode(out tdgnode t, Type type, object key, List<Packet> pkts, List<tdggroupingaxis> axes, int axisnum, tdgnode parent)    // builds out next level of tree under t, based on axes[axisnum]
         {
             int subaxes;
             tdgnode tnew;
-
-            // clear previous subtree
-            t.L = new ObservableCollection<PVDisplayObject>();
 
             // find next active axis in axes starting at axes[nextaxistocheck]
             for (; axisnum < axes.Count; axisnum++) if (((tdggroupingaxis)(axes[axisnum])).ischecked) break;
             // count number of active axes under axes[axisnum]
             subaxes = 0;
-            for (int i = axisnum; i < axes.Count; i++) if (axes[i].ischecked) subaxes++;
-            
+            for (int i = axisnum + 1; i < axes.Count; i++) if (axes[i].ischecked) subaxes++;
+
+
             // if no further active axes, just put pkts into t
             if(subaxes == 0)
             {
+                t = new tdgleaf(type, key, parent);
+                t.L = new ObservableCollection<PVDisplayObject>();
                 foreach (Packet p in pkts) t.L.Add(p);
                 return;
             }
             // else group pkts by that axis and assign the groups to parent
             else
             {
+                t = new tdgnode(type, key, parent);
+                t.L = new ObservableCollection<PVDisplayObject>();
+
                 // group pkts by axes[axisnum]
                 List<List<Packet>> query = ((tdggroupingaxis)(axes[axisnum])).groupfn(pkts);
                 // foreach group in the result
                 foreach (List<Packet> list in query)
                 {
                     // create new node - leaf or non-leaf depending on number of active subaxes
-                    if (subaxes == 1) tnew = new tdgnodeleaf   (axes[axisnum].type, (axes[axisnum].getkey(list[0])), t);
-                    else              tnew = new tdgnodenonleaf(axes[axisnum].type, (axes[axisnum].getkey(list[0])), t);
+                    BuildTreeNode(out tnew, axes[axisnum].type, axes[axisnum].getkey(list[0]), list, axes, axisnum + 1, t);
                     t.L.Add(tnew);
-                    // recursively call this function to group it
-                    BuildTreeNode(tnew, list, axes, axisnum+1);
                 }
             }
 
@@ -354,7 +378,7 @@ namespace pviewer5
             CheckBox b = (CheckBox)sender;
             tdggroupingaxis i = (tdggroupingaxis)b.DataContext;
 
-            BuildTreeNode(root, pkts, axes, 0);
+            BuildTreeNode(out root, null, null, pkts, axes, 0, null);
             root.Lview.Refresh();
         }
 
@@ -388,7 +412,7 @@ namespace pviewer5
             }
             (CollectionViewSource.GetDefaultView(mylist)).Refresh();
 
-            BuildTreeNode(root, pkts, axes, 0);
+            BuildTreeNode(out root, null, null, pkts, axes, 0, null);
             root.Lview.Refresh();
 
         }
