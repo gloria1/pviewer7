@@ -227,61 +227,41 @@ namespace pviewer5
 
     public class tdgnode : PVDisplayObject
     {
-        public Type keytype { get; set; }  // the type of the key - we cannot just use key.GetType because the key may be null
+        public tdggroupingaxis myaxis;
         public object key { get; set; }   // the common value of the key for the axis of this level of the tree for the items in this node
 
-        public tdgnode(Type t, object k, PVDisplayObject par) : base(par)
+        public tdgnode(tdggroupingaxis a, object k, PVDisplayObject par) : base(par)
         {
-            keytype = t;
+            myaxis = a;
             key = k;
-            // note: L will be instantiated by the tree building function, based on the type of the objects under this node
+            // instantiate the child list
+            L = new ObservableCollection<PVDisplayObject>();
         }
         public override string displayinfo
         {
             get
             {
-                if (keytype == null) return "Unknown";
-                else if (keytype == typeof(IP4?)) return "IP4 address = " + ((key == null) ? "All Other" : ((IP4?)key).ToString());
-                else if (keytype == typeof(Protocols?)) return "Protocol = " + ((key == null) ? "All Other" : ((Protocols?)key).ToString());
-                else if (keytype == typeof(Type)) return "Packet Group Type = " + ((key == null) ? "All Other" : ((Type)key).ToString());
+                if (myaxis == null) return "ROOT";
+                if (myaxis.type == null) return "Unknown";
+                else if (myaxis.type == typeof(IP4?)) return "IP4 address = " + ((key == null) ? "All Other" : ((IP4?)key).ToString());
+                else if (myaxis.type == typeof(Protocols?)) return "Protocol = " + ((key == null) ? "All Other" : ((Protocols?)key).ToString());
+                else if (myaxis.type == typeof(Type)) return "Packet Group Type = " + ((key == null) ? "All Other" : ((Type)key).ToString());
                 else return "Unknown";
             }
         }
     }
 
-    public class pktlist : ObservableCollection<PVDisplayObject> { }
-
-  //  WHY DOESN'T pktlist TRIGGER THE pktlist DATA TEMPLATE????
-
     public class tdgleaf : tdgnode
     {
-        public tdgleaf(Type t, object k, PVDisplayObject par) : base(t, k, par)
+        public tdgleaf(tdggroupingaxis a, object k, PVDisplayObject par) : base(a, k, par)
         {
         }
-
-/*        private ObservableCollection<Packet> _L = null;
-        public ObservableCollection<Packet> L
-        {
-            get { return _L; }
-            set
-            {
-                _L = value;
-                NotifyPropertyChanged();
-                if (value != null)
-                {
-                    Lview = (ListCollectionView)CollectionViewSource.GetDefaultView(value);
-                    Lview.Filter = new Predicate<object>(PVDOFilter);
-                }
-            }
-        }
-        */
-
     }
 
 
     public partial class TestDataGrid : Window
     {
-        public tdgnode root;
+        public ObservableCollection<tdgnode> root { get; set; }
         public List<tdggroupingaxis> axes { get; set; } = new List<tdggroupingaxis>();
         public List<Packet> pkts = new List<Packet>();
 
@@ -326,11 +306,101 @@ namespace pviewer5
             axes.Add(new tdggroupingaxispgtype(axes));
             axes.Add(new tdggroupingaxisip4(axes));
 
+            root = new ObservableCollection<tdgnode>();
+            root.Add(BuildTreeNode2(null, pkts));
+        
+            
 
-            BuildTreeNode(out root, null, null, pkts, axes, 0, null);
-     
+
+            NEXT ISSUES:
+                1) VIEW DOES NOT REFRESH WHEN CHANGE AXIS SETTINGS
+                2) LEAF DATAGRID SHOULD HAVE A HEADER
+                3) LEAF DATAGRID SHOULD BE COLLAPSED BY DEFAULT
+                4) HOOK UP THE CONTEXT MENUS
+
 
         }
+
+
+
+
+
+        /*
+         * notes on clarifying design
+         * nodes in the tree have an axis they belong to, and an axis for their children
+         * either of these can be null
+         * four cases:
+         *      root:  own axis is null, child axis non-null
+         *      leaf:  own axis non-null, child axis null
+         *      middle:  own axis non-null, child axis non-null
+         *      root and leaf:  own axis null, child axis null
+         *      
+         * seems like only need two types, because need two different data templates to bind in the xaml
+         *      node: when children have an axis, template is treeview
+         *      leaf: when children have no axis, template is datagrid with title bar
+         *          title bar will have displayinfo
+         *  displayinfo property should produce an appropriate string for each of the four case above
+         *  
+         */
+
+        tdgnode BuildTreeNode2(tdgnode par, List<Packet> pkts)
+        // builds out node or leaf under parent
+        // also handles special case of parent == null, which means this is the root node
+        {
+            tdgnode tnodenew;
+            tdgleaf tleafnew;
+
+            int paraxis;    // index of axis that parent is on
+            int thisaxis;   // index of axis this node is on
+            int nextaxis;   // index of axis that children are on
+
+            if (par == null)  // this is the root
+            {
+                paraxis = -1;
+                thisaxis = -1;
+            }
+            else   // this is not the root, so determine paraxis and thisaxis based on the parent
+            {
+                if (par.myaxis == null) paraxis = -1;  // if this is a child of the root
+                else paraxis = axes.IndexOf(par.myaxis);
+                // now set thisaxis based on searching list of axes starting at paraxis+1
+                for (thisaxis = paraxis + 1; thisaxis < axes.Count; thisaxis++) if (axes[thisaxis].ischecked) break;
+            }
+
+            // now set nextaxis
+            for (nextaxis = thisaxis + 1; nextaxis < axes.Count; nextaxis++) if (axes[nextaxis].ischecked) break;
+
+            // if this is a leaf, just put pkts in L
+            if (nextaxis == axes.Count)
+            {
+                // if this node is the root, create leaf with no parent info
+                if (par == null) tleafnew = new tdgleaf(null, null, null);
+                // else create new regular leaf node
+                else tleafnew = new tdgleaf(axes[thisaxis], axes[thisaxis].getkey(pkts[0]), par);
+                foreach (Packet p in pkts) tleafnew.L.Add(p);
+                return tleafnew;
+            }
+            else    // else recursively build children
+            {
+                // if this node is the root...
+                if (par == null) tnodenew = new tdgnode(null, null, null);
+                // else..
+                else tnodenew = new tdgnode(axes[thisaxis], axes[thisaxis].getkey(pkts[0]), par);
+
+                // group pkts by axes[nextaxis]
+                List<List<Packet>> query = ((tdggroupingaxis)(axes[nextaxis])).groupfn(pkts);
+                
+                // foreach group in the result, add it as a child
+                foreach (List<Packet> list in query) tnodenew.L.Add(BuildTreeNode2(tnodenew, list));
+        
+                return tnodenew;
+            }
+
+
+        }
+
+
+/*
 
         void BuildTreeNode(out tdgnode t, Type type, object key, List<Packet> pkts, List<tdggroupingaxis> axes, int axisnum, tdgnode parent)    // builds out next level of tree under t, based on axes[axisnum]
         {
@@ -370,7 +440,7 @@ namespace pviewer5
             }
 
         }
-
+*/
 
 
         void tdgaxischeck_Click(object sender, RoutedEventArgs e)
@@ -378,8 +448,9 @@ namespace pviewer5
             CheckBox b = (CheckBox)sender;
             tdggroupingaxis i = (tdggroupingaxis)b.DataContext;
 
-            BuildTreeNode(out root, null, null, pkts, axes, 0, null);
-            root.Lview.Refresh();
+            root = new ObservableCollection<tdgnode>();
+            root.Add(BuildTreeNode2(null, pkts));
+            root[0].Lview.Refresh();
         }
 
         void tdgaxisbutton_Click(object sender, RoutedEventArgs e)
@@ -412,8 +483,9 @@ namespace pviewer5
             }
             (CollectionViewSource.GetDefaultView(mylist)).Refresh();
 
-            BuildTreeNode(out root, null, null, pkts, axes, 0, null);
-            root.Lview.Refresh();
+            root = new ObservableCollection<tdgnode>();
+            root.Add(BuildTreeNode2(null, pkts));
+            root[0].Lview.Refresh();
 
         }
 

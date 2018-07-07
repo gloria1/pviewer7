@@ -84,7 +84,7 @@
 
             <Label x:Name="label" Content="{Binding displayinfo}" Margin="3" Padding="1" FontSize="10"/>
         </HierarchicalDataTemplate>
-        <HierarchicalDataTemplate DataType="{x:Type local:tdgleaf}">
+        <DataTemplate DataType="{x:Type local:tdgleaf}">
             <DataGrid
             Grid.Row="2"
 			EnableColumnVirtualization="True"
@@ -197,7 +197,7 @@
 
             </DataGrid>
 
-        </HierarchicalDataTemplate>
+        </DataTemplate>
     </Window.Resources>
     <Grid 
         Margin="0,74,0,0"
@@ -220,7 +220,7 @@
         <TreeView
             Grid.Row="2"
             x:Name="tdgtree"
-            ItemsSource="{Binding Path=root.L}">
+            ItemsSource="{Binding Path=root}">
 <!--            <TreeView.ContextMenu>
                 <ContextMenu>
                     <MenuItem x:Name="tdg_break_out" Header="Break Out" Command="{x:Static local:TestDataGrid.tdg_break_out_cmd}"/>
