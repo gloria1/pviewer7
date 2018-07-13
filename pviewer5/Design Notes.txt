@@ -2,7 +2,8 @@
 
 
 next steps:
-	1) transfer new grouped tree view to main window
+	1) re-enable group/ungroup commands
+	1.5) transfer new grouped tree view to main window
 	2) improve displayinfo strings
 	3) make datagrid sortable
 	4) see about preserving expansion, sort order and other properties across re-groups
