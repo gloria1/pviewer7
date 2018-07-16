@@ -284,10 +284,10 @@ namespace pviewer5
             InitializeComponent();
             tdggrid.DataContext = this;
 
-            tdg_break_out_binding = new CommandBinding(tdg_break_out_cmd, tdg_break_out_Executed, tdg_break_out_CanExecute);
-            tdg_group_binding     = new CommandBinding(tdg_group_cmd,     tdg_group_Executed,     tdg_group_CanExecute);
-            tdgtree.CommandBindings.Add(tdg_break_out_binding);
-            tdgtree.CommandBindings.Add(tdg_group_binding);
+            //tdg_break_out_binding = new CommandBinding(tdg_break_out_cmd, tdg_break_out_Executed, tdg_break_out_CanExecute);
+            //tdg_group_binding     = new CommandBinding(tdg_group_cmd,     tdg_group_Executed,     tdg_group_CanExecute);
+            //tdgtree.CommandBindings.Add(tdg_break_out_binding);
+            //tdgtree.CommandBindings.Add(tdg_group_binding);
 
             p = new Packet(); p.IP4g = null; p.SrcIP4 = 0xc0a80b03; p.Protocolsg = p.Prots = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
             p = new Packet(); p.IP4g = null; p.SrcIP4 = 0xc0a80b04; p.Protocolsg = p.Prots = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
@@ -450,11 +450,21 @@ namespace pviewer5
         public void tdg_break_out_Executed(object sender, ExecutedRoutedEventArgs e)
         {
 
+            ContextMenu menu = (ContextMenu)sender;
 
-/*            DataGrid dg = (DataGrid)sender;
-            string column = dg.CurrentColumn.SortMemberPath;
-            Packet p = (Packet)(dg.CurrentCell.Item);
+            if (menu.PlacementTarget.GetType() == typeof (DataGrid))
+            {
 
+
+                DataGrid dg = (DataGrid)menu.PlacementTarget;
+                DataGridTextColumn col = (DataGridTextColumn)(dg.SelectedCells[0].Column);
+                Packet p = (Packet)(dg.SelectedCells[0].Item);
+            }
+            else if (menu.PlacementTarget.GetType() == typeof(TextBlock))
+            {
+                tdgnode node = (tdgnode)(e.Parameter);
+            }
+/*
             // if grouped for this specific value, then
                 // change grouped_xx to specific value
                 // do this for all packets that have this specific value - need to pass through entire packet list

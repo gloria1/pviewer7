@@ -70,7 +70,7 @@
             </WrapPanel>
         </DataTemplate>
         <DataTemplate DataType="{x:Type local:tdggroupingaxis}">
-            <WrapPanel Orientation="Horizontal" Margin="-1" Width="200" Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"  >
+            <WrapPanel Orientation="Horizontal" Margin="-1" Width="300" Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"  >
                 <CheckBox x:Name="checkBox" IsChecked="{Binding ischecked}" Margin="3" Click="tdgaxischeck_Click"/>
                 <Button x:Name="button_top"  Content="Top" Margin="3" Padding="0" FontSize="10" Click="tdgaxisbutton_Click"/>
                 <Button x:Name="button_up"   Content="Up"  Margin="3" Padding="0" FontSize="10" Click="tdgaxisbutton_Click"/>
@@ -81,10 +81,24 @@
         </DataTemplate>
         <HierarchicalDataTemplate DataType="{x:Type local:tdgnode}"
                                   ItemsSource="{Binding Path=L}">
-               <Label x:Name="label" Content="{Binding displayinfo}" Margin="3" Padding="1" FontSize="10"/>
+            <StackPanel>
+                <TextBlock x:Name="label" Text="{Binding displayinfo}" Margin="3" Padding="1" FontSize="10">
+                    <TextBlock.ContextMenu>
+                        <ContextMenu>
+                            <ContextMenu.CommandBindings>
+                                <CommandBinding Command="{x:Static local:TestDataGrid.tdg_break_out_cmd}" Executed="tdg_break_out_Executed" CanExecute="tdg_break_out_CanExecute"/>
+                            </ContextMenu.CommandBindings>
+                            <MenuItem x:Name="tdg_break_out" Header="Break Out" Command="{x:Static local:TestDataGrid.tdg_break_out_cmd}" CommandParameter="{Binding self}"/>
+                            <MenuItem x:Name="tdg_group"     Header="Group"     Command="{x:Static local:TestDataGrid.tdg_group_cmd}"/>
+                        </ContextMenu>
+                    </TextBlock.ContextMenu>
+                </TextBlock>
+
+            </StackPanel>
+
         </HierarchicalDataTemplate>
         <HierarchicalDataTemplate DataType="{x:Type local:tdgleaf}">
-            <TreeViewItem>
+            <TreeViewItem Header="{Binding displayinfo}">
                 <DataGrid
 			        EnableColumnVirtualization="True"
 			        EnableRowVirtualization="True"
@@ -93,15 +107,21 @@
 			        AutoGenerateColumns="False"
                     CanUserDeleteRows="False"
                     CanUserAddRows="False"
-			        ItemsSource="{Binding Path=L}">
+                    SelectionUnit="Cell"
+                    SelectionMode="Single"
+                    IsReadOnly="True"
+                    ItemsSource="{Binding Path=L}">
 
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="IP" Binding="{Binding SrcIP4}"/>
-                    <DataGridTextColumn Header="Proto" Binding="{Binding Prots}"/>
-                    <DataGridTextColumn Header="GroupType" Binding="{Binding PGTypeg}"/>
-                </DataGrid.Columns>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="IP" Binding="{Binding SrcIP4}"/>
+                        <DataGridTextColumn Header="Proto" Binding="{Binding Prots}"/>
+                        <DataGridTextColumn Header="GroupType" Binding="{Binding PGTypeg}"/>
+                    </DataGrid.Columns>
                     <DataGrid.ContextMenu>
                         <ContextMenu>
+                            <ContextMenu.CommandBindings>
+                                <CommandBinding Command="{x:Static local:TestDataGrid.tdg_break_out_cmd}" Executed="tdg_break_out_Executed" CanExecute="tdg_break_out_CanExecute"/>
+                            </ContextMenu.CommandBindings>
                             <MenuItem x:Name="tdg_break_out" Header="Break Out" Command="{x:Static local:TestDataGrid.tdg_break_out_cmd}"/>
                             <MenuItem x:Name="tdg_group"     Header="Group"     Command="{x:Static local:TestDataGrid.tdg_group_cmd}"/>
                         </ContextMenu>
@@ -114,7 +134,7 @@
         Margin="0,74,0,0"
         x:Name="tdggrid">
         <Grid.RowDefinitions>
-            <RowDefinition Height="30" MinHeight="150"></RowDefinition>
+            <RowDefinition Height="10" MinHeight="10"></RowDefinition>
             <RowDefinition Height="150"></RowDefinition>
             <RowDefinition Height="*" MinHeight="150"></RowDefinition>
         </Grid.RowDefinitions>
@@ -127,18 +147,11 @@
         </ListBox>
         
 
-<!---->
         <TreeView
             Grid.Row="2"
             x:Name="tdgtree"
             ItemsSource="{Binding Path=root}">
-<!--            <TreeView.ContextMenu>
-                <ContextMenu>
-                    <MenuItem x:Name="tdg_break_out" Header="Break Out" Command="{x:Static local:TestDataGrid.tdg_break_out_cmd}"/>
-                    <MenuItem x:Name="tdg_group"     Header="Group"     Command="{x:Static local:TestDataGrid.tdg_group_cmd}"/>
-                </ContextMenu>
-            </TreeView.ContextMenu>
--->        </TreeView>
+        </TreeView>
             
     </Grid>
 </Window>
