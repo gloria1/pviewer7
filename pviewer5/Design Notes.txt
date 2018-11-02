@@ -2,7 +2,39 @@
 
 
 next steps:
-	1) re-enable group/ungroup commands
+	0) plan for various tree change operations
+		0.1) list of all operations
+			group a leaf item
+			ungroup a leaf item
+			group a node item
+			ungroup a node item
+			enable an axis
+			disable an axis
+			change positino of active axis
+			add new packets at node of tree (i.e., we know all new packets are under this node)
+			update to reflect changes in filters (could increase or decrease visible packets)
+				add an override for IsVisible in tdgnode that maxes over IsVisible for its children
+		0.2) new functions to support above operations
+			- merge two nodes (recursive)
+				- arguments
+					- newaxis - axis of merged node
+					- newkey - key value of merged node
+					- how to handle mis-matches in expansion state (take first, take second, always contract always expand)
+				- algorithm:
+					- if children are packets, just append the second list to the first
+					- if children are not packets,
+						- combine the two lists
+						- sort
+						- loop over list and merge duplicates
+					- set expansion state based on argument
+					
+			- split a node in two - to handle breaking out an item on an axis
+			- split a node on a newly enabled axis (recursive)
+
+
+
+	1) re-enable group/ungroup commands 
+
 	1.5) transfer new grouped tree view to main window
 	2) improve displayinfo strings
 	3) make datagrid sortable

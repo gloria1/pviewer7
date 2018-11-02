@@ -85,11 +85,12 @@
                 <TextBlock x:Name="label" Text="{Binding displayinfo}" Margin="3" Padding="1" FontSize="10">
                     <TextBlock.ContextMenu>
                         <ContextMenu>
-                            <ContextMenu.CommandBindings>
-                                <CommandBinding Command="{x:Static local:TestDataGrid.tdg_break_out_cmd}" Executed="tdg_break_out_Executed" CanExecute="tdg_break_out_CanExecute"/>
-                            </ContextMenu.CommandBindings>
                             <MenuItem x:Name="tdg_break_out" Header="Break Out" Command="{x:Static local:TestDataGrid.tdg_break_out_cmd}" CommandParameter="{Binding self}"/>
                             <MenuItem x:Name="tdg_group"     Header="Group"     Command="{x:Static local:TestDataGrid.tdg_group_cmd}"/>
+                            <ContextMenu.CommandBindings>
+                                <CommandBinding Command="{x:Static local:TestDataGrid.tdg_break_out_cmd}" Executed="tdg_break_out_Executed" CanExecute="tdg_break_out_CanExecute"/>
+                                <CommandBinding Command="{x:Static local:TestDataGrid.tdg_group_cmd}"     Executed="tdg_group_Executed"     CanExecute="tdg_group_CanExecute"/>
+                            </ContextMenu.CommandBindings>
                         </ContextMenu>
                     </TextBlock.ContextMenu>
                 </TextBlock>
@@ -119,11 +120,12 @@
                     </DataGrid.Columns>
                     <DataGrid.ContextMenu>
                         <ContextMenu>
-                            <ContextMenu.CommandBindings>
-                                <CommandBinding Command="{x:Static local:TestDataGrid.tdg_break_out_cmd}" Executed="tdg_break_out_Executed" CanExecute="tdg_break_out_CanExecute"/>
-                            </ContextMenu.CommandBindings>
                             <MenuItem x:Name="tdg_break_out" Header="Break Out" Command="{x:Static local:TestDataGrid.tdg_break_out_cmd}"/>
                             <MenuItem x:Name="tdg_group"     Header="Group"     Command="{x:Static local:TestDataGrid.tdg_group_cmd}"/>
+                            <ContextMenu.CommandBindings>
+                                <CommandBinding Command="{x:Static local:TestDataGrid.tdg_break_out_cmd}" Executed="tdg_break_out_Executed" CanExecute="tdg_break_out_CanExecute"/>
+                                <CommandBinding Command="{x:Static local:TestDataGrid.tdg_group_cmd}"     Executed="tdg_group_Executed"     CanExecute="tdg_group_CanExecute"/>
+                            </ContextMenu.CommandBindings>
                         </ContextMenu>
                     </DataGrid.ContextMenu>
                 </DataGrid>
@@ -150,7 +152,14 @@
         <TreeView
             Grid.Row="2"
             x:Name="tdgtree"
+            
             ItemsSource="{Binding Path=root}">
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="TreeViewItem">
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                </Style>
+            </TreeView.ItemContainerStyle>
+
         </TreeView>
             
     </Grid>

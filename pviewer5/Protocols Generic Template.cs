@@ -124,7 +124,6 @@ namespace pviewer5
             get { return _parent; }
             set
             {
-                if (_parent != null) MessageBox.Show("parent property of a PVDisplayObject is already set, but something else is trying to set it again - THIS SHOULD NEVER HAPPEN");
                 _parent = value;
                 if (_parent != null)
                     if (ExceptionLevel > _parent.ExceptionLevel)

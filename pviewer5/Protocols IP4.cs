@@ -55,7 +55,7 @@ namespace pviewer5
         public static bool operator >(IP4 a, IP4 b) { return a.A > b.A; }
         public int CompareTo(IP4 a)
         {
-            return 0;
+            return A.CompareTo(a.A);
         }
 
         public override string ToString() { return ToString(false, true); }
