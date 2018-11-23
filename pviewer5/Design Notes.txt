@@ -10,7 +10,7 @@ next steps:
 			ungroup a node item
 			enable an axis
 			disable an axis
-			change positino of active axis
+			change position of active axis
 			add new packets at node of tree (i.e., we know all new packets are under this node)
 			update to reflect changes in filters (could increase or decrease visible packets)
 				add an override for IsVisible in tdgnode that maxes over IsVisible for its children

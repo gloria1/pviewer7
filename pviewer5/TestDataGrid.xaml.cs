@@ -51,6 +51,10 @@ namespace pviewer5
         {
             return null;
         }
+        public virtual void setkey(Packet p, object v)
+        {
+
+        }
         public virtual int CompareKeys(object a, object b)  // does the CompareTo operation on two values of the key for this axis
             // note: null will be considered higher than any non-null value
             // two nulls will be considered equal
@@ -107,6 +111,10 @@ namespace pviewer5
         {
             return p.Protocolsg;
         }
+        public override void setkey(Packet p, object v)
+        {
+            p.Protocolsg = (Protocols?)v;
+        }
         public override int CompareKeys(object a, object b)
         {
             // note: null is considered higher than any non-null value, and two nulls are considered equal
@@ -155,6 +163,10 @@ namespace pviewer5
         public override object getkey(Packet p)
         {
             return p.IP4g;
+        }
+        public override void setkey(Packet p, object v)
+        {
+            p.IP4g = (IP4?)v;
         }
         public override int CompareKeys(object a, object b)
         {
@@ -206,6 +218,10 @@ namespace pviewer5
         public override object getkey(Packet p)
         {
             return p.PGTypeg;
+        }
+        public override void setkey(Packet p, object v)
+        {
+            p.PGTypeg = (Type)v;
         }
         public override int CompareKeys(object a, object b)
         {
@@ -366,7 +382,7 @@ namespace pviewer5
             for (nextaxis = thisaxis + 1; nextaxis < axes.Count; nextaxis++) if (axes[nextaxis].ischecked) break;
 
             // if this is a leaf, just put pkts in L
-            if (nextaxis == axes.Count)
+            if (nextaxis >= axes.Count)
             {
                 // if this node is the root, create leaf with no parent info
                 if (par == null) tleafnew = new tdgleaf(null, null, null);
@@ -409,9 +425,8 @@ namespace pviewer5
         tdgnode MergeAllChildren(tdgnode t, int expansionstatemergerule)
         // this is to handle the case of removing an axis from the hierarchy
         // this function will be executed on each node on the axis above the axis that is being removed
-        // merges all children of t into a single tdgnode
-        // returns the new node
-        // the caller will replace t with tnew in the tree
+        // merges all children of t and returns a new node that can replace t
+        // caller must replace t in the tree
 
         // expansion state of new node controlled by value of expansionstatemergerule:
         //    1 = always use a's
@@ -421,49 +436,61 @@ namespace pviewer5
         //    5 = always expand
         //    6 = always not expanded
         {
-            tdgnode tnew = new tdgnode(t.myaxis, t.key, t.Parent);
-
-            tnew.L = new ObservableCollection<PVDisplayObject>();
 
             // if next axis down is leaves, just concatenate all the packet lists
             if (t.L[0].GetType() == typeof(tdgleaf))
             {
-                int counter = 1;
-                tnew.L = t.L[0].L;
-                while (counter < t.L.Count())
-                {
-                    tnew.L.Concat(t.L[counter].L);
-                }
+                tdgleaf newleaf = new tdgleaf(t.myaxis, t.key, t.Parent);
+                newleaf.L = new ObservableCollection<PVDisplayObject>();
+                foreach (tdgleaf l in t.L) foreach (Packet p in l.L) newleaf.L.Add(p);
+                newleaf.Parent = t.Parent;
+                newleaf.myaxis = t.myaxis;
+                newleaf.key = t.key;
+                return newleaf;
             }
             // else do MergeTwoNodes over t.L
             else
             {
-                int counter = 1;
+                tdgnode tnew, tnew2;
                 tnew = (tdgnode)t.L[0];
-                while (counter < t.L.Count())
+
+                for (int counter = 1; counter < t.L.Count(); counter++)
                 {
-                    MergeTwoNodes(tnew, (tdgnode)t.L[counter], expansionstatemergerule);
+                    tnew2 = (tdgnode)t.L[counter];
+                    MergeTwoNodes(tnew, tnew2, expansionstatemergerule);
                 }
+
+                tnew.Parent = t.Parent;
+                tnew.myaxis = t.myaxis;
+                tnew.key = t.key;
+
+                return tnew;
             }
 
-            return tnew;
         }
 
 
 
         void MergeTwoNodes(tdgnode a, tdgnode b, int expansionstatemergerule)
-            // this is to handle the case where two trees are being merged, e.g., when a new set of packets is loaded and needs to be merged into the existing tree
-            // merges node b into node a
-            // checks that myaxis and key match for a and b - THIS SHOULD NEVER HAPPEN
+            // this is to handle the case where two trees are being merged, e.g.,
+            //      when a new set of packets is loaded and needs to be merged into the existing tree
+            //      when a item is being grouped into the "other" node
+            //      when an axis is being removed and MergeAllChildren needs to merge over L
+            // this function merges node b into node a
+            // CALLER MUST PRUNE b from tree
+            // checks that myaxis matches for a and b - THIS SHOULD ALWAYS BE THE TRUE
             // expansion state of new node controlled by value of expansionstatemergerule
         {
-
-            if ((a.myaxis != b.myaxis) | (a.key != b.key)) MessageBox.Show("trying to merge two nodes with mismatched axis or key values - THIS SHOULD NEVER HAPPEN");
+            if (a.myaxis != b.myaxis) MessageBox.Show("trying to merge two nodes with mismatched axis value - THIS SHOULD NEVER HAPPEN");
 
             // if a and b are leaves, then just merge the packets in their L's
             if (a.GetType() == typeof(tdgleaf))
             {
-                a.L.Concat(b.L);
+                foreach (Packet p in b.L)
+                {
+                    p.Parent = a;
+                    a.L.Add(p);
+                }
             }
             // else for each child of b, add it to a.L
             // take advantage of fact that the L's are sorted, so we do not need to search a.L for each b.L
@@ -525,25 +552,160 @@ namespace pviewer5
 
         }
 
-
-        tdgnode BreakItemOut(tdgnode t, object breakoutkey)
-            // t is a node where the key is null because it contains grouped, i.e., not-broken-out items
+        tdgnode DeactivateAxis(tdgnode t, tdggroupingaxis ax)
+        // remove axis from tree under t
+        // return value is node that should replace t
+        // caller must do the replacement
         {
-            return null;
+            tdgnode tnew;
+
+            if (((tdgnode)(t.L[0])).myaxis == ax)
+            {
+                tnew = MergeAllChildren(t, 3);
+                RefreshViews(tnew);
+                return tnew;
+            }
+            else
+            {
+                for (int i = 0; i < t.L.Count(); i++) t.L[i] = DeactivateAxis((tdgnode)t.L[i], ax);
+                return t;
+            }
+        }
+
+
+        void BreakItemOut(tdgnode par, tdggroupingaxis ax, object key)
+        // break out item key on axis ax, underneath node par (i.e., assumes that axis ax is not at par or above it)
+        // broken-out nodes will be un-expanded
+        // do nothing if we get to leaves without finding axis ax
+        {
+
+            // if par is on ax, break out key
+            if (par.myaxis == ax)
+            {
+                tdgnode tother = null;
+                List<Packet> pkts = new List<Packet>();
+
+                // find node for other
+                foreach (tdgnode t in par.L)
+                {
+                    if (t.key == null) tother = t;
+                    // check that key is currently not broken out - throw an error if so, this should never happen
+                    if (t.key == key) MessageBox.Show("trying to break out an item that is already broken out - THIS SHOULD NEVER HAPPEN");
+                }
+                // if there is an other node, strip out packets that are to be broken out
+                if (tother != null)
+                {
+                    // call recursive function to split out packets to be broken out
+                    // handle return value of FALSE, which indicates the "other" node is now empty and should be pruned
+                    if (!StripPacketsToBreakOut(pkts, tother, ax, key)) par.L.Remove(tother);
+
+                    // build new subtree under par with the broken out packets
+                    tdgnode tnew = BuildTreeNode2(par, pkts);
+                    // insert it in par.L in sort order
+                    int i = 0;
+                    for (; i < par.L.Count(); i++) if (ax.CompareKeys(key, ((tdgnode)(par.L[i])).key) > 0) continue;
+                    par.L.Insert(i, tnew);
+                }
+            }
+
+            // else recurse down through the tree
+            foreach (tdgnode t in par.L) BreakItemOut(t, ax, key);
+
+        }
+
+        bool StripPacketsToBreakOut(List<Packet> pkts, tdgnode t, tdggroupingaxis ax, object key)
+            // recursive function to assemble list of packets to break out
+            // each call will either move down one level in the tree and call itself recursively,
+            // or return after having moved packets to break out from t to pkts argument
+            // return value is TRUE if there are still packets in the other node, FALSE otherwise
+            // caller will have to handle when this function returns FALSE by pruning empty nodes
+        {
+            if (t.GetType() == typeof(tdgleaf))
+            {
+                ObservableCollection<PVDisplayObject> otherpkts = new ObservableCollection<PVDisplayObject>();
+                foreach (Packet p in t.L)
+                {
+                    // if p is to be broken out
+                    if (ax.getkey(p) == key)
+                    {
+                        // change grouping axis value from null to actual value
+                        ax.setkey(p, key);
+                        // append to pkts
+                        pkts.Add(p);
+                    }
+                    // else append to otherpkts
+                    else otherpkts.Add(p);
+                }
+                // if otherpkts is empty, clear t.L and return false
+                if (otherpkts.Count()==0)
+                {
+                    t.L.Clear();
+                    return false;
+                }
+                // else replace t.L with otherpkts and return true
+                else
+                {
+                    t.L = otherpkts;
+                    return true;
+                }
+            }
+            else // t is not a leaf, recurse down through next level of tree
+            {
+                ObservableCollection<PVDisplayObject> newL = new ObservableCollection<PVDisplayObject>();
+                foreach (tdgnode tt in t.L) if (StripPacketsToBreakOut(pkts, tt, ax, key)) newL.Add(tt);
+                t.L = newL;
+                return (t.L.Count() != 0);
+            }
+
+
+
+        }
+
+        tdgnode ActivateNewAxis(tdgnode t, tdggroupingaxis newaxis)
+        // recursively walk down tree to nodes above the new axis
+        // for each node above the new axis, rebuild tree underneath
+        {
+            // identify next active axis AFTER t.myaxis
+            // find index of next axis after t.myaxis - note that if t.myaxis is null because t is the root node, then IndexOf will return -1
+            int i = axes.IndexOf(t.myaxis) + 1;
+            // find next active axis
+            while (!axes[i].ischecked) i++;
+
+            // if next active axis is newaxis, then build new tree under t
+            if (axes[i] == newaxis)
+            {
+                // gather all packets at leaves into a list
+                List<Packet> pkts = new List<Packet>();
+                GatherPackets(t, pkts);
+                // build new tree at t
+                t = BuildTreeNode2((tdgnode)t.Parent, pkts);
+                RefreshViews(t);
+                return t;
+            }
+            // else recurse down through t.L
+            else
+            {
+                for (int ii = 0; ii < t.L.Count(); ii++) t.L[ii] = ActivateNewAxis((tdgnode)t.L[ii], newaxis);
+                return t;
+            }
+
+        }
+
+        void GatherPackets(tdgnode t, List<Packet>pkts)
+        // recurse down tree under t and gather all packets into pkts
+        // used by ActivateNewAxis
+        {
+            if (t.GetType() == typeof(tdgleaf)) foreach (PVDisplayObject p in t.L) pkts.Add((Packet)p);
+            else foreach (tdgnode tt in t.L) GatherPackets(tt, pkts);
         }
 
 
 
-        /*
-         * now need functions for
-         * 1) BreakItemOutOfNode - for nodes where key==null and one of the axis items needs to be split out
-         * 2) SplitNodeOnNewAxis - for case where a new axis is activated
-         * 3) something to handle gropu and breakout commands
-         
-
-            */
-
-
+        void RefreshViews(tdgnode t)
+        {
+            if (t.GetType() != typeof(tdgleaf)) foreach (tdgnode tt in t.L) RefreshViews(tt);
+            t.Lview.Refresh();
+        }
 
 
         void tdgaxischeck_Click(object sender, RoutedEventArgs e)
@@ -551,7 +713,8 @@ namespace pviewer5
             CheckBox b = (CheckBox)sender;
             tdggroupingaxis i = (tdggroupingaxis)b.DataContext;
 
-            root[0] = BuildTreeNode2(null, pkts);
+            if (b.IsChecked == true) root[0] = ActivateNewAxis(root[0], i);
+            else root[0] = DeactivateAxis(root[0], i);
         }
 
         void tdgaxisbutton_Click(object sender, RoutedEventArgs e)
@@ -560,31 +723,38 @@ namespace pviewer5
             tdggroupingaxis i = (tdggroupingaxis)b.DataContext;
 
             List<tdggroupingaxis> mylist = i.parent;
-            int pos;
-            for (pos = 0; pos < mylist.Count; pos++) if (mylist[pos] == i) break;
+            int pos = mylist.IndexOf(i);
+
+            root[0] = DeactivateAxis(root[0], i);
 
             switch (b.Name)
             {
                 case "button_top":
                     mylist.RemoveAt(pos);
-                    mylist.Insert(0, i); break;
+                    mylist.Insert(0, i);
+                    break;
                 case "button_up":
                     if (pos == 0) break;
                     mylist.RemoveAt(pos);
-                    mylist.Insert(pos - 1, i); break;
+                    mylist.Insert(pos - 1, i);
+                    break;
                 case "button_dn":
                     if (pos == mylist.Count - 1) break;
                     mylist.RemoveAt(pos);
-                    mylist.Insert(pos+1, i); break;
+                    mylist.Insert(pos+1, i);
+                    break;
                 case "button_bot":
                     if (pos == mylist.Count - 1) break;
                     mylist.RemoveAt(pos);
-                    mylist.Insert(pos+1, i); break;
+                    mylist.Add(i);
+                    break;
                 default: break;
             }
+
+            root[0] = ActivateNewAxis(root[0], i);
+            // also refresh axis list view
             (CollectionViewSource.GetDefaultView(mylist)).Refresh();
 
-            root[0] = BuildTreeNode2(null, pkts);
         }
 
         public void tdg_break_out_Executed(object sender, ExecutedRoutedEventArgs e)
