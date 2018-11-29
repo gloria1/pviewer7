@@ -422,7 +422,7 @@ namespace pviewer5
         // so that other functions do not need to search through header list to find them
         public ulong SeqNo = 0; // absolute sequence number in packet file
         public Protocols Prots { get; set; } = Protocols.Generic;     // flags for protocols present in this packet
-        public Protocols ProtOuter = Protocols.Generic;   // flag for "outermost" protcol - each header constructor will replace the previous value with its own
+        public Protocols ProtOuter { get; set; } = Protocols.Generic;   // flag for "outermost" protcol - each header constructor will replace the previous value with its own
         public DateTime Time = new DateTime(0);
         public MAC SrcMAC = 0;
         public MAC DestMAC = 0;

@@ -115,7 +115,7 @@
 
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="IP" Binding="{Binding SrcIP4}"/>
-                        <DataGridTextColumn Header="Proto" Binding="{Binding Prots}"/>
+                        <DataGridTextColumn Header="Proto" Binding="{Binding ProtOuter}"/>
                         <DataGridTextColumn Header="GroupType" Binding="{Binding PGTypeg}"/>
                     </DataGrid.Columns>
                     <DataGrid.ContextMenu>

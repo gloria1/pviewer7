@@ -1,6 +1,15 @@
 ﻿
 
 
+
+edge cases
+
+why does root appear with two carets
+
+can i get rid of root[0]
+
+
+
 next steps:
 	0) plan for various tree change operations
 		0.1) list of all operations

@@ -51,6 +51,11 @@ namespace pviewer5
         {
             return null;
         }
+        public virtual object getkeyunderlying(Packet p)
+        // gets the underlying value used for the key field (i.e., not the one that is set to null if the packet is grouped)
+        {
+            return null;
+        }
         public virtual void setkey(Packet p, object v)
         {
 
@@ -111,6 +116,10 @@ namespace pviewer5
         {
             return p.Protocolsg;
         }
+        public override object getkeyunderlying(Packet p)
+        {
+            return p.ProtOuter;
+        }
         public override void setkey(Packet p, object v)
         {
             p.Protocolsg = (Protocols?)v;
@@ -163,6 +172,10 @@ namespace pviewer5
         public override object getkey(Packet p)
         {
             return p.IP4g;
+        }
+        public override object getkeyunderlying(Packet p)
+        {
+            return p.SrcIP4;
         }
         public override void setkey(Packet p, object v)
         {
@@ -218,6 +231,10 @@ namespace pviewer5
         public override object getkey(Packet p)
         {
             return p.PGTypeg;
+        }
+        public override object getkeyunderlying(Packet p)
+        {
+            return p.PGType;
         }
         public override void setkey(Packet p, object v)
         {
@@ -315,23 +332,23 @@ namespace pviewer5
             tdggrid.DataContext = this;
 
 
-            p = new Packet(); p.IP4g = null; p.SrcIP4 = 0xc0a80b03; p.Protocolsg = p.Prots = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
-            p = new Packet(); p.IP4g = null; p.SrcIP4 = 0xc0a80b04; p.Protocolsg = p.Prots = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
-            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.Prots = Protocols.DNS; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
-            p = new Packet(); p.IP4g = null; p.SrcIP4 = 0xc0a80b03; p.Protocolsg = p.Prots = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
-            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.Prots = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
-            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.Prots = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
-            p = new Packet(); p.IP4g = null; p.SrcIP4 = 0xc0a80b04; p.Protocolsg = p.Prots = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
-            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.Prots = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
-            p = new Packet(); p.IP4g = null; p.SrcIP4 = 0xc0a80b03; p.Protocolsg = p.Prots = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
-            p = new Packet(); p.IP4g = null; p.SrcIP4 = 0xc0a80b03; p.Protocolsg = p.Prots = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
-            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b05; p.Protocolsg = p.Prots = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
-            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b06; p.Protocolsg = p.Prots = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
-            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.Prots = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
-            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.Prots = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
-            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.Prots = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
-            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.Prots = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
-            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.Prots = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = null; p.SrcIP4 = 0xc0a80b03; p.Protocolsg = p.ProtOuter = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = null; p.SrcIP4 = 0xc0a80b04; p.Protocolsg = p.ProtOuter = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.ProtOuter = Protocols.DNS; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = null; p.SrcIP4 = 0xc0a80b03; p.Protocolsg = p.ProtOuter = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.ProtOuter = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.ProtOuter = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = null; p.SrcIP4 = 0xc0a80b04; p.Protocolsg = p.ProtOuter = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.ProtOuter = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = null; p.SrcIP4 = 0xc0a80b03; p.Protocolsg = p.ProtOuter = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = null; p.SrcIP4 = 0xc0a80b03; p.Protocolsg = p.ProtOuter = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b05; p.Protocolsg = p.ProtOuter = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b06; p.Protocolsg = p.ProtOuter = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.ProtOuter = Protocols.ARP; p.PGTypeg = typeof(ARPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.ProtOuter = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.ProtOuter = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.ProtOuter = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
+            p = new Packet(); p.IP4g = p.SrcIP4 = 0xc0a80b02; p.Protocolsg = p.ProtOuter = Protocols.TCP; p.PGTypeg = typeof(HTTPG); pkts.Add(p);
 
             axes.Add(new tdggroupingaxisprot(axes));
             axes.Add(new tdggroupingaxispgtype(axes));
@@ -347,8 +364,9 @@ namespace pviewer5
 
 
         tdgnode BuildTreeNode2(tdgnode par, List<Packet> pkts)
-        // builds out node or leaf under parent
-        // also handles special case of parent == null, which means this is the root node
+        // builds out node or leaf under par, using pkts
+        // returns the new node - caller must add the node to the tree
+        // also handles special case of par == null, which means this is the root node
         // nodes in the tree have an axis they belong to, and an axis for their children
         // either of these can be null
         // four cases:
@@ -457,7 +475,7 @@ namespace pviewer5
                 for (int counter = 1; counter < t.L.Count(); counter++)
                 {
                     tnew2 = (tdgnode)t.L[counter];
-                    MergeTwoNodes(tnew, tnew2, expansionstatemergerule);
+                    tnew = MergeTwoNodes(tnew, tnew2, expansionstatemergerule);
                 }
 
                 tnew.Parent = t.Parent;
@@ -471,7 +489,7 @@ namespace pviewer5
 
 
 
-        void MergeTwoNodes(tdgnode a, tdgnode b, int expansionstatemergerule)
+        tdgnode MergeTwoNodes(tdgnode a, tdgnode b, int expansionstatemergerule)
             // this is to handle the case where two trees are being merged, e.g.,
             //      when a new set of packets is loaded and needs to be merged into the existing tree
             //      when a item is being grouped into the "other" node
@@ -505,12 +523,15 @@ namespace pviewer5
                     // find position for n in a.L
                     // then either merge it or insert it
                     // if get to end of a.L without being merged, add it on to end of a.L
+                    
                     merged = false;
+                    n.Parent = a;
+
                     while (ai < a.L.Count())
                     {
                         if (n.CompareTo(a.L[ai]) == 0)
                         {
-                            MergeTwoNodes((tdgnode)a.L[ai], n, expansionstatemergerule);
+                            a.L[ai] = MergeTwoNodes((tdgnode)a.L[ai], n, expansionstatemergerule);
                             merged = true;
                             break;
                         }
@@ -550,6 +571,9 @@ namespace pviewer5
                     break;
             }
 
+            // return the merged node
+            return a;
+
         }
 
         tdgnode DeactivateAxis(tdgnode t, tdggroupingaxis ax)
@@ -580,7 +604,7 @@ namespace pviewer5
         {
 
             // if par is on ax, break out key
-            if (par.myaxis == ax)
+            if (((tdgnode)(par.L[0])).myaxis == ax)
             {
                 tdgnode tother = null;
                 List<Packet> pkts = new List<Packet>();
@@ -598,27 +622,29 @@ namespace pviewer5
                     // call recursive function to split out packets to be broken out
                     // handle return value of FALSE, which indicates the "other" node is now empty and should be pruned
                     if (!StripPacketsToBreakOut(pkts, tother, ax, key)) par.L.Remove(tother);
-
-                    // build new subtree under par with the broken out packets
-                    tdgnode tnew = BuildTreeNode2(par, pkts);
-                    // insert it in par.L in sort order
-                    int i = 0;
-                    for (; i < par.L.Count(); i++) if (ax.CompareKeys(key, ((tdgnode)(par.L[i])).key) > 0) continue;
-                    par.L.Insert(i, tnew);
+                    if (pkts.Count > 0)
+                    {
+                        // build new subtree under par with the broken out packets
+                        tdgnode tnew = BuildTreeNode2(par, pkts);
+                        // insert it in par.L in sort order
+                        int i = 0;
+                        for (; i < par.L.Count(); i++) if (ax.CompareKeys(key, ((tdgnode)(par.L[i])).key) < 0) break;
+                        par.L.Insert(i, tnew);
+                    }
                 }
             }
 
             // else recurse down through the tree
-            foreach (tdgnode t in par.L) BreakItemOut(t, ax, key);
+            else foreach (tdgnode t in par.L) BreakItemOut(t, ax, key);
 
         }
 
         bool StripPacketsToBreakOut(List<Packet> pkts, tdgnode t, tdggroupingaxis ax, object key)
-            // recursive function to assemble list of packets to break out
-            // each call will either move down one level in the tree and call itself recursively,
-            // or return after having moved packets to break out from t to pkts argument
-            // return value is TRUE if there are still packets in the other node, FALSE otherwise
-            // caller will have to handle when this function returns FALSE by pruning empty nodes
+        // recursive function to assemble list of packets to break out
+        // each call will either move down one level in the tree and call itself recursively,
+        // or return after having moved packets to break out from t to pkts argument
+        // return value is TRUE if there are still packets in the other node, FALSE otherwise
+        // caller will have to handle when this function returns FALSE by pruning empty nodes
         {
             if (t.GetType() == typeof(tdgleaf))
             {
@@ -626,7 +652,7 @@ namespace pviewer5
                 foreach (Packet p in t.L)
                 {
                     // if p is to be broken out
-                    if (ax.getkey(p) == key)
+                    if (ax.CompareKeys(ax.getkeyunderlying(p), key) == 0)
                     {
                         // change grouping axis value from null to actual value
                         ax.setkey(p, key);
@@ -661,12 +687,51 @@ namespace pviewer5
 
         }
 
+        void GroupItem(tdgnode par, tdggroupingaxis ax, object key)
+        // group item key on axis ax, underneath node par (i.e., assumes that axis ax is not at par or above it)
+        // if group node exists already, use its expansion state
+        // do nothing if we get to leaves without finding axis ax
+        {
+
+            // if axes below par is ax, group item with chosen key
+            if (((tdgnode)(par.L[0])).myaxis == ax)
+            {
+                tdgnode tother = null;
+                tdgnode ttogroup = null;
+
+                // find node for other
+                foreach (tdgnode t in par.L)
+                {
+                    if (t.key == null) tother = t;
+                    if (ax.CompareKeys(t.key, key)==0) ttogroup = t;
+                }
+                if (ttogroup != null)
+                {
+                    // change packet keys to null
+                    ChangePacketKeys(ttogroup, ax, null);
+                    par.L.Remove(ttogroup);
+                    // if there is an other node already, merge new item into it
+                    if (tother != null) MergeTwoNodes(tother, ttogroup, 1);
+                    // else, t to group just becomes the other node
+                    else
+                    {
+                        ttogroup.key = null;
+                        par.L.Add(ttogroup);
+                    }
+                }
+            }
+
+            // else recurse down through the tree
+            else foreach (tdgnode t in par.L) GroupItem(t, ax, key);
+
+        }
+
         tdgnode ActivateNewAxis(tdgnode t, tdggroupingaxis newaxis)
         // recursively walk down tree to nodes above the new axis
-        // for each node above the new axis, rebuild tree underneath
+        // if new axis is to be the child of t, build a replacement for t and return it - the caller will do the replacement
         {
             // identify next active axis AFTER t.myaxis
-            // find index of next axis after t.myaxis - note that if t.myaxis is null because t is the root node, then IndexOf will return -1
+            // find index of next axis *after* t.myaxis - note that if t.myaxis is null because t is the root node, then IndexOf will return -1
             int i = axes.IndexOf(t.myaxis) + 1;
             // find next active axis
             while (!axes[i].ischecked) i++;
@@ -690,6 +755,15 @@ namespace pviewer5
             }
 
         }
+
+        void ChangePacketKeys(tdgnode t, tdggroupingaxis ax, object newkey)
+        // recursively go down tree under t until reach packets
+        // then change all packets' key values on ax to newkey
+        {
+            if (t.GetType() == typeof(tdgleaf)) foreach (Packet p in t.L) ax.setkey(p, newkey);
+            else foreach (tdgnode tt in t.L) ChangePacketKeys(tt, ax, newkey);
+        }
+
 
         void GatherPackets(tdgnode t, List<Packet>pkts)
         // recurse down tree under t and gather all packets into pkts
@@ -720,40 +794,40 @@ namespace pviewer5
         void tdgaxisbutton_Click(object sender, RoutedEventArgs e)
         {
             Button b = (Button)sender;
-            tdggroupingaxis i = (tdggroupingaxis)b.DataContext;
+            tdggroupingaxis ax = (tdggroupingaxis)b.DataContext;
 
-            List<tdggroupingaxis> mylist = i.parent;
-            int pos = mylist.IndexOf(i);
+            List<tdggroupingaxis> axlist = ax.parent;
+            int pos = axlist.IndexOf(ax);
 
-            root[0] = DeactivateAxis(root[0], i);
+            if (ax.ischecked) root[0] = DeactivateAxis(root[0], ax);
 
             switch (b.Name)
             {
                 case "button_top":
-                    mylist.RemoveAt(pos);
-                    mylist.Insert(0, i);
+                    axlist.RemoveAt(pos);
+                    axlist.Insert(0, ax);
                     break;
                 case "button_up":
                     if (pos == 0) break;
-                    mylist.RemoveAt(pos);
-                    mylist.Insert(pos - 1, i);
+                    axlist.RemoveAt(pos);
+                    axlist.Insert(pos - 1, ax);
                     break;
                 case "button_dn":
-                    if (pos == mylist.Count - 1) break;
-                    mylist.RemoveAt(pos);
-                    mylist.Insert(pos+1, i);
+                    if (pos == axlist.Count - 1) break;
+                    axlist.RemoveAt(pos);
+                    axlist.Insert(pos+1, ax);
                     break;
                 case "button_bot":
-                    if (pos == mylist.Count - 1) break;
-                    mylist.RemoveAt(pos);
-                    mylist.Add(i);
+                    if (pos == axlist.Count - 1) break;
+                    axlist.RemoveAt(pos);
+                    axlist.Add(ax);
                     break;
                 default: break;
             }
 
-            root[0] = ActivateNewAxis(root[0], i);
+            if (ax.ischecked) root[0] = ActivateNewAxis(root[0], ax);
             // also refresh axis list view
-            (CollectionViewSource.GetDefaultView(mylist)).Refresh();
+            (CollectionViewSource.GetDefaultView(axlist)).Refresh();
 
         }
 
@@ -767,112 +841,183 @@ namespace pviewer5
                 DataGrid dg = (DataGrid)menu.PlacementTarget;
                 DataGridTextColumn col = (DataGridTextColumn)(dg.SelectedCells[0].Column);
                 Packet p = (Packet)(dg.SelectedCells[0].Item);
+                tdggroupingaxis ax = null;
+                object key;
 
-                foreach (Packet i in pkts)
-                    if (i.SrcIP4 == p.SrcIP4) i.IP4g = i.SrcIP4;
-                List<Packet> newlist = new List<Packet>();
-                foreach (tdgnode t in p.Parent.Parent.L)
-                    foreach (Packet pp in t.L) newlist.Add(pp);
-
-                BuildTreeNode2((tdgnode)p.Parent.Parent, newlist);
-                p.Parent.Parent.Lview.Refresh();
+                switch (col.Header)
+                {
+                    case "IP":
+                        foreach (tdggroupingaxis a in axes) if (a.GetType() == typeof(tdggroupingaxisip4)) ax = a;
+                        key = p.SrcIP4;
+                        BreakItemOut(root[0], ax, key);
+                        break;
+                    case "Proto":
+                        foreach (tdggroupingaxis a in axes) if (a.GetType() == typeof(tdggroupingaxisprot)) ax = a;
+                        key = p.ProtOuter;
+                        BreakItemOut(root[0], ax, key);
+                        break;
+                    case "GroupType":
+                        foreach (tdggroupingaxis a in axes) if (a.GetType() == typeof(tdggroupingaxispgtype)) ax = a;
+                        key = p.PGType;
+                        BreakItemOut(root[0], ax, key);
+                        break;
+                    default:
+                        break;
+                }
 
 
             }
-            else if (menu.PlacementTarget.GetType() == typeof(TextBlock))
-            {
-                tdgnode node = (tdgnode)(e.Parameter);
-            }
+            // no else clause, since breakout cannot be initiated from a tree node
 
-            // if grouped for this specific value, then
-                // change grouped_xx to specific value
-                // do this for all packets that have this specific value - need to pass through entire packet list
-/*
-            switch(column)
-            {
-                case "IP4g":
-                    if (p.IP4g == null)
-                    {
-                        foreach (Packet i in pkts)
-                            if (i.SrcIP4 == p.SrcIP4) i.IP4g = i.SrcIP4;
-                        BuildTree(tree, pkts, axes, 0);
-                        tree.Lview.Refresh();
-                    }
-                    break;
-                default:
-                    break;
-            }
-*/            
         }
+
     
         public void tdg_break_out_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = true;
-            /*            DataGrid dg = (DataGrid)sender;
-                        string column = dg.CurrentColumn.SortMemberPath;
-                        Packet p = (Packet)(dg.CurrentCell.Item);
 
-                        // if grouped for this specific value, then
-                        // change grouped_xx to specific value
-                        // do this for all packets that have this specific value - need to pass through entire packet list
+            ContextMenu menu = (ContextMenu)sender;
 
-                        switch (column)
-                        {
-                            case "SrcIP4":
-                                e.CanExecute = (p.IP4g == null);
-                                break;
-                            default:
-                                e.CanExecute = false;
-                                break;
-                        }
-              */
+            if (menu.PlacementTarget == null)
+            {
+                e.CanExecute = false;
+                return;
+            }
+
+            if (menu.PlacementTarget.GetType() == typeof(DataGrid))
+            {
+
+                // default return value is false
+                // tests below will set to true if BOTH axis is active AND packet key is null
+                e.CanExecute = false;
+
+                DataGrid dg = (DataGrid)menu.PlacementTarget;
+                // check if datagrid is empty and return now if so
+                // this can happen after a break out or group operation reduces a datagrid to empty
+                // the system seems to try to do another "can execute" test after the command has executed
+                if (dg.ItemsSource == null) return;
+                DataGridTextColumn col = (DataGridTextColumn)(dg.SelectedCells[0].Column);
+                Packet p = (Packet)(dg.SelectedCells[0].Item);
+
+                switch (col.Header)
+                {
+                    case "IP":
+                        foreach (tdggroupingaxis a in axes) if (a.GetType() == typeof(tdggroupingaxisip4)) if (a.ischecked) e.CanExecute = (p.IP4g == null);
+                        break;
+                    case "Proto":
+                        foreach (tdggroupingaxis a in axes) if (a.GetType() == typeof(tdggroupingaxisprot)) if (a.ischecked) e.CanExecute = (p.Protocolsg == null);
+                        break;
+                    case "GroupType":
+                        foreach (tdggroupingaxis a in axes) if (a.GetType() == typeof(tdggroupingaxispgtype)) if (a.ischecked) e.CanExecute = (p.PGTypeg == null);
+                        break;
+                }
+            }
+            else if (menu.PlacementTarget.GetType() == typeof(TextBlock))
+            {
+                // always return false
+                // it is not meaningful to do a break out command on a tree node - there is no way to know which item is to be broken out
+
+                e.CanExecute = false;
+            }
+            
         }
 
         public void tdg_group_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-        /*    DataGrid dg = (DataGrid)sender;
-            string column = dg.CurrentColumn.SortMemberPath;
-            Packet p = (Packet)(dg.CurrentCell.Item);
 
-            switch (column)
+            ContextMenu menu = (ContextMenu)sender;
+
+            if (menu.PlacementTarget.GetType() == typeof(DataGrid))
             {
-                case "SrcIP4":
-                    if (p.IP4g != null)
-                    {
-                        foreach (Packet i in pkts)
-                            if (i.SrcIP4 == p.SrcIP4) i.IP4g = null;
-                        BuildTree(tree, pkts, axes, 0);
-                        tree.Lview.Refresh();
-                    }
-                    break;
-                default:
-                    break;
+                DataGrid dg = (DataGrid)menu.PlacementTarget;
+                DataGridTextColumn col = (DataGridTextColumn)(dg.SelectedCells[0].Column);
+                Packet p = (Packet)(dg.SelectedCells[0].Item);
+                tdggroupingaxis ax = null;
+                object key;
+
+                switch (col.Header)
+                {
+                    case "IP":
+                        foreach (tdggroupingaxis a in axes) if (a.GetType() == typeof(tdggroupingaxisip4)) ax = a;
+                        key = p.SrcIP4;
+                        GroupItem(root[0], ax, key);
+                        break;
+                    case "Proto":
+                        foreach (tdggroupingaxis a in axes) if (a.GetType() == typeof(tdggroupingaxisprot)) ax = a;
+                        key = p.ProtOuter;
+                        GroupItem(root[0], ax, key);
+                        break;
+                    case "GroupType":
+                        foreach (tdggroupingaxis a in axes) if (a.GetType() == typeof(tdggroupingaxispgtype)) ax = a;
+                        key = p.PGType;
+                        GroupItem(root[0], ax, key);
+                        break;
+                    default:
+                        break;
+                }
             }
-            */
+
+            else if (menu.PlacementTarget.GetType() == typeof(TextBlock))
+            {
+                tdgnode node = (tdgnode)(e.Parameter);
+
+
+            }
 
         }
+
+
+
         public void tdg_group_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = true;
-            /*
-            DataGrid dg = (DataGrid)sender;
-            string column = dg.CurrentColumn.SortMemberPath;
-            Packet p = (Packet)(dg.CurrentCell.Item);
 
-            // if grouped for this specific value, then
-            // change grouped_xx to specific value
-            // do this for all packets that have this specific value - need to pass through entire packet list
+            ContextMenu menu = (ContextMenu)sender;
 
-            switch (column)
+            if (menu.PlacementTarget == null)
             {
-                case "SrcIP4":
-                    e.CanExecute = (p.IP4g != null);
-                    break;
-                default:
-                    e.CanExecute = false;
-                    break;
+                e.CanExecute = false;
+                return;
             }
-            */
+
+            if (menu.PlacementTarget.GetType() == typeof(DataGrid))
+            {
+
+                // default return value is false
+                // tests below will set to true if BOTH axis is active AND packet key is not null
+                e.CanExecute = false;    
+                
+                DataGrid dg = (DataGrid)menu.PlacementTarget;
+                // check if datagrid is empty and return now if so
+                // this can happen after a break out or group operation reduces a datagrid to empty
+                // the system seems to try to do another "can execute" test after the command has executed
+                if (dg.ItemsSource == null) return;
+                DataGridTextColumn col = (DataGridTextColumn)(dg.SelectedCells[0].Column);
+                Packet p = (Packet)(dg.SelectedCells[0].Item);
+                
+                switch (col.Header)
+                {
+                    case "IP":
+                        foreach (tdggroupingaxis a in axes) if (a.GetType() == typeof(tdggroupingaxisip4)) if (a.ischecked) e.CanExecute = (p.IP4g != null);
+                        break;
+                    case "Proto":
+                        foreach (tdggroupingaxis a in axes) if (a.GetType() == typeof(tdggroupingaxisprot)) if (a.ischecked) e.CanExecute = (p.Protocolsg != null);
+                        break;
+                    case "GroupType":
+                        foreach (tdggroupingaxis a in axes) if (a.GetType() == typeof(tdggroupingaxispgtype)) if (a.ischecked) e.CanExecute = (p.PGTypeg != null);
+                        break;
+
+                }
+            }
+            else if (menu.PlacementTarget.GetType() == typeof(TextBlock))
+            {
+                tdgnode node = (tdgnode)(e.Parameter);
+
+                if (node == null)
+                {
+                    e.CanExecute = false;
+                    return;
+                }
+                e.CanExecute = (node.key != null);
+            }
         }
 
     }
