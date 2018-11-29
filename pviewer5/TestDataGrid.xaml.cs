@@ -586,7 +586,8 @@ namespace pviewer5
             if (((tdgnode)(t.L[0])).myaxis == ax)
             {
                 tnew = MergeAllChildren(t, 3);
-                RefreshViews(tnew);
+                // commenting out refresh here - i now do a refresh on the root, in the axis check box click handler, in order to eliminate the confusion of the tree view when nodes turn to leaves due to deactivation of an axis
+                // RefreshViews(tnew);
                 return tnew;
             }
             else
@@ -773,22 +774,25 @@ namespace pviewer5
             else foreach (tdgnode tt in t.L) GatherPackets(tt, pkts);
         }
 
-
-
+               
         void RefreshViews(tdgnode t)
         {
             if (t.GetType() != typeof(tdgleaf)) foreach (tdgnode tt in t.L) RefreshViews(tt);
             t.Lview.Refresh();
         }
-
-
+        
         void tdgaxischeck_Click(object sender, RoutedEventArgs e)
         {
             CheckBox b = (CheckBox)sender;
             tdggroupingaxis i = (tdggroupingaxis)b.DataContext;
 
             if (b.IsChecked == true) root[0] = ActivateNewAxis(root[0], i);
-            else root[0] = DeactivateAxis(root[0], i);
+            else
+            {
+                root[0] = DeactivateAxis(root[0], i);
+                RefreshViews(root[0]);
+                ((ListCollectionView)CollectionViewSource.GetDefaultView(root)).Refresh();
+            }
         }
 
         void tdgaxisbutton_Click(object sender, RoutedEventArgs e)
@@ -870,8 +874,7 @@ namespace pviewer5
             // no else clause, since breakout cannot be initiated from a tree node
 
         }
-
-    
+            
         public void tdg_break_out_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
 
@@ -964,9 +967,7 @@ namespace pviewer5
             }
 
         }
-
-
-
+               
         public void tdg_group_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
 
