@@ -333,7 +333,6 @@ namespace pviewer5
                                 pkt.PGType = pkt.PGTypeg =  gl.L[0].GetType();
                                 break;
                             }
-
                     }
                 }
                 root[0] = BuildTreeNode2(null, pkts);
