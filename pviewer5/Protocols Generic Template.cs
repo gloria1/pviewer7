@@ -427,21 +427,25 @@ namespace pviewer5
         public MAC SrcMAC = 0;
         public MAC DestMAC = 0;
         public IP4 SrcIP4 { get; set; } = 0;
-        public IP4 DestIP4 = 0;
+        public IP4 DestIP4 { get; set; } = 0;
+        public IP4Pair SrcDestIP4 { get; set; } = new IP4Pair(0, 0);
         public uint SrcPort = 0;       // UPD or TCP port, if any
         public uint DestPort = 0;
         public UDPH udphdr = null;
         public IP4H ip4hdr = null;
         public TCPH tcphdr = null;
         public H groupprotoheader { get; set; }     // packet group logic will set this to point to the header of the protocol relevant to that group type
-        public Type PGType { get { if (Parent == null) return null; else return Parent.GetType(); } }    // the type of the packet group this gets assigned to, will be set by group assignment methods
+        public Type PGType { get; set; }    // the type of the packet group this gets assigned to, will be set by group assignment methods
 
         // properties to be used for grouping in the datagrid
         // these should be set initially when the underlying packet properties are set
         // they may be changed as the user changes grouping in the tree view
-        public IP4? IP4g { get; set; } = (IP4?)null;
+        public IP4? IP4Srcg { get; set; } = (IP4?)null;
+        public IP4? IP4Destg { get; set; } = (IP4?)null;
+        public IP4Pair? IP4SrcDestg { get; set; } = (IP4Pair?)null;
         public Protocols? Protocolsg { get; set; } = (Protocols?)null;
         public Type PGTypeg { get; set; } = (Type)null;
+
  
         public override string displayinfo
         {
@@ -503,9 +507,11 @@ namespace pviewer5
                 fs.Seek((long)(pch.NGBlockLen - 0x1c - pch.CapLen), SeekOrigin.Current);       // skip over any padding bytes, options and trailing block length field
 
             // set the treeview grouping properties
-            IP4g = SrcIP4;
+            IP4Srcg = SrcIP4;
+            IP4Destg = DestIP4;
+            IP4SrcDestg = SrcDestIP4;
+
             Protocolsg = ProtOuter;
-            PGTypeg = PGType;
 
         }
 

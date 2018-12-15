@@ -99,8 +99,8 @@
     <Compile Include="StreamViewer.xaml.cs">
       <DependentUpon>StreamViewer.xaml</DependentUpon>
     </Compile>
-    <Compile Include="TestDataGrid.xaml.cs">
-      <DependentUpon>TestDataGrid.xaml</DependentUpon>
+    <Compile Include="PacketTree.xaml.cs">
+      <DependentUpon>PacketTree.xaml</DependentUpon>
     </Compile>
     <Page Include="FileLoadStatusDialog.xaml">
       <SubType>Designer</SubType>
@@ -138,7 +138,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="TestDataGrid.xaml">
+    <Page Include="PacketTree.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

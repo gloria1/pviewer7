@@ -33,9 +33,6 @@ namespace pviewer5
 	{
         public static MainWindow Instance = null;
 
-        // properties for packet list view
-        // NEXT IS TEMPORARY
-        public TestDataGrid tdgwindow;
         public PacketViewer pview;
         public ObservableCollection<string> PacketFileNames = new ObservableCollection<string>();
         public string FirstFileName { get { if (PacketFileNames.Count() == 0) return ""; else return PacketFileNames[0]; } }
@@ -55,12 +52,18 @@ namespace pviewer5
         }
         private bool _fileloaded = false;
         public bool FileLoaded { get { return _fileloaded; } set { _fileloaded = value; NotifyPropertyChanged(); } }
-        public ObservableCollection<Packet> pkts { get; set; }
         public PVDisplayObject grouplistlist { get; set; }
         public ListCollectionView gllview;
         public ListCollectionView idmview;
         ulong pktseqno = 0;  // used by LoadPCAPFile to assign sequence numbers to packets
 
+        public ObservableCollection<tdgnode> root { get; set; }     // this has to be a list so that it will bind correctly to TreeView
+        public List<tdggroupingaxis> axes { get; set; } = new List<tdggroupingaxis>();
+        public List<Packet> pkts = new List<Packet>();
+
+
+        public static RoutedCommand tdg_break_out_cmd = new RoutedCommand();
+        public static RoutedCommand tdg_group_cmd = new RoutedCommand();
 
 
         // properties for filter view
@@ -97,18 +100,12 @@ namespace pviewer5
             if (Instance != null) MessageBox.Show("Trying to create a second MainWindow object - THIS SHOULD NEVER HAPPEN");
             else Instance = this;
 
+
             // initialize window
             InitializeComponent();
 
-            // NEXT IS TEMPORARY
-            tdgwindow = new TestDataGrid();
-            tdgwindow.Show();
-
-
             gridmain.DataContext = this;
 
-            // set up packet list view
-            pkts = new ObservableCollection<Packet>();
             grouplistlist = new PVDisplayObject(null);
             grouplistlist.L = new ObservableCollection<PVDisplayObject>();
             gllview = (ListCollectionView)CollectionViewSource.GetDefaultView(grouplistlist.L);
@@ -118,7 +115,19 @@ namespace pviewer5
             grouplistlist.L.Add(new UDPGList("UDP Groups", grouplistlist));
             grouplistlist.L.Add(new ARPGList("ARP Groups", grouplistlist));
             grouplistlist.L.Add(new GList("Ungrouped Packets", grouplistlist));
-            
+
+            axes.Add(new tdggroupingaxisprot(axes));
+            axes[0].ischecked = false;
+            axes.Add(new tdggroupingaxispgtype(axes));
+            axes.Add(new tdggroupingaxisip4src(axes));
+            axes[2].ischecked = false;
+            axes.Add(new tdggroupingaxisip4dest(axes));
+            axes[3].ischecked = false;
+            axes.Add(new tdggroupingaxisip4srcdest(axes));
+
+            root = new ObservableCollection<tdgnode>();
+            root.Add(BuildTreeNode2(null, pkts));
+
             // set up filter view
             filters = new FilterSet();
             try
@@ -244,26 +253,26 @@ namespace pviewer5
                 PacketFileNames.Clear();
                 pkts.Clear();
                 pktseqno = 0;
-                foreach (GList gl in grouplistlist.L) gl.L.Clear();
+                // foreach (GList gl in grouplistlist.L) gl.L.Clear();
 
                 Properties.Settings.Default.LastDirectory = dlg.InitialDirectory;
                 foreach (string fn in dlg.FileNames) PacketFileNames.Add(fn);
                 LoadPCAPFiles(PacketFileNames, false);
 
                 filters.ChangedSinceApplied = false;
-                RefreshViews();
+                RefreshViews(root[0]);
             }
 		}
         private void ReloadPCAPFiles(object sender, RoutedEventArgs e)    // reload the list of packetfiles already int he PacketFileNames property
         {
             pkts.Clear();
             pktseqno = 0;
-            foreach (GList gl in grouplistlist.L) gl.L.Clear();
+            // foreach (GList gl in grouplistlist.L) gl.L.Clear();
 
             LoadPCAPFiles(PacketFileNames, false);
 
             filters.ChangedSinceApplied = false;
-            RefreshViews();
+            RefreshViews(root[0]);
 
         }
         private void AppendPCAPFiles(object sender, RoutedEventArgs e)  // append a list of packetfiles, selected in a file chooser dialog
@@ -287,7 +296,7 @@ namespace pviewer5
                     fnl[0] = fn;
                     LoadPCAPFiles(fnl, true);
                 }
-                RefreshViews();
+                RefreshViews(root[0]);
             }
         }
         private void LoadPCAPFiles(ObservableCollection<string> filenames, bool appendflag)     // load or append a set of packetfiles, based on a list of filenames
@@ -300,7 +309,7 @@ namespace pviewer5
             {
                 pktseqno = 0;
                 pkts.Clear();
-                foreach (GList gl in grouplistlist.L) gl.L.Clear();
+                // foreach (GList gl in grouplistlist.L) gl.L.Clear();
             }
 
             foreach (string fn in filenames)
@@ -319,9 +328,14 @@ namespace pviewer5
                     {
                         pkts.Add(pkt);
                         foreach (GList gl in grouplistlist.L)
-                            if (gl.GroupPacket(pkt)) break;
+                            if (gl.GroupPacket(pkt))
+                            {
+                                pkt.PGType = pkt.PGTypeg =  gl.L[0].GetType();
+                                break;
+                            }
                     }
                 }
+                root[0] = BuildTreeNode2(null, pkts);
                 fs.Close();
             }
 
@@ -345,7 +359,7 @@ namespace pviewer5
             // IF IT IS A PACKET, OPEN PACKET VIEW WINDOW ON IT
         }
 
-        public void RefreshViews()
+/*        public void RefreshViews()
         {
             foreach (GList glist in grouplistlist.L)
             {
@@ -358,9 +372,11 @@ namespace pviewer5
             gllview.Refresh();
         }
 
+*/
+
         private void ApplyFilterToView(object sender, RoutedEventArgs e)
         {
-            foreach (GList glist in grouplistlist.L)
+         /*   foreach (GList glist in grouplistlist.L)
             {
                 foreach (G g in glist.L)
                 {
@@ -371,7 +387,7 @@ namespace pviewer5
             }
             filters.ChangedSinceApplied = false;
             gllview.Refresh();
-        }
+      */  }
         private void filterset_save(object sender, RoutedEventArgs e)
         {
             filters.SaveToDisk(null);

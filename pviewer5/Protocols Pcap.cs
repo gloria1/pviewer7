@@ -23,6 +23,10 @@ using Microsoft.Win32;
 namespace pviewer5
 {
     public class PcapFile
+    // ******************************************************************************************
+    // NOTE: CURRENTLY ONLY HANDLING CASE OF A SINGLE SECTION WITH ENHANCED PACKET BLOCKS
+    // SEE PCAPNG FORMAT NOTES IN ONENOTE IF/WHEN WE NEED TO GENERALIZE THIS
+    // ******************************************************************************************
     {
         public enum PcapFileTypes { PcapOld, PcapNG };
         public PcapFileTypes Type;
@@ -80,7 +84,14 @@ namespace pviewer5
             }
         }
 
-        // FOR INFO ON PCAP-NG FORMATION SEE http://www.winpcap.org/ntar/draft/PCAP-DumpFileFormat.html#sectionshb
+
+        // FOR INFO ON PCAP-NG FORMATION SEE https://github.com/pcapng/pcapng
+        // also see summary in OneNote
+        // ******************************************************************************************
+        // NOTE: CURRENTLY ONLY HANDLING CASE OF A SINGLE SECTION WITH ENHANCED PACKET BLOCKS
+        // SEE PCAPNG FORMAT NOTES IN ONENOTE IF/WHEN WE NEED TO GENERALIZE THIS
+        // ******************************************************************************************
+
         public class PcapNGFileHeader
         {
             public List<SectionHeader> SHList;
@@ -94,6 +105,8 @@ namespace pviewer5
                 SHList = new List<SectionHeader>();
                 CurrentSection = new SectionHeader(fs);     // first block must be a section header - read it
                 SHList.Add(CurrentSection);
+                // NOTE: INTERFACE DESCRIPTIONS SHOULD BE MOVED WITHIN THE SECTION HEADER
+                // INTERFACE NUMBERS ARE LOCAL TO THE SECTION THEY ARE IN, AND (CAN) RESTART AT 0 FOR THE NEXT SECTION
                 IntDescDict = new Dictionary<uint, InterfaceDescription>();   // as a dictionary because we will need to index it by interface ID number
 
                 this.ReadBlocksUntilPacket(fs);
@@ -101,13 +114,20 @@ namespace pviewer5
             public void ReadBlocksUntilPacket(FileStream fs)         // read section header block and any other blocks until first packet block
             {
                 uint blocktype;
+                uint blocklen;
 
                 do
                 {
                     byte[] d = new byte[0x18];
                     fs.Read(d, 0, 0x18);
-                    fs.Seek(-0x18, SeekOrigin.Current);  // rewind so block or packet constructor can read its blocktype
+                    fs.Seek(-0x18, SeekOrigin.Current);  // rewind so packet constructor can read its blocktype
                     blocktype = (CurrentSection.bigendian ? flip32(d, 0) : BitConverter.ToUInt32(d, 0));
+                    blocklen = (CurrentSection.bigendian ? flip32(d, 4) : BitConverter.ToUInt32(d, 4));
+
+                    // if enhanced packet block, return
+                    if (blocktype == 0x06) break;
+
+                    // else handle other block types
                     switch (blocktype)
                     {
                         case 0x0a0d0d0a:    // new section header
@@ -118,18 +138,26 @@ namespace pviewer5
                             IntDescDict.Add((uint)IntDescDict.Count, new InterfaceDescription(fs, CurrentSection.bigendian));
                             break;
                         case 0x02:          // "packet block"
+                            MessageBox.Show(String.Format("PCAP-NG file type, unexpected block type 2 = packet block, which is obsolete"));
+                            fs.Seek(blocklen, SeekOrigin.Current);
+                            break;
                         case 0x03:          // "Simple packet block"
+                            MessageBox.Show(String.Format("PCAP-NG file type, unhandled block type 3 = Simple Packet Block"));
+                            fs.Seek(blocklen, SeekOrigin.Current);
+                            break;
                         case 0x04:          // name resolution block
+                            MessageBox.Show(String.Format("PCAP-NG file type, unhandled block type 4, Name Resolution Block"));
+                            fs.Seek(blocklen, SeekOrigin.Current);
+                            break;
                         case 0x05:          // interface statistics block
-                            MessageBox.Show(String.Format("PCAP-NG file type, unhandled block type 5, Interface Statistics Block, found"));
-                            return;
-                        case 0x06:          // "enhanced packet block"
-                            return;         // done - exit the function
-                        default:           // crash - unrecognized block type
+                            fs.Seek(blocklen, SeekOrigin.Current);
+                            break;
+                        default:           // unrecognized block type
                             MessageBox.Show(String.Format("PCAP-NG file type, unrecognized block type {0:X8} found", blocktype));
-                            return;
+                            fs.Seek(blocklen, SeekOrigin.Current);
+                            break;
                     }
-                } while ((blocktype < 0x02) || (blocktype > 0x06));  // continue loop unless we just found a packet block
+                } while (fs.Position < fs.Length);  // continue loop unless we reached end of file
             }
         }
 
@@ -162,6 +190,8 @@ namespace pviewer5
                 SectionLength = (bigendian ? flip64(d, 0x10) : BitConverter.ToUInt64(d, 0x10));
 
                 OptionList = new List<Option>();
+                // if BlockTotalLength is 0x1c, then there are no options
+                if (BlockTotalLength == 0x1c) lastoption = true;
                 while (!lastoption) OptionList.Add(new Option(fs, bigendian, ref lastoption));
                 fs.ReadByte(); fs.ReadByte(); fs.ReadByte(); fs.ReadByte();     // eat 4 bytes, which is the block total length field repeated at the end of the block
             }

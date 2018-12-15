@@ -41,7 +41,7 @@ namespace pviewer5
         private bool _usealiases;
         public bool UseAliases { get { return _usealiases; } set { _usealiases = value; NotifyPropertyChanged(); } }
         private int _exceptionleveltoshow = 1;
-        public int ExceptionLevelToShow { get { return _exceptionleveltoshow; } set { _exceptionleveltoshow = value; NotifyPropertyChanged(); MainWindow.Instance.RefreshViews(); } }
+        public int ExceptionLevelToShow { get { return _exceptionleveltoshow; } set { _exceptionleveltoshow = value; NotifyPropertyChanged(); MainWindow.Instance.RefreshViews(MainWindow.Instance.root[0]); } }
 
         // private constructor below was set up per the "singleton" pattern, so that no further instances of this class could be created
         // however, for some reason this caused the data binding to IP4Hex to stop working, so i have commented this out

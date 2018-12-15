@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="TestDataGrid" Height="816.293" Width="539.787">
     <Window.Resources>
-        <Style x:Key="FocusVisual">
+<!--        <Style x:Key="FocusVisual">
             <Setter Property="Control.Template">
                 <Setter.Value>
                     <ControlTemplate>
@@ -131,7 +131,9 @@
                 </DataGrid>
             </TreeViewItem>
         </HierarchicalDataTemplate>
+        -->
     </Window.Resources>
+<!--
     <Grid 
         Margin="0,74,0,0"
         x:Name="tdggrid">
@@ -163,4 +165,5 @@
         </TreeView>
             
     </Grid>
+        -->
 </Window>

@@ -32,8 +32,14 @@ namespace pviewer5
         public Type type { get; set; }
         public string groupingpropertyname { get; set; }
         public string displayname { get; set; }
+        public string datagridcolname { get; set; }
         public bool ischecked { get; set; }
         public List<tdggroupingaxis> parent { get; set; }
+
+        public virtual string displayinfo(object key)
+        {
+            return null;
+        }
 
         public tdggroupingaxis(List<tdggroupingaxis> par)
         {
@@ -101,6 +107,15 @@ namespace pviewer5
             type = typeof(Protocols?);
             groupingpropertyname = "Protocolsg";
             displayname = "Protocols";
+            datagridcolname = "Protocol";
+        }
+        public override string displayinfo(object key)
+        {
+            string keystring;
+            if (key == null) keystring = "OTHER";
+            else keystring = key.ToString();
+
+            return "Protocol = " + keystring;
         }
         public override List<List<Packet>> groupfn(List<Packet> pkts)
         {
@@ -154,24 +169,35 @@ namespace pviewer5
 
     }
 
-    public class tdggroupingaxisip4 : tdggroupingaxis
+    public class tdggroupingaxisip4src : tdggroupingaxis
     {
-        public tdggroupingaxisip4(List<tdggroupingaxis> par) : base(par)
+        public tdggroupingaxisip4src(List<tdggroupingaxis> par) : base(par)
         {
             type = typeof(IP4?);
-            groupingpropertyname = "IP4g";
-            displayname = "IP4 address";
+            groupingpropertyname = "IP4Srcg";
+
+            displayname = "IP4 source address";
+            datagridcolname = "IP4 Src";
         }
+        public override string displayinfo(object key)
+        {
+            string keystring;
+            if (key == null) keystring = "OTHER";
+            else keystring = key.ToString();
+
+            return "Source IP4 = " + keystring;
+        }
+
         public override List<List<Packet>> groupfn(List<Packet> pkts)
         {
             List<List<Packet>> result = new List<List<Packet>>();
-            var query = (pkts.GroupBy<Packet, IP4?>(x => x.IP4g));
+            var query = (pkts.GroupBy<Packet, IP4?>(x => x.IP4Srcg));
             foreach (var g in query) result.Add(g.ToList<Packet>());
             return result;
         }
         public override object getkey(Packet p)
         {
-            return p.IP4g;
+            return p.IP4Srcg;
         }
         public override object getkeyunderlying(Packet p)
         {
@@ -179,7 +205,7 @@ namespace pviewer5
         }
         public override void setkey(Packet p, object v)
         {
-            p.IP4g = (IP4?)v;
+            p.IP4Srcg = (IP4?)v;
         }
         public override int CompareKeys(object a, object b)
         {
@@ -192,13 +218,149 @@ namespace pviewer5
         {
             int IComparer.Compare(object a, object b)
             {
-                IP4? akey = ((List<Packet>)a)[0].IP4g;
-                IP4? bkey = ((List<Packet>)b)[0].IP4g;
+                IP4? akey = ((List<Packet>)a)[0].IP4Srcg;
+                IP4? bkey = ((List<Packet>)b)[0].IP4Srcg;
                 // note: null is considered higher than any non-null value, and two nulls are considered equal
                 if (akey == null) if (bkey == null) return 0; else return 1; else if (bkey == null) return -1;
                 // now we know akey anb bkey are non-null
                 int r;
                 r = ((IP4)akey).CompareTo((IP4)bkey);
+                return r;
+            }
+        }
+        public override void Sorter(List<List<Packet>> L)
+        {
+            IComparer comp = new tdgCompare();
+
+            L.Sort(comp.Compare);
+        }
+
+
+    }
+
+    public class tdggroupingaxisip4dest : tdggroupingaxis
+    {
+        public tdggroupingaxisip4dest(List<tdggroupingaxis> par) : base(par)
+        {
+            type = typeof(IP4?);
+            groupingpropertyname = "IP4Destg";
+            displayname = "IP4 dest address";
+            datagridcolname = "IP4 Dest";
+        }
+        public override string displayinfo(object key)
+        {
+            string keystring;
+            if (key == null) keystring = "OTHER";
+            else keystring = key.ToString();
+
+            return "Dest IP4 = " + keystring;
+        }
+
+        public override List<List<Packet>> groupfn(List<Packet> pkts)
+        {
+            List<List<Packet>> result = new List<List<Packet>>();
+            var query = (pkts.GroupBy<Packet, IP4?>(x => x.IP4Destg));
+            foreach (var g in query) result.Add(g.ToList<Packet>());
+            return result;
+        }
+        public override object getkey(Packet p)
+        {
+            return p.IP4Destg;
+        }
+        public override object getkeyunderlying(Packet p)
+        {
+            return p.DestIP4;
+        }
+        public override void setkey(Packet p, object v)
+        {
+            p.IP4Destg = (IP4?)v;
+        }
+        public override int CompareKeys(object a, object b)
+        {
+            // note: null is considered higher than any non-null value, and two nulls are considered equal
+            if (a == null) if (b == null) return 0; else return 1; else if (b == null) return -1;
+            return ((IP4)a).CompareTo((IP4)b);
+        }
+        public class tdgCompare : IComparer
+        // provides comparer  for List<Packet> objects that are the result of the grouping function in the tree builder
+        {
+            int IComparer.Compare(object a, object b)
+            {
+                IP4? akey = ((List<Packet>)a)[0].IP4Destg;
+                IP4? bkey = ((List<Packet>)b)[0].IP4Destg;
+                // note: null is considered higher than any non-null value, and two nulls are considered equal
+                if (akey == null) if (bkey == null) return 0; else return 1; else if (bkey == null) return -1;
+                // now we know akey anb bkey are non-null
+                int r;
+                r = ((IP4)akey).CompareTo((IP4)bkey);
+                return r;
+            }
+        }
+        public override void Sorter(List<List<Packet>> L)
+        {
+            IComparer comp = new tdgCompare();
+
+            L.Sort(comp.Compare);
+        }
+
+
+    }
+
+    public class tdggroupingaxisip4srcdest : tdggroupingaxis
+    {
+        public tdggroupingaxisip4srcdest(List<tdggroupingaxis> par) : base(par)
+        {
+            type = typeof(IP4?);
+            groupingpropertyname = "IP4SrcDestg";
+            displayname = "IP4 source,dest address";
+            datagridcolname = "IP4 Src, Dest";
+        }
+        public override string displayinfo(object key)
+        {
+            string keystring;
+            if (key == null) keystring = "OTHER";
+            else keystring = key.ToString();
+
+            return "Source/Dest IP4 = " + keystring;
+        }
+
+        public override List<List<Packet>> groupfn(List<Packet> pkts)
+        {
+            List<List<Packet>> result = new List<List<Packet>>();
+            var query = (pkts.GroupBy<Packet, IP4Pair?>(x => x.IP4SrcDestg));
+            foreach (var g in query) result.Add(g.ToList<Packet>());
+            return result;
+        }
+        public override object getkey(Packet p)
+        {
+            return p.IP4SrcDestg;
+        }
+        public override object getkeyunderlying(Packet p)
+        {
+            return p.SrcDestIP4;
+        }
+        public override void setkey(Packet p, object v)
+        {
+            p.IP4SrcDestg = (IP4Pair?)v;
+        }
+        public override int CompareKeys(object a, object b)
+        {
+            // note: null is considered higher than any non-null value, and two nulls are considered equal
+            if (a == null) if (b == null) return 0; else return 1; else if (b == null) return -1;
+            return ((IP4Pair)a).CompareTo((IP4Pair)b);
+        }
+        public class tdgCompare : IComparer
+        // provides comparer  for List<Packet> objects that are the result of the grouping function in the tree builder
+        {
+            int IComparer.Compare(object a, object b)
+            {
+                IP4Pair? akey = ((List<Packet>)a)[0].IP4SrcDestg;
+                IP4Pair? bkey = ((List<Packet>)b)[0].IP4SrcDestg;
+                // note: null is considered higher than any non-null value, and two nulls are considered equal
+                if (akey == null) if (bkey == null) return 0; else return 1; else if (bkey == null) return -1;
+                // now we know akey anb bkey are non-null
+                int r;
+                r = ((IP4Pair)akey).CompareTo((IP4Pair)bkey);
                 return r;
             }
         }
@@ -219,6 +381,15 @@ namespace pviewer5
             type = typeof(Type);
             groupingpropertyname = "PGTypeg";
             displayname = "Packet Group Type";
+            datagridcolname = "Pkt Grp Type";
+        }
+        public override string displayinfo(object key)
+        {
+            string keystring;
+            if (key == null) keystring = "OTHER";
+            else keystring = key.ToString();
+
+            return "Packet Group Type = " + keystring;
         }
 
         public override List<List<Packet>> groupfn(List<Packet> pkts)
@@ -270,10 +441,6 @@ namespace pviewer5
 
     }
 
-
-
-
-
     public class tdgnode : PVDisplayObject, IComparable
     {
         public tdggroupingaxis myaxis;
@@ -292,11 +459,14 @@ namespace pviewer5
             get
             {
                 if (myaxis == null) return "ROOT";
-                if (myaxis.type == null) return "Unknown";
-                else if (myaxis.type == typeof(IP4?)) return "IP4 address = " + ((key == null) ? "All Other" : ((IP4?)key).ToString());
-                else if (myaxis.type == typeof(Protocols?)) return "Protocol = " + ((key == null) ? "All Other" : ((Protocols?)key).ToString());
-                else if (myaxis.type == typeof(Type)) return "Packet Group Type = " + ((key == null) ? "All Other" : ((Type)key).ToString());
-                else return "Unknown";
+                else return myaxis.displayinfo(key);
+                /*
+                    if (myaxis.type == null) return "Unknown";
+                    else if (myaxis.type == typeof(IP4?)) return "IP4 address = " + ((key == null) ? "All Other" : ((IP4?)key).ToString());
+                    else if (myaxis.type == typeof(Protocols?)) return "Protocol = " + ((key == null) ? "All Other" : ((Protocols?)key).ToString());
+                    else if (myaxis.type == typeof(Type)) return "Packet Group Type = " + ((key == null) ? "All Other" : ((Type)key).ToString());
+                    else return "Unknown";
+                */
             }
         }
 
@@ -314,8 +484,10 @@ namespace pviewer5
     }
 
 
-    public partial class TestDataGrid : Window
+    public partial class MainWindow : Window
     {
+        /* MOVED TO MainWindow.xaml.cs
+         * 
         public ObservableCollection<tdgnode> root { get; set; }     // this has to be a list so that it will bind correctly to TreeView
         public List<tdggroupingaxis> axes { get; set; } = new List<tdggroupingaxis>();
         public List<Packet> pkts = new List<Packet>();
@@ -360,7 +532,7 @@ namespace pviewer5
         }
 
 
-
+    */
 
 
         tdgnode BuildTreeNode2(tdgnode par, List<Packet> pkts)
@@ -775,7 +947,7 @@ namespace pviewer5
         }
 
                
-        void RefreshViews(tdgnode t)
+        public void RefreshViews(tdgnode t)
         {
             if (t.GetType() != typeof(tdgleaf)) foreach (tdgnode tt in t.L) RefreshViews(tt);
             t.Lview.Refresh();
@@ -845,9 +1017,14 @@ namespace pviewer5
                 DataGrid dg = (DataGrid)menu.PlacementTarget;
                 DataGridTextColumn col = (DataGridTextColumn)(dg.SelectedCells[0].Column);
                 Packet p = (Packet)(dg.SelectedCells[0].Item);
-                tdggroupingaxis ax = null;
-                object key;
+                
+                foreach (tdggroupingaxis a in axes) if ((string)(col.Header) == a.datagridcolname)
+                    {
+                        BreakItemOut(root[0], a, a.getkeyunderlying(p));
+                        break;
+                    }
 
+                /*
                 switch (col.Header)
                 {
                     case "IP":
@@ -868,7 +1045,7 @@ namespace pviewer5
                     default:
                         break;
                 }
-
+                */
 
             }
             // no else clause, since breakout cannot be initiated from a tree node
@@ -895,12 +1072,16 @@ namespace pviewer5
 
                 DataGrid dg = (DataGrid)menu.PlacementTarget;
                 // check if datagrid is empty and return now if so
+                // also check if selected cells count is 0
                 // this can happen after a break out or group operation reduces a datagrid to empty
                 // the system seems to try to do another "can execute" test after the command has executed
                 if (dg.ItemsSource == null) return;
+                if (dg.SelectedCells.Count == 0) return;
                 DataGridTextColumn col = (DataGridTextColumn)(dg.SelectedCells[0].Column);
                 Packet p = (Packet)(dg.SelectedCells[0].Item);
 
+                foreach (tdggroupingaxis a in axes) if ((string)(col.Header) == a.datagridcolname) if (a.ischecked) { e.CanExecute = (a.getkey(p) == null); break; }
+                /*
                 switch (col.Header)
                 {
                     case "IP":
@@ -913,6 +1094,7 @@ namespace pviewer5
                         foreach (tdggroupingaxis a in axes) if (a.GetType() == typeof(tdggroupingaxispgtype)) if (a.ischecked) e.CanExecute = (p.PGTypeg == null);
                         break;
                 }
+                */
             }
             else if (menu.PlacementTarget.GetType() == typeof(TextBlock))
             {
@@ -934,9 +1116,15 @@ namespace pviewer5
                 DataGrid dg = (DataGrid)menu.PlacementTarget;
                 DataGridTextColumn col = (DataGridTextColumn)(dg.SelectedCells[0].Column);
                 Packet p = (Packet)(dg.SelectedCells[0].Item);
-                tdggroupingaxis ax = null;
-                object key;
 
+
+                foreach (tdggroupingaxis a in axes) if ((string)(col.Header) == a.datagridcolname)
+                    {
+                        GroupItem(root[0], a, a.getkeyunderlying(p));
+                        break;
+                    }
+
+                /*
                 switch (col.Header)
                 {
                     case "IP":
@@ -957,6 +1145,7 @@ namespace pviewer5
                     default:
                         break;
                 }
+                */
             }
 
             else if (menu.PlacementTarget.GetType() == typeof(TextBlock))
@@ -988,12 +1177,17 @@ namespace pviewer5
                 
                 DataGrid dg = (DataGrid)menu.PlacementTarget;
                 // check if datagrid is empty and return now if so
+                // also check if selected cells count is 0
                 // this can happen after a break out or group operation reduces a datagrid to empty
                 // the system seems to try to do another "can execute" test after the command has executed
                 if (dg.ItemsSource == null) return;
+                if (dg.SelectedCells.Count == 0) return;
                 DataGridTextColumn col = (DataGridTextColumn)(dg.SelectedCells[0].Column);
                 Packet p = (Packet)(dg.SelectedCells[0].Item);
-                
+
+                foreach (tdggroupingaxis a in axes) if ((string)(col.Header) == a.datagridcolname) if (a.ischecked) { e.CanExecute = (a.getkey(p) != null); break; }
+
+                /*
                 switch (col.Header)
                 {
                     case "IP":
@@ -1007,6 +1201,7 @@ namespace pviewer5
                         break;
 
                 }
+                */
             }
             else if (menu.PlacementTarget.GetType() == typeof(TextBlock))
             {

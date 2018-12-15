@@ -165,6 +165,140 @@ namespace pviewer5
     }
 
 
+    [Serializable]
+    public struct IP4Pair : IComparable<IP4Pair>
+    // a pair of IP4s, stored as "src" and "dest",
+    // but with comparison operators being based on the sorted pair
+    // so that to IP4Pairs will be "equal" if they have the same two addresses in either order
+    // and so that sorting will work
+    // arithmetic operators will use the addresses in src/dest order
+    // ALSO, this has a special case "equality" operator where the other operand is only a single IP4 - this will return "equal" if either src or dest equals the operand
+    {
+        public uint src;
+        public uint dest;
+
+        public IP4Pair(IP4 a, IP4 b)
+        {
+            src = a.A;
+            dest = b.A;
+        }
+
+        public override bool Equals(object a)
+        {
+            if (a == DependencyProperty.UnsetValue) return false;
+            else return (this == (IP4Pair)a);
+        }
+        public override int GetHashCode() { return src.GetHashCode()+dest.GetHashCode(); }
+        // IP4 has a custom conversion operator (for casting a uint to an IP4) - don't need this for an IP4Pair, not sure how to define it anyway
+        // public static implicit operator IP4(uint i) { IP4 r = new IP4(); r.A = i; return r; }
+        public static IP4Pair operator +(IP4Pair a, IP4Pair b) { IP4Pair r = new IP4Pair(); r.src = a.src + b.src; r.dest = a.dest + b.dest; return r; }
+        public static IP4Pair operator *(IP4Pair a, IP4Pair b) { IP4Pair r = new IP4Pair(); r.src = a.src * b.src; r.dest = a.dest * b.dest; return r; }
+        public static IP4Pair operator &(IP4Pair a, IP4Pair b) { IP4Pair r = new IP4Pair(); r.src = a.src & b.src; r.dest = a.dest & b.dest; return r; }
+        public static IP4Pair operator |(IP4Pair a, IP4Pair b) { IP4Pair r = new IP4Pair(); r.src = a.src | b.src; r.dest = a.dest | b.dest; return r; }
+
+        public static IP4Pair IP4PairSort(IP4Pair a)
+        {
+            uint temp;
+            if (a.src > a.dest)
+            {
+                temp = a.src;
+                a.src = a.dest;
+                a.dest = temp;
+            }
+            return a;
+        }
+
+        public static bool operator ==(IP4Pair a, IP4Pair b) { IP4Pair asort = IP4PairSort(a); IP4Pair bsort = IP4PairSort(b); return ((asort.src == bsort.src) && (asort.dest == bsort.dest)); }
+        public static bool operator !=(IP4Pair a, IP4Pair b) { IP4Pair asort = IP4PairSort(a); IP4Pair bsort = IP4PairSort(b); return ((asort.src != bsort.src) || (asort.dest != bsort.dest)); }
+        public static bool operator <=(IP4Pair a, IP4Pair b) { IP4Pair asort = IP4PairSort(a); IP4Pair bsort = IP4PairSort(b); if (asort.src < bsort.src) return true; else if (asort.src == bsort.src) return (asort.dest <= bsort.dest); else return false; }
+        public static bool operator <(IP4Pair a, IP4Pair b)  { IP4Pair asort = IP4PairSort(a); IP4Pair bsort = IP4PairSort(b); if (asort.src < bsort.src) return true; else if (asort.src == bsort.src) return (asort.dest < bsort.dest); else return false; }
+        public static bool operator >=(IP4Pair a, IP4Pair b) { IP4Pair asort = IP4PairSort(a); IP4Pair bsort = IP4PairSort(b); if (asort.src > bsort.src) return true; else if (asort.src == bsort.src) return (asort.dest >= bsort.dest); else return false; }
+        public static bool operator >(IP4Pair a, IP4Pair b)  { IP4Pair asort = IP4PairSort(a); IP4Pair bsort = IP4PairSort(b); if (asort.src > bsort.src) return true; else if (asort.src == bsort.src) return (asort.dest >  bsort.dest); else return false; }
+
+        public static bool operator ==(IP4Pair a, IP4 b) { return ((a.src == b.A) || (a.dest == b.A)); }
+        public static bool operator !=(IP4Pair a, IP4 b) { return ((a.src != b.A) && (a.dest != b.A)); }
+
+        public int CompareTo(IP4Pair a)
+        {
+            int r;
+
+            r = this.src.CompareTo(a.src);
+            if (r != 0) return r;
+            else return this.dest.CompareTo(a.dest);
+        }
+
+        public override string ToString() { return ToString(false, true); }
+
+        public string ToString(bool inverthex, bool usealiasesthistime)
+        {
+            return ("SRC=" + ((IP4)src).ToString(inverthex, usealiasesthistime) + ",DEST=" + ((IP4)dest).ToString(inverthex, usealiasesthistime));
+        }
+
+        public string ToStringAlts()
+        {
+            return ("SRC=" + ((IP4)src).ToStringAlts() + ",DEST=" + ((IP4)dest).ToStringAlts());
+        }
+
+/*
+ * not implementing this function right now, not sure whether needed nor what the right analog to IP4.TryParse would be
+        public bool TryParse(string s)
+        // tries to parse string into A
+        // first tries to parse a simple number, respecting global Hex flag
+        // if that fails, tries to parse as a numerical dot format address, respecting global Hex flag
+        // if that fails, checks for match of an alias
+        // if no match or any errors, returns false and does not assign value
+        {
+            // first try to parse as a raw IP4 address
+            string[] IP4bits = new string[4];
+            NumberStyles style = (GUIUtil.Instance.Hex ? NumberStyles.HexNumber : NumberStyles.Integer);
+            string regexIP4 = (GUIUtil.Instance.Hex ? "^(0*[a-fA-F0-9]{0,2}.){0,3}0*[a-fA-F0-9]{0,2}$" : "^([0-9]{0,3}.){0,3}[0-9]{0,3}$");
+
+            try
+            {
+                A = uint.Parse(s, style);
+                return true;
+            }
+            // if could not parse as simple number
+            catch (FormatException ex)
+            {
+                // try parsing as dot notation
+                if (Regex.IsMatch(s, regexIP4))
+                {
+                    IP4bits = Regex.Split(s, "\\.");
+                    // resize array to 4 - we want to tolerate missing dots, i.e., user entering less than 4 segments,
+                    // split will produce array with number of elements equal to nmber of dots + 1
+                    Array.Resize<string>(ref IP4bits, 4);
+
+                    for (int i = 0; i < 4; i++) { IP4bits[i] = "0" + IP4bits[i]; }
+
+                    try
+                    {
+                        A = uint.Parse(IP4bits[0], style) * 0x0000000001000000 +
+                            uint.Parse(IP4bits[1], style) * 0x0000000000010000 +
+                            uint.Parse(IP4bits[2], style) * 0x0000000000000100 +
+                            uint.Parse(IP4bits[3], style) * 0x0000000000000001;
+                        return true;
+                    }
+                    catch { }
+                }
+                // if we have gotten this far, s was not parsed as a simple number or dot notation number, so check if it is a valid alias
+                foreach (IP4AliasMap.inmtable.inmtableitem it in IP4AliasMap.Instance.table)
+                    if (s == it.alias)
+                    {
+                        A = it.IP4.A;
+                        return true;
+                    }
+
+                // if we get to here, s could not be parsed in any valid way, so return false;
+                return false;
+            }
+
+        }
+*/
+    }
+
+
+
 
 
     public class IP4AliasMap : INotifyPropertyChanged
@@ -716,6 +850,7 @@ namespace pviewer5
         public uint Checksum { get; set; }
         public IP4 SrcIP4 { get; set; }
         public IP4 DestIP4 { get; set; }
+        public IP4Pair SrcDestIP4 { get; set; }
         public uint OptionLen { get; set; }
 
         public override string displayinfo
@@ -751,6 +886,7 @@ namespace pviewer5
             Checksum = (uint)pkt.PData[i++]  * 0x0100 + (uint)pkt.PData[i++] ;
             SrcIP4 = (IP4)pkt.PData[i++]  * 0x01000000 + (IP4)pkt.PData[i++]  * 0x00010000 + (IP4)pkt.PData[i++]  * 0x0100 + (IP4)pkt.PData[i++] ;
             DestIP4 = (IP4)pkt.PData[i++]  * 0x01000000 + (IP4)pkt.PData[i++]  * 0x00010000 + (IP4)pkt.PData[i++]  * 0x0100 + (IP4)pkt.PData[i++] ;
+            SrcDestIP4 = new IP4Pair(SrcIP4, DestIP4);
 
             OptionLen = (HdrLen * 4) - 0x14;
             i += OptionLen;
@@ -767,6 +903,7 @@ namespace pviewer5
             pkt.ProtOuter = Protocols.IP4;
             pkt.SrcIP4 = SrcIP4;
             pkt.DestIP4 = DestIP4;
+            pkt.SrcDestIP4 = SrcDestIP4;
             pkt.ip4hdr = this;
 
             // add to header list
