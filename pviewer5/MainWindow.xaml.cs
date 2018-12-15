@@ -60,6 +60,7 @@ namespace pviewer5
         public ObservableCollection<tdgnode> root { get; set; }     // this has to be a list so that it will bind correctly to TreeView
         public List<tdggroupingaxis> axes { get; set; } = new List<tdggroupingaxis>();
         public List<Packet> pkts = new List<Packet>();
+        public List<PcapFile.SectionHeader> PcapSHList = new List<PcapFile.SectionHeader>();
 
 
         public static RoutedCommand tdg_break_out_cmd = new RoutedCommand();

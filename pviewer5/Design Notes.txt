@@ -4,11 +4,15 @@
 
 next steps:
 
+	0.1) make tree and datagrid auto-update when hex and alias flags change
+	0.2) clean up gui for aliases
+	0.3) save/restore alias tables
+
+
 	1) support more axes (srcip4, destip4, unionip4 for starters)
-			add cols to datagrid
-			add handling logic for group/breakout
 	1.2) show number of packets under each node
 	1.5) enable append packets command
+		need to keep master list of grouped items on each axis
 	1.6) test/fix up filtering
 	1.7) test/fix up address/domain name mapping
 	
@@ -25,9 +29,18 @@ next steps:
 		- group/break out all
 		- command on nodes as well as leaves
 
-	xxxx) make pcap file reading more robust (e.g. handl multiple sections, more block types) - see pcap ng spec doc on github 
+	xxxx) make pcap file reading more robust (e.g. handle multiple sections, more block types) - see pcap ng spec doc on github
+		handle multiple sections (either within a file, or across multiple files)
+		link each packet to its section
+		add properties to the packet to read interface information based on the IDBs in its section
+		add way to view IDBs and interface statistics blocks
 
-
+		window has master section header list
+		idbs are held within section headers
+		packets have links to their section
+		packets have interface number as well
+		one read file function that appends to pkts and shlist
+		command handlers that call the read function either wipe the lists beforehand or not
 
 
 
