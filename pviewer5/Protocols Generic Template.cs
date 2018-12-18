@@ -227,7 +227,7 @@ namespace pviewer5
 
         // public H() : base(null) {}         // need a parameter-less constructor for sublcasses to inherit from ?????
         
-        public H(FileStream fs, PcapFile pcf, Packet pkt, uint i)      // i is index into pkt.PData of start of this header
+        public H(FileStream fs, Packet pkt, uint i)      // i is index into pkt.PData of start of this header
             : base((PVDisplayObject)pkt)                        // call base constructor with parent link
         {
             
@@ -421,6 +421,8 @@ namespace pviewer5
         // convenience properties to contain copies of commonly needed values,
         // so that other functions do not need to search through header list to find them
         public ulong SeqNo = 0; // absolute sequence number in packet file
+        public PcapSection PcapSection = null;  // pointer to PcapNG file section header block that applies to this packet (null if not an NG file)
+        public uint InterfaceIndex = 0;  // index into list of interfaces in the PcapNG file section (0 if not an NG file)
         public Protocols Prots { get; set; } = Protocols.Generic;     // flags for protocols present in this packet
         public Protocols ProtOuter { get; set; } = Protocols.Generic;   // flag for "outermost" protcol - each header constructor will replace the previous value with its own
         public DateTime Time = new DateTime(0);
@@ -472,26 +474,22 @@ namespace pviewer5
                 else return FiltersPassed;
             }
         }
-
-/* do we need this?
         public Packet() : base(null) // empty constructor, constructs a packet with no data or headers
         {
             L = new ObservableCollection<PVDisplayObject>();
             PData = new byte[0];
         }
-        */
 
-        public Packet() : base(null)
+        public Packet(FileStream fs, List<PcapSection> sections, ref PcapSection currsection) : base(null)
+        // constructor does not have a parent argument, because at the time a packet is instantiated its parent cannot be known yet
+        // NOTE: THIS CONSTRUCTOR CAN RETURN AN "EMPTY" PACKET, 
+        // if fs is null, or if it reaches the end of the file on a non-packet block
+        // caller must check for this:
+        // empty packet is indicated by PData having a length of 0
         {
-
-        }
-
-        public Packet(FileStream fs, PcapFile pfh) : base(null)     // constructor does not have a parent argument, because at the time a packet is instantiated its parent cannot be known yet
-        {
+            uint initialbytes;
+            uint blocklen;
             PcapH pch;
-
-            L = new ObservableCollection<PVDisplayObject>();
-            Prots = 0;
 
             if (fs == null)     // if fs is null, create an empty packet and return
             {
@@ -499,13 +497,82 @@ namespace pviewer5
                 return;
             }
 
+            if (fs.Position == 0)   // we are at beginning of file, so read first block as a section header
+            {
+                // look at next 4 bytes to determine type of file
+                initialbytes = (uint)fs.ReadByte() * 0x01000000 + (uint)fs.ReadByte() * 0x00010000 + (uint)fs.ReadByte() * 0x00000100 + (uint)fs.ReadByte();
+                fs.Seek(-4, SeekOrigin.Current);  // reset to beginning of block
+
+                // if initial bytes are 0a0d0d0a, then this is a PcapNG format file
+                currsection = new PcapSection(fs, (initialbytes==0x0a0d0d0a));
+                sections.Add(currsection);
+            }
+
+            PcapSection = currsection;
+
+            if (currsection.NG)  // if this is an NG format file, handle any non-packet blocks
+                // for "old" format files, all blocks after the first in the file are packets so we can skip this step
+            {
+                do
+                {
+                    // look at next 4 bytes to determine type of block
+                    byte[] d = new byte[8];
+                    fs.Read(d, 0, 8);
+                    fs.Seek(-8, SeekOrigin.Current);  // rewind
+                    initialbytes = (currsection.bigendian ? PCutil.flip32(d, 0) : BitConverter.ToUInt32(d, 0));
+                    blocklen = (currsection.bigendian ? PCutil.flip32(d, 4) : BitConverter.ToUInt32(d, 4));
+
+                    switch (initialbytes)
+                    {
+                        case 0x06:  // enhanced packet block
+                            break;
+                        case 0x0a0d0d0a:    // new section header
+                            currsection = new PcapSection(fs, true);
+                            sections.Add(currsection);
+                            break;
+                        case 0x01:          // interface description block
+                            currsection.ifs.Add(new PcapInterfaceDescription(fs, currsection.bigendian));
+                            break;
+                        case 0x02:          // "packet block"
+                            MessageBox.Show(String.Format("PCAP-NG file type, unexpected block type 2 = packet block, which is obsolete"));
+                            fs.Seek(blocklen, SeekOrigin.Current);
+                            break;
+                        case 0x03:          // "Simple packet block"
+                            MessageBox.Show(String.Format("PCAP-NG file type, unhandled block type 3 = Simple Packet Block"));
+                            fs.Seek(blocklen, SeekOrigin.Current);
+                            break;
+                        case 0x04:          // name resolution block
+                            MessageBox.Show(String.Format("PCAP-NG file type, unhandled block type 4, Name Resolution Block"));
+                            fs.Seek(blocklen, SeekOrigin.Current);
+                            break;
+                        case 0x05:          // interface statistics block
+                            fs.Seek(blocklen, SeekOrigin.Current);
+                            break;
+                        default:           // unrecognized block type
+                            MessageBox.Show(String.Format("PCAP-NG file type, unrecognized block type {0:X8} found", initialbytes));
+                            fs.Seek(blocklen, SeekOrigin.Current);
+                            break;
+                    }
+                } while ((fs.Position < fs.Length) && (initialbytes != 0x06));
+            }
+
+            L = new ObservableCollection<PVDisplayObject>();
+            Prots = 0;
+
+            // check if at end of file - this can happen if we are in an NG file and the last block is a non-packet block
+            // if so, we need to return an empty packet
+            if (fs.Position == fs.Length)
+            {
+                PData = new byte[0];
+                return;
+            }
+
             // instantiate pcap header - that constructor will start cascade of constructors for inner headers
             // PcapH constructor will also read all non-header data in
-            pch = new PcapH(fs, pfh, this, 0);
+            pch = new PcapH(fs, currsection, this, 0);
 
-            if (pfh.Type == PcapFile.PcapFileTypes.PcapNG)
-                fs.Seek((long)(pch.NGBlockLen - 0x1c - pch.CapLen), SeekOrigin.Current);       // skip over any padding bytes, options and trailing block length field
-
+            // skip over any options there may be after packet data
+            if (currsection.NG) fs.Seek((long)(pch.NGBlockLen - 0x1c - pch.CapLen), SeekOrigin.Current);       // skip over any padding bytes, options and trailing block length field
             // set the treeview grouping properties
             IP4Srcg = SrcIP4;
             IP4Destg = DestIP4;

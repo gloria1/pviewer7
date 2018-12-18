@@ -37,7 +37,7 @@ namespace pviewer5
             }
         }
 
-        public UDPH(FileStream fs, PcapFile pfh, Packet pkt, uint i) : base(fs, pfh, pkt, i)
+        public UDPH(FileStream fs, Packet pkt, uint i) : base(fs, pkt, i)
         {
 
             if ((pkt.Len - i) < 0x8) return;
@@ -62,9 +62,9 @@ namespace pviewer5
             pkt.L.Add(this);
 
             if ((SrcPort == 0x43) || (SrcPort == 0x44) || (DestPort == 0x43) || (DestPort == 0x44))     // DHCP v4
-                new DHCP4H(fs, pfh, pkt, i);
+                new DHCP4H(fs, pkt, i);
             else if ((SrcPort == 0x35) || (DestPort == 0x35))                                           // DNS
-                new DNSH(fs, pfh, pkt, i);
+                new DNSH(fs, pkt, i);
 
         }
     }

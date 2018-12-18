@@ -60,8 +60,7 @@ namespace pviewer5
         public ObservableCollection<tdgnode> root { get; set; }     // this has to be a list so that it will bind correctly to TreeView
         public List<tdggroupingaxis> axes { get; set; } = new List<tdggroupingaxis>();
         public List<Packet> pkts = new List<Packet>();
-        public List<PcapFile.SectionHeader> PcapSHList = new List<PcapFile.SectionHeader>();
-
+        public List<PcapSection> PcapSHList = new List<PcapSection>();
 
         public static RoutedCommand tdg_break_out_cmd = new RoutedCommand();
         public static RoutedCommand tdg_group_cmd = new RoutedCommand();
@@ -239,7 +238,7 @@ namespace pviewer5
             foreach (Window w in Application.Current.Windows) if (w != this) w.Close();
         }
 
-		private void ChoosePCAPFiles(object sender, RoutedEventArgs e)      // load a set of packetfiles, selected in a file chooser
+		private void LoadPCAPFiles(object sender, RoutedEventArgs e)      // load a set of packetfiles, selected in a file chooser
 		{
 			OpenFileDialog dlg = new OpenFileDialog();
 			Nullable<bool> result;
@@ -254,11 +253,11 @@ namespace pviewer5
                 PacketFileNames.Clear();
                 pkts.Clear();
                 pktseqno = 0;
-                // foreach (GList gl in grouplistlist.L) gl.L.Clear();
+                foreach (GList gl in grouplistlist.L) gl.L.Clear();
 
                 Properties.Settings.Default.LastDirectory = dlg.InitialDirectory;
                 foreach (string fn in dlg.FileNames) PacketFileNames.Add(fn);
-                LoadPCAPFiles(PacketFileNames, false);
+                ReadPCAPFiles(PacketFileNames, false);
 
                 filters.ChangedSinceApplied = false;
                 RefreshViews(root[0]);
@@ -268,9 +267,9 @@ namespace pviewer5
         {
             pkts.Clear();
             pktseqno = 0;
-            // foreach (GList gl in grouplistlist.L) gl.L.Clear();
+            foreach (GList gl in grouplistlist.L) gl.L.Clear();
 
-            LoadPCAPFiles(PacketFileNames, false);
+            ReadPCAPFiles(PacketFileNames, false);
 
             filters.ChangedSinceApplied = false;
             RefreshViews(root[0]);
@@ -295,39 +294,42 @@ namespace pviewer5
                 {
                     PacketFileNames.Add(fn);
                     fnl[0] = fn;
-                    LoadPCAPFiles(fnl, true);
+                    ReadPCAPFiles(fnl, true);
                 }
                 RefreshViews(root[0]);
             }
         }
-        private void LoadPCAPFiles(ObservableCollection<string> filenames, bool appendflag)     // load or append a set of packetfiles, based on a list of filenames
+        private void ReadPCAPFiles(ObservableCollection<string> filenames, bool appendflag)     // load or append a set of packetfiles, based on a list of filenames
         {
-            PcapFile pfh;
             FileStream fs;
             Packet pkt;
+            List<Packet> pktstemp = new List<Packet>();
+            PcapSection currsection = null;
 
             if (appendflag == false)
             {
-                pktseqno = 0;
                 pkts.Clear();
-                // foreach (GList gl in grouplistlist.L) gl.L.Clear();
+                PcapSHList.Clear();
+                foreach (GList gl in grouplistlist.L) gl.L.Clear();
             }
 
             foreach (string fn in filenames)
             {
+                currsection = null;
                 fs = new FileStream(fn, FileMode.Open);
                 Properties.Settings.Default.LastFile = fn;
                 FileLoaded = true;
 
-                pfh = new PcapFile(fs);
-
                 while (fs.Position < fs.Length)
                 {
-                    pkt = new Packet(fs, pfh);
+                    pkt = new Packet(fs, PcapSHList, ref currsection);
+                    if (pkt.PData.Length == 0) continue;  // if constructor reached end of file on a non-packet block, it will return an "empty" packet, so skip further processing
                     pkt.SeqNo = pktseqno++;    // assign sequence number - this is done now so that excluded packets will get sequence numbers
                     if (filters.Include(pkt))
                     {
-                        pkts.Add(pkt);
+                        if (appendflag) pktstemp.Add(pkt);
+                        else pkts.Add(pkt);
+                        
                         foreach (GList gl in grouplistlist.L)
                             if (gl.GroupPacket(pkt))
                             {
@@ -336,8 +338,13 @@ namespace pviewer5
                             }
                     }
                 }
-                root[0] = BuildTreeNode2(null, pkts);
                 fs.Close();
+                if (appendflag)
+                {
+                    tdgnode newtree = BuildTreeNode2(null, pktstemp);
+                    root[0] = MergeTwoNodes(root[0], newtree, 1);
+                }
+                else root[0] = BuildTreeNode2(null, pkts);
             }
 
 

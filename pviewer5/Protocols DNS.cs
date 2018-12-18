@@ -634,7 +634,7 @@ namespace pviewer5
         }
 
 
-        public DNSH(FileStream fs, PcapFile pfh, Packet pkt, uint i) : base(fs, pfh, pkt, i)
+        public DNSH(FileStream fs, Packet pkt, uint i) : base(fs, pkt, i)
         {
             DNSRRList newlist;
             uint pdataindex;  // index into PData of start of this header - used to convert RDATA values, which are indexed relative to start of DNS header, into indices into PData

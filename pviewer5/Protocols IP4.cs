@@ -866,7 +866,7 @@ namespace pviewer5
         }
 
 
-        public IP4H(FileStream fs, PcapFile pfh, Packet pkt, uint i) : base(fs, pfh, pkt, i)
+        public IP4H(FileStream fs, Packet pkt, uint i) : base(fs, pkt, i)
         {
             if ((pkt.Len - i) < 0x1) return;
             HdrLen = (uint)pkt.PData[i++] ;
@@ -912,17 +912,17 @@ namespace pviewer5
             switch (Prot)
             {
                 case 0x01: //L4Protocol = Protocols.ICMP;
-                    new ICMPH(fs, pfh, pkt, i);
+                    new ICMPH(fs, pkt, i);
                     break;
                 case 0x02: // L4Protocol = Protocols.IGMP;
                     break;
                 case 0x03: // L4Protocol = Protocols.GGP;
                     break;
                 case 0x06: //L4Protocol = Protocols.TCP;
-                    new TCPH(fs, pfh, pkt, i);
+                    new TCPH(fs, pkt, i);
                     break;
                 case 0x11: // L4Protocol = Protocols.UDP;
-                    new UDPH(fs, pfh, pkt, i);
+                    new UDPH(fs, pkt, i);
                     break;
 
                 default:

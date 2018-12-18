@@ -399,7 +399,8 @@
 
         </HierarchicalDataTemplate>
         <HierarchicalDataTemplate DataType="{x:Type local:tdgleaf}">
-            <TreeViewItem Header="{Binding displayinfo}">
+            <TreeViewItem Header="{Binding displayinfo}"
+                                              IsExpanded="{Binding Path=IsExpanded,Mode=TwoWay}">
                 <DataGrid
 			        EnableColumnVirtualization="True"
 			        EnableRowVirtualization="True"
@@ -474,7 +475,7 @@
                        Grid.ColumnSpan="2"
                        Grid.Row="0"
                        Margin="5,5,5,5">
-                    <Button Content="Load" Click="ChoosePCAPFiles"/>
+                    <Button Content="Load" Click="LoadPCAPFiles"/>
                     <Button Content="Reload" Click="ReloadPCAPFiles" IsEnabled="{Binding Path=FileLoaded, Mode=TwoWay}"/>
                     <Button Content="Append" Click="AppendPCAPFiles"/>
                     <Label Content="Current File(s)= "/>

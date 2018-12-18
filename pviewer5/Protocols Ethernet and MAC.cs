@@ -693,7 +693,7 @@ namespace pviewer5
         public override string displayinfo { get { return "Ethernet header"; } }
 
 
-        public EthernetH(FileStream fs, PcapFile pfh, Packet pkt, uint i) : base(fs, pfh, pkt, i)
+        public EthernetH(FileStream fs, Packet pkt, uint i) : base(fs, pkt, i)
         {
             if ((pkt.Len - i) < 0xe) return;
             DestMAC = (ulong)pkt.PData[i++] * 0x0010000000000 + (ulong)pkt.PData[i++] * 0x000100000000 + (ulong)pkt.PData[i++] * 0x000001000000 + (ulong)pkt.PData[i++]  * 0x000000010000 + (ulong)pkt.PData[i++]  * 0x000000000100 + (ulong)pkt.PData[i++] ;
@@ -718,10 +718,10 @@ namespace pviewer5
             switch (TypeLen)
             {
                 case 0x800: //L3Protocol = Protocols.IP4;
-                    new IP4H(fs, pfh, pkt, payloadindex);
+                    new IP4H(fs, pkt, payloadindex);
                     break;
                 case 0x806:
-                    new ARPH(fs, pfh, pkt, payloadindex);
+                    new ARPH(fs, pkt, payloadindex);
                     break;
                 case 0x8dd: // L3Protocol = Protocols.IPv6;
                     break;

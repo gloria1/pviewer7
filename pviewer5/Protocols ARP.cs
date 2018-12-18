@@ -55,7 +55,7 @@ namespace pviewer5
             }
         }
 
-        public ARPH(FileStream fs, PcapFile pfh, Packet pkt, uint i) : base(fs, pfh, pkt, i)
+        public ARPH(FileStream fs, Packet pkt, uint i) : base(fs, pkt, i)
         {
             if ((pkt.Len - i) < 0x8) return;
             HWType = (uint)pkt.PData[i++]  * 0x100 + (uint)pkt.PData[i++] ;

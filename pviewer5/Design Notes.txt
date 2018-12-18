@@ -29,11 +29,16 @@ next steps:
 		- group/break out all
 		- command on nodes as well as leaves
 
-	xxxx) make pcap file reading more robust (e.g. handle multiple sections, more block types) - see pcap ng spec doc on github
-		handle multiple sections (either within a file, or across multiple files)
-		link each packet to its section
-		add properties to the packet to read interface information based on the IDBs in its section
-		add way to view IDBs and interface statistics blocks
+	xxxx) display pcap file information for a packet or a file
+		add properties to the packet to read section and interface information 
+		add way to view IDBs and interface statistics blocks for a file
+
+
+
+
+		simplify file header
+			maybe can get rid of it? - special section type for "nonNG" file
+			what do the fields get used for - 
 
 		window has master section header list
 		idbs are held within section headers

@@ -67,7 +67,7 @@ namespace pviewer5
             }
         }
 
-        public TCPH(FileStream fs, PcapFile pfh, Packet pkt, uint i) : base(fs, pfh, pkt, i)
+        public TCPH(FileStream fs, Packet pkt, uint i) : base(fs, pkt, i)
         {
             uint temp;
             uint optionbytes;

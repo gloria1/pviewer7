@@ -50,7 +50,7 @@ namespace pviewer5
             }
         }
 
-        public DHCP4H(FileStream fs, PcapFile pfh, Packet pkt, uint i) : base(fs, pfh, pkt, i)
+        public DHCP4H(FileStream fs, Packet pkt, uint i) : base(fs, pkt, i)
         {
 
             // if not enough data remaining, return without reading anything 
